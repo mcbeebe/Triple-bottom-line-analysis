@@ -28,9 +28,12 @@ export interface DsStepFooterOpts {
   step: number;
   backAct: string;
   skipAct: string;
+  /** Disable Skip to answer (e.g. no cars chosen); pair with `describedBy` pointing at the visible reason. */
+  skipDisabled?: boolean;
+  describedBy?: string;
 }
 
 /** Back (disabled on step 1) and "Skip to answer", in a labeled nav. */
 export function dsStepFooter(o: DsStepFooterOpts): string {
-  return `<nav class="ds-step-nav" aria-label="Step navigation">${dsButton({ label: 'Back', act: o.backAct, variant: 'link', disabled: o.step <= 1 })}${dsButton({ label: 'Skip to answer', act: o.skipAct, variant: 'link' })}</nav>`;
+  return `<nav class="ds-step-nav" aria-label="Step navigation">${dsButton({ label: 'Back', act: o.backAct, variant: 'link', disabled: o.step <= 1 })}${dsButton({ label: 'Skip to answer', act: o.skipAct, variant: 'link', disabled: o.skipDisabled, describedBy: o.skipDisabled ? o.describedBy : undefined })}</nav>`;
 }

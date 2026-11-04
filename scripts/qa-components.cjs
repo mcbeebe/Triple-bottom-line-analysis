@@ -53,13 +53,13 @@ const active = (page) => page.evaluate(() => {
         overflow: document.documentElement.scrollWidth - window.innerWidth,
         counts: Object.fromEntries(Object.entries({
           primary: '.ds-btn-primary', secondary: '.ds-btn-secondary', link: '.ds-btn-link', chip: '.ds-chip', option: '.ds-option',
-          step: '.ds-step', stepNav: '.ds-step-nav', field: '.ds-field', card: '.ds-card', cardTop: '.ds-card-top', disc: '.ds-disc', sheet: '[data-sheet="sg-sheet"]'
+          step: '.ds-step', stepNav: '.ds-step-nav', slider: '.ds-slider input[type=range]', check: '.ds-check input[type=checkbox]', status: '.ds-status', field: '.ds-field', card: '.ds-card', cardTop: '.ds-card-top', disc: '.ds-disc', sheet: '[data-sheet="sg-sheet"]'
         }).map(([k, sel]) => [k, document.querySelectorAll(sel).length]))
       }));
       const c = st.counts;
       check(`${label}: guide shown, scorecard hidden, theme applied`, st.guide && !st.main && st.theme === theme);
       check(`${label}: no horizontal overflow`, st.overflow <= 0, `overflow=${st.overflow}`);
-      check(`${label}: every component renders`, c.primary >= 2 && c.secondary >= 1 && c.link >= 3 && c.chip >= 7 && c.option === 4 && c.step === 2 && c.stepNav === 2 && c.field >= 3 && c.card >= 2 && c.cardTop === 1 && c.disc === 2 && c.sheet === 1, JSON.stringify(c));
+      check(`${label}: every component renders`, c.primary >= 2 && c.secondary >= 1 && c.link >= 3 && c.chip >= 7 && c.option === 4 && c.step === 2 && c.stepNav === 2 && c.field >= 3 && c.card >= 2 && c.cardTop === 1 && c.disc === 2 && c.sheet === 1 && c.slider === 1 && c.check === 3 && c.status === 4, JSON.stringify(c));
       const small = await page.evaluate((sel) => [...document.querySelectorAll(sel)]
         .filter((el) => el.getClientRects().length)
         .map((el) => { const r = el.getBoundingClientRect(); return { w: r.width, h: r.height, d: el.outerHTML.slice(0, 60) }; })

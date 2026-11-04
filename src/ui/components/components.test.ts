@@ -7,6 +7,9 @@ import { dsOptionCard } from './optionCard';
 import { dsDisclosure } from './disclosure';
 import { dsField } from './field';
 import { dsSheet } from './sheet';
+import { dsCheckRow } from './checkRow';
+import { dsSlider } from './slider';
+import { dsStatusLabel } from './statusLabel';
 
 const EVIL = '<img src=x onerror="alert(1)">&';
 const SAFE = '&lt;img src=x onerror=&quot;alert(1)&quot;&gt;&amp;';
@@ -184,5 +187,67 @@ describe('dsSheet', () => {
     expect(h).toContain(SAFE);
     expect(h).toContain('data-sheet-close');
     expect(h).toContain('>Close</button>');
+  });
+});
+
+describe('dsCheckRow', () => {
+  it('is a real checkbox with a label, value and detail linked by aria-describedby', () => {
+    const h = dsCheckRow({ id: 'pick-bolt', name: 'Chevrolet Bolt LT (2027)', detail: '$28,995', value: 'bolt', act: 'st-pick', checked: true });
+    expect(h).toContain('<input type="checkbox" class="ds-check-input" id="pick-bolt" value="bolt" data-act="st-pick" aria-describedby="pick-bolt-detail" checked>');
+    expect(h).toContain('<label for="pick-bolt" class="ds-check-label">');
+    expect(h).toContain('<span class="ds-check-detail" id="pick-bolt-detail">$28,995</span>');
+    expect(h).toContain('ds-check ds-check-on');
+    expect(h).toContain('class="ds-check-box" aria-hidden="true"');
+  });
+
+  it('can be disabled with an extra description id, and escapes text', () => {
+    const h = dsCheckRow({ id: 'p', name: EVIL, detail: EVIL, value: 'v', act: 'st-pick', disabled: true, describedBy: 'limit-msg' });
+    expect(h).toContain('aria-describedby="p-detail limit-msg" disabled>');
+    expect(h).not.toContain(' checked');
+    expect(count(h, SAFE)).toBe(2);
+  });
+});
+
+describe('dsSlider', () => {
+  it('is a labeled range input with a spoken value and a visible readout', () => {
+    const h = dsSlider({ id: 'miles', label: 'Miles per year', value: 7500, min: 1000, max: 25000, step: 500, name: 'miles', unitText: 'miles a year' });
+    expect(h).toContain('<label for="miles" class="ds-label">Miles per year</label>');
+    expect(h).toContain('type="range" id="miles" min="1000" max="25000" step="500" value="7500"');
+    expect(h).toContain('aria-valuetext="7,500 miles a year"');
+    expect(h).toContain('data-slider="miles" data-unit-text="miles a year"');
+    expect(h).toContain('<output class="ds-slider-out" for="miles" id="miles-out">7,500</output>');
+    expect(h).toContain('1,000 to 25,000 miles a year.');
+  });
+
+  it('includes an optional status label', () => {
+    expect(dsSlider({ id: 'm', label: 'L', value: 1, min: 0, max: 2, step: 1, name: 'm', unitText: 'u', statusHtml: '<span>S</span>' })).toContain('<span>S</span>');
+  });
+});
+
+describe('dsStatusLabel', () => {
+  it('marks assumed values as Placeholder', () => {
+    expect(dsStatusLabel({ kind: 'placeholder' })).toBe('<span class="ds-status ds-status-ph">Placeholder</span>');
+  });
+
+  it('marks edited values as Your number', () => {
+    expect(dsStatusLabel({ kind: 'yours' })).toBe('<span class="ds-status ds-status-yours">Your number</span>');
+  });
+
+  it('links sourced values, says the link opens a new tab, and escapes', () => {
+    const h = dsStatusLabel({ kind: 'source', label: EVIL, href: 'https://example.org/a?b=1&c=2' });
+    expect(h).toContain('<a class="ds-status ds-status-src" href="https://example.org/a?b=1&amp;c=2" target="_blank" rel="noopener">Source<span class="ds-sr">: ');
+    expect(h).toContain(SAFE);
+    expect(h).toContain(' (opens in a new tab)</span></a>');
+  });
+
+  it('refuses non-https source links', () => {
+    expect(() => dsStatusLabel({ kind: 'source', label: 'x', href: 'javascript:alert(1)' })).toThrow();
+  });
+});
+
+describe('dsStepFooter skip state', () => {
+  it('can disable Skip to answer with a reason', () => {
+    const h = dsStepFooter({ step: 3, backAct: 'b', skipAct: 's', skipDisabled: true, describedBy: 'why' });
+    expect(h).toMatch(/data-act="s" aria-describedby="why" disabled>Skip to answer/);
   });
 });

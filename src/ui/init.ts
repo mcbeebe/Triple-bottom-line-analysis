@@ -14,6 +14,7 @@ import { applyTheme, bindEvents, refreshAll } from './events';
 import { bindStyleGuide, renderStyleGuide } from './styleGuide';
 import { bindSheets, hideSheet } from './components/sheet';
 import { bindNumberFields } from './components/field';
+import { bindSliders } from './components/slider';
 
 /** Show the style guide on `#style-guide`, otherwise the scorecard (and restore the scorecard's theme). */
 function route(): void {
@@ -45,6 +46,7 @@ export function init(): void {
   void initAnalyst();
   bindSheets();
   bindNumberFields();
+  bindSliders();
   bindStyleGuide();
   window.addEventListener('hashchange', route);
   route();

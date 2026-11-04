@@ -10,6 +10,9 @@ import { dsOptionCard } from './components/optionCard';
 import { dsDisclosure } from './components/disclosure';
 import { dsField } from './components/field';
 import { dsSheet } from './components/sheet';
+import { dsCheckRow } from './components/checkRow';
+import { dsSlider } from './components/slider';
+import { dsStatusLabel } from './components/statusLabel';
 
 /** Themes the new design system supports (decision A: Field guide is not carried forward). */
 export type GuideTheme = 'ledger' | 'night';
@@ -57,6 +60,9 @@ ${section('options', 'Option buttons', `<div class="ds-guide-col ds-options" rol
 ${section('steps', 'Step header and navigation', `<div class="ds-guide-col">${dsStepHeader({ step: 1, total: 3, title: 'What are you deciding?', sub: 'Pick the closest one. You can change it later.', id: 'sg-step1', level: 3 })}${dsStepFooter({ step: 1, backAct: 'sg-noop', skipAct: 'sg-noop' })}</div>
 <div class="ds-guide-col">${dsStepHeader({ step: 2, total: 3, title: 'Your car and your driving', sub: 'Start from a preset. Values marked as placeholders are not sourced.', id: 'sg-step2', level: 3 })}${dsStepFooter({ step: 2, backAct: 'sg-noop', skipAct: 'sg-noop' })}</div>`)}
 ${section('fields', 'Fields', `<div class="ds-guide-col">${dsField({ id: 'sg-sale', label: 'What it would sell for', value: 9000, min: 1000, max: 150000, step: 250, money: true })}${dsField({ id: 'sg-miles', label: 'Miles per year', value: 7500, min: 1000, max: 25000, step: 500, unit: 'miles' })}${dsField({ id: 'sg-bad', label: 'Error state', value: 9000, min: 1000, max: 150000, step: 250, money: true, error: 'Enter an amount from $1,000 to $150,000, like 9,000.' })}</div>`, 'Type 12000 or $12,000; leaving the field adds the commas. Values outside the range are changed to the nearest allowed value, with a message.')}
+${section('slider', 'Slider', dsSlider({ id: 'sg-slider', label: 'Miles per year', value: 7500, min: 1000, max: 25000, step: 500, name: 'sg-slider', unitText: 'miles a year', statusHtml: dsStatusLabel({ kind: 'placeholder' }) }), 'Arrow keys move it one step; the readout and the spoken value say the number in words.')}
+${section('checks', 'Checkbox rows', `<fieldset class="ds-checks"><legend>Electric</legend>${dsCheckRow({ id: 'sg-c1', name: 'Chevrolet Bolt LT (2027)', detail: '$28,995', value: 'bolt', act: 'sg-check', checked: true })}${dsCheckRow({ id: 'sg-c2', name: 'Chevrolet Equinox EV LT (FWD)', detail: '$36,495 · Loan only', value: 'equinoxev', act: 'sg-check' })}${dsCheckRow({ id: 'sg-c3', name: 'Tesla Model Y', detail: '$41,630', value: 'tesla', act: 'sg-check', disabled: true, describedBy: 'sg-limit' })}</fieldset><p class="ds-guide-note" id="sg-limit">The third row shows the disabled state used at the car limit.</p>`)}
+${section('status', 'Status labels', `<div class="ds-guide-row">${dsStatusLabel({ kind: 'placeholder' })}${dsStatusLabel({ kind: 'source', label: 'KBB private-party value', href: 'https://www.kbb.com/' })}${dsStatusLabel({ kind: 'yours' })}</div>`, 'Every value on the steps says whether it is assumed, sourced, or your own.')}
 ${section('cards', 'Option cards', `<div class="ds-cards">${sampleCards()}</div>`, 'Scored live by the engine with the current inputs.')}
 ${section('disclosure', 'Disclosure', `<div class="ds-guide-col">${dsDisclosure({ id: 'sg-disc-1', title: 'All assumptions', meta: '2 edited', bodyHtml: '<p class="ds-guide-note">Every input, grouped as today.</p>' })}${dsDisclosure({ id: 'sg-disc-2', title: 'Why this result', bodyHtml: '<p class="ds-guide-note">Planet, People and Profit tables, and the sources.</p>', open: true })}</div>`)}
 ${section('sheet', 'Bottom sheet', dsButton({ label: 'Open an example sheet', act: 'open-sheet', val: 'sg-sheet', variant: 'secondary', id: 'sg-open-sheet' }), 'Escape, Close or a tap outside closes it; focus returns to the button.')}
@@ -78,6 +84,10 @@ export function setGuideTheme(t: GuideTheme): void {
 export function bindStyleGuide(): void {
   if (bound) return;
   bound = true;
+  document.addEventListener('change', (e) => {
+    const el = e.target as HTMLInputElement;
+    if (el instanceof HTMLInputElement && el.dataset.act === 'sg-check') el.closest('.ds-check')?.classList.toggle('ds-check-on', el.checked);
+  });
   document.addEventListener('click', (e) => {
     const el = (e.target as HTMLElement).closest<HTMLElement>('[data-act^="sg-"]');
     if (!el) return;
