@@ -8,7 +8,7 @@
     "typecheck": "tsc --noEmit",
     "build": "node scripts/build.mjs",
     "check": "npm run typecheck && npm test && npm run build",
-    "qa": "node scripts/qa.cjs && node scripts/qa-analyst.cjs && node scripts/qa-path.cjs && node scripts/qa-size.cjs && node scripts/qa-visual.cjs",
+    "qa": "node scripts/qa.cjs && node scripts/qa-analyst.cjs && node scripts/qa-path.cjs && node scripts/qa-components.cjs && node scripts/qa-size.cjs && node scripts/qa-visual.cjs",
     "verify": "npm run check && npm run qa"
   },
   "keywords": [],
@@ -16,6 +16,7 @@
   "license": "ISC",
   "devDependencies": {
     "@types/node": "^26.6.6",
+    "axe-core": "^4.14.0",
     "esbuild": "^0.28.2",
     "tsx": "^4.23.15",
     "typescript": "^7.0.2",

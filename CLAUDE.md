@@ -17,7 +17,7 @@ Read `docs/dev-package/README.md` first. The plan is in `docs/dev-package/04-pha
 ## Stack and commands
 - TypeScript only. ESM. esbuild bundles to a single file: `dist/index.html`.
 - `npm run check`: typecheck, unit tests (vitest), build.
-- `npm run qa`: three headless-browser suites, a bundle-size guard (5% over the Phase 0 baseline) and a pixel compare against tag `phase-0-baseline` (needs `npm i -D playwright tsx && npx playwright install chromium` once; without the tag it compares against baseline commit 89402fa).
+- `npm run qa`: four headless-browser suites (the old page's three, plus `qa-components.cjs` for the design system with axe, touch targets and sheet keyboard behavior), a bundle-size guard (5% over the baseline in `scripts/qa-size.cjs`) and a pixel compare of the old page against tag `phase-0-baseline` (needs `npm i -D playwright tsx && npx playwright install chromium` once; without the tag it compares against baseline commit 89402fa).
 - `npm run verify`: `check` then `qa`. Run before every commit.
 - `npx tsx scripts/dump.ts`: print default results (useful for sample numbers).
 
@@ -35,7 +35,8 @@ Read `docs/dev-package/README.md` first. The plan is in `docs/dev-package/04-pha
 - `src/engine.ts`, `src/data.ts`, `src/analyst.ts` (+ tests): pure logic.
 - `src/app/`: state, field registry, option selectors, formatters, analyst session, prompt bridge and `AnalystClient`. No DOM; imports only core and app.
 - `src/ui/`: rendering and events. `answer/` (verdict, cards, why, table, fineTune), `steps/` (decision, cars), `analyst/sheet.ts`, `controls.ts`, `events.ts`, `init.ts`, and `refresh.ts` (renderer hub that keeps the import graph acyclic).
-- `src/ui.ts`: one-line re-export of `init` for `main.ts`. `src/style.css`, `src/template.html`: unchanged until Phase 1.
+- `src/ui/tokens.css` (Ledger and Night design tokens), `src/ui/components.css` (`ds-` classes only), `src/ui/components/` (`ds*` HTML renderers: button, chip, option button, step header, option card, disclosure, field, sheet), `src/ui/styleGuide.ts` (hidden `#style-guide` view). New UI uses these; `src/style.css` styles only the old page until Phase 3 retires it.
+- `src/ui.ts`: one-line re-export of `init` for `main.ts`.
 - Imports only go downward (ui -> app -> core); `src/modules.test.ts` fails on cycles, upward imports or exports without JSDoc.
 - `scripts/`: build, QA suites, dump.
 - `docs/ux-options/`: mockup generator and the approved design page.
