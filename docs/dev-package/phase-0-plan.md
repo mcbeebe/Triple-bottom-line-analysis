@@ -1,6 +1,6 @@
 # Phase 0 plan: safety net and module split
 
-Status: **waiting for owner approval** (Nov 4, 2026). Nothing in `src/` has changed yet.
+Status: **approved Nov 4, 2026; built on branch `phase-0-module-split`.** Results are at the end of this file.
 
 Baseline measured in this session, tagged `phase-0-baseline`:
 
@@ -105,3 +105,21 @@ About half a day of build time once approved, matching `04-phases.md`.
 - **Approve this plan**, or change the move map.
 - **Create the GitHub repo.** Repo creation is blocked from this cloud session (only repository-scoped GitHub API calls are allowed). Create an empty `mcbeebe/tbl-scorecard` (no README, no license, private recommended) and grant the Claude GitHub App access at https://claude.ai/connect-github. The local repo has the baseline commit and the `phase-0-baseline` tag ready to push.
 - Not needed yet, but due before Phase 2 (from `08-open-decisions.md`): default current-car preset (7), default compared cars (8), mobile car limit (9). Decision 4 (plain TypeScript) is assumed for Phase 1.
+
+## Results (Nov 4, 2026)
+
+| Check | Baseline | After split |
+| --- | --- | --- |
+| Unit tests | 121 | 160 (121 unchanged + 31 module tests + 8 `ArtifactSampleClient` tests) |
+| Browser checks | 165 | 168 (165 unchanged + size guard + 2 visual compares) |
+| Screenshots at 390 px and 1280 px | baseline | byte-identical (fonts blocked in both runs) |
+| `dist/index.html` | 132,998 bytes | 133,609 bytes (+0.46%) |
+| `src/ui.ts` | 1,562 lines | 2 lines (re-export) |
+| Largest module | n/a | `ui/analyst/sheet.ts`, 334 lines |
+
+Deviations from the plan, all minor:
+- `esc`, `usd` and `num` live in `app/format.ts`, not `ui/format.ts`, because app code (the prompt bridge, option selectors) formats numbers. `$` lives in `ui/dom.ts`.
+- `colorKey` moved to `app/options.ts`; every renderer needs it.
+- `sensitivityGrid` sits in `app/options.ts` rather than `ui/answer/verdict.ts` because it is pure and both the verdict and the sensitivity table use it.
+- `modules.test.ts` also fails on any export in `src/app` or `src/ui` without a JSDoc comment, enforcing the CLAUDE.md rule.
+- The `phase-0-baseline` tag could not be pushed from the cloud session (the git proxy closes the connection on tag pushes, and the REST route is blocked). `qa-visual.cjs` accepts `TBL_BASELINE=89402fa` as a fallback.

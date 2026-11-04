@@ -45,6 +45,26 @@ const files = listTs(SRC);
 const graph = new Map(files.map((f) => [f, importsOf(f)]));
 const name = (f: string) => relative(SRC, f).replace(/\\/g, '/');
 
+describe('module smoke test', () => {
+  const importable = files.filter((f) => name(f) !== 'main.ts');
+  it.each(importable.map((f) => [name(f), f]))('%s imports in Node without a DOM', async (_n, f) => {
+    await expect(import(f)).resolves.toBeTypeOf('object');
+  });
+});
+
+describe('documentation', () => {
+  it('every export in src/app and src/ui has a JSDoc comment', () => {
+    const missing: string[] = [];
+    for (const f of files.filter((x) => /^(app|ui)\//.test(name(x)))) {
+      const lines = readFileSync(f, 'utf8').split('\n');
+      lines.forEach((l, i) => {
+        if (/^export (async function|function|const|let|class|interface|type)\s/.test(l) && !/\*\/\s*$/.test(lines[i - 1] ?? '')) missing.push(`${name(f)}:${i + 1}`);
+      });
+    }
+    expect(missing).toEqual([]);
+  });
+});
+
 describe('module layering', () => {
   it('finds the source modules', () => {
     expect(files.length).toBeGreaterThan(3);
