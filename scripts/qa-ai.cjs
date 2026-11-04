@@ -161,6 +161,49 @@ const offerCount = (page) => page.locator('[data-act="ai-open"]').count();
     await ctx.close();
   }
 
+  // ---------- failures on the live site: plain words plus the code, progress while writing ----------
+  {
+    const failMock = (code) => `window.claude={use:async(n)=>n==='sample'?{json:async()=>{throw {code:'${code}',message:'dev'}}}:null};`;
+    const { ctx, page, errors } = await open(browser, { mock: failMock('invalid_json') });
+    await page.waitForSelector('#st-ai');
+    await page.click('#st-ai');
+    await page.fill('#an-text', 'I commute 10 miles a week.');
+    await page.click('#ai [data-act="an-analyze"]');
+    await page.waitForFunction(() => /code:/.test(document.getElementById('an-status').textContent));
+    const st = await page.textContent('#an-status');
+    check('invalid_json: says the answer could not be read, and names the code', st.includes('could not read') && st.includes('(code: invalid_json)'), st);
+    check('invalid_json: the typed text is not in the message', !st.includes('10 miles'));
+    check('invalid_json: buttons are usable again', !(await page.locator('#ai [data-act="an-analyze"]').isDisabled()));
+    check('invalid_json: no console errors', errors.length === 0, errors.join(' | '));
+    await ctx.close();
+  }
+  {
+    const { ctx, page } = await open(browser, { mock: `window.claude={use:async(n)=>n==='sample'?{json:async()=>{throw {code:'not_granted',message:'dev'}}}:null};` });
+    await page.waitForSelector('#st-ai');
+    await page.click('#st-ai');
+    await page.fill('#an-text', 'x');
+    await page.click('#ai [data-act="an-analyze"]');
+    await page.waitForFunction(() => document.querySelectorAll('[data-act="ai-open"]').length === 0);
+    const note = await page.textContent('#ai-host');
+    check('not_granted: the sheet says why the analyst is gone', note.includes('not allowed here') && note.includes('(code: not_granted)'), note);
+    check('not_granted: Step 1 drops the analyst option', (await offerCount(page)) === 0);
+    await ctx.close();
+  }
+  {
+    const slowMock = `window.claude={use:async(n)=>n==='sample'?{json:async(p,o)=>{await new Promise(r=>setTimeout(r,150));o.onText&&o.onText({text:'{',delta:'{'});await new Promise(r=>setTimeout(r,400));return ${JSON.stringify(ANSWER)}}}:null};`;
+    const { ctx, page } = await open(browser, { mock: slowMock });
+    await page.waitForSelector('#st-ai');
+    await page.click('#st-ai');
+    await page.fill('#an-text', 'x');
+    await page.click('#ai [data-act="an-analyze"]');
+    check('progress: "Thinking" first, saying it can take a minute', (await page.textContent('#an-status')).includes('up to a minute'));
+    await page.waitForFunction(() => document.getElementById('an-status').textContent.includes('Writing'));
+    check('progress: "Writing the answer" once text starts', true);
+    await page.waitForSelector('#ai .an-summary');
+    check('progress: status clears when the answer is shown', (await page.textContent('#an-status')) === '');
+    await ctx.close();
+  }
+
   // ---------- 1280 px and Night ----------
   for (const [width, theme] of [[1280, null], [390, 'night'], [1280, 'night']]) {
     const { ctx, page, errors } = await open(browser, { width, theme });
