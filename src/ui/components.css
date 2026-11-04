@@ -95,3 +95,4 @@ html.ds-scroll-lock,html.ds-scroll-lock body{overflow:hidden}
 .ds-swatches{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:var(--space-2);margin:0;padding:0;list-style:none}
 .ds-swatch{display:flex;align-items:center;gap:var(--space-2);font-size:var(--text-sm)}
 .ds-swatch i{width:28px;height:28px;border-radius:6px;border:1px solid var(--color-control);flex:none}
+.ds-guide-col+.ds-guide-col{margin-top:var(--space-6);padding-top:var(--space-5);border-top:1px dashed var(--color-line)}
