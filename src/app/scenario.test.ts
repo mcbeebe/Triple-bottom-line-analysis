@@ -3,7 +3,7 @@ import { scoreOptions } from '../engine';
 import { CATALOG } from '../data';
 import { freshState, MAX_SELECTED } from './state';
 import { optionsFor } from '../engine';
-import { LEGACY_SCENARIO, PUBLIC_DEFAULTS, applyScenario, normalizeScenario, readQaScenario, scenarioFrom, type Scenario } from './scenario';
+import { DEFAULT_SETTINGS, LEGACY_SCENARIO, PUBLIC_DEFAULTS, applyScenario, normalizeScenario, readQaScenario, scenarioFrom, type Scenario } from './scenario';
 import { addCustomCar } from './mutations';
 
 const kindOf = (id: string) => CATALOG.find((c) => c.vehicle.id === id)?.vehicle.kind;
@@ -68,7 +68,9 @@ describe('scenario round trip and validation', () => {
     customCars: [
       { kind: 'ev', price: 41000, efficiency: 27, selected: true },
       { kind: 'ice', price: 22000, efficiency: 33, selected: false }
-    ]
+    ],
+    edits: {},
+    settings: DEFAULT_SETTINGS
   };
 
   it('scenarioFrom(applyScenario(s)) returns the same scenario', () => {
@@ -140,5 +142,60 @@ describe('scenario round trip and validation', () => {
   it('clamps custom car values to the ranges the form allows', () => {
     const r = normalizeScenario({ ...PUBLIC_DEFAULTS, customCars: [{ kind: 'ev', price: 500, efficiency: 99, selected: true }] });
     expect(r.scenario.customCars[0]).toEqual({ kind: 'ev', price: 1000, efficiency: 60, selected: true });
+  });
+});
+
+describe('edits and settings (Phase 3, share links)', () => {
+  const withEdits: Scenario = {
+    ...PUBLIC_DEFAULTS,
+    selected: ['tesla', 'bolt'],
+    customCars: [{ kind: 'ev', price: 41000, efficiency: 27, selected: true }],
+    edits: {
+      'g..gasPrice': 6,
+      'g..firstTimeZev': 0,
+      'bolt.loan.apr': 0.05,
+      'tesla.lease.termMonths': 24,
+      'custom1..insurancePerYear': 2500,
+      'lx..annualValueLoss': 0.1,
+      'rate.bolt.safety': 5,
+      'rate.custom1.fit': 2,
+      'cw.safety': 40
+    },
+    settings: { mode: 'metrics', scale: 'anchored', aggregation: 'weakest', preset: 'custom', weights: { planet: 0.5, people: 0.2, profit: 0.3 }, view: 'loan', embodied: 'full' }
+  };
+
+  it('round-trips globals, loan and lease fields, custom-car fields, owned-car extras, ratings, criterion weights and settings', () => {
+    expect(scenarioFrom(applyScenario(freshState(), withEdits))).toEqual(withEdits);
+  });
+
+  it('applies them to state', () => {
+    const s = applyScenario(freshState(), withEdits);
+    expect(s.g.gasPrice).toBe(6);
+    expect(s.g.firstTimeZev).toBe(false);
+    expect(s.vehicles.find((v) => v.id === 'tesla')!.lease!.termMonths).toBe(24);
+    expect(s.criteria.find((c) => c.id === 'safety')!.weight).toBe(40);
+    expect([s.mode, s.scale, s.aggregation, s.preset, s.view, s.g.embodiedMode]).toEqual(['metrics', 'anchored', 'weakest', 'custom', 'loan', 'full']);
+  });
+
+  it('resets earlier edits when a new scenario is applied', () => {
+    const s = applyScenario(freshState(), withEdits);
+    applyScenario(s, PUBLIC_DEFAULTS);
+    expect(scenarioFrom(s)).toEqual(PUBLIC_DEFAULTS);
+  });
+
+  it('drops edits it does not recognise and clamps the rest', () => {
+    const r = normalizeScenario({
+      ...PUBLIC_DEFAULTS,
+      edits: { 'g..gasPrice': 999, 'g..milesPerYear': 9000, 'lx..price': 5000, 'nope..price': 1, 'custom3..price': 1, 'rate.bolt.safety': 9, 'cw.nope': 1, 'tesla.loan.monthly': 1 }
+    });
+    expect(Object.keys(r.scenario.edits)).toEqual(['g..gasPrice', 'rate.bolt.safety']);
+    expect(r.scenario.edits['rate.bolt.safety']).toBe(5);
+    expect(r.problems.length).toBe(6);
+  });
+
+  it('falls back to default settings for unknown values, and to balanced weights for bad custom weights', () => {
+    const r = normalizeScenario({ ...PUBLIC_DEFAULTS, settings: { mode: 'x' as never, preset: 'custom', weights: { planet: 2, people: 0, profit: 0 } } });
+    expect(r.scenario.settings.mode).toBe('hybrid');
+    expect(r.scenario.settings.preset).toBe('balanced');
   });
 });
