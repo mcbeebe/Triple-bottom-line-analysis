@@ -1,0 +1,334 @@
+import { WEIGHT_PRESETS } from '../../engine';
+import { hasContent, sanitizeAnswer, type FieldInfo } from '../../analyst';
+import { makeCustomVehicle } from '../../data';
+import { esc, num, usd } from '../../app/format';
+import { fieldRegistry, readField, writeField } from '../../app/fields';
+import { MAX_SELECTED, MODES, PRESET_LABELS, clone, state } from '../../app/state';
+import { analyst } from '../../app/analystSession';
+import { AN_EXAMPLES, addableCars, analystFields, analystPrompt, fmtField, fromShown, toShown } from '../../app/analystBridge';
+import { ArtifactSampleClient, type AnalystClient } from '../../app/analystClient';
+import { PATHS } from '../steps/decision';
+import { renderResults } from '../answer/answer';
+import { refreshEdited } from '../answer/fineTune';
+import { refresh } from '../refresh';
+import { $ } from '../dom';
+
+function setAnStatus(msg: string, err = false): void {
+  analyst.status = msg;
+  analyst.statusErr = err;
+  const el = document.getElementById('an-status');
+  if (el) {
+    el.textContent = msg;
+    el.classList.toggle('err', err);
+  }
+}
+
+async function runAnalyst(task: 'guide' | 'explain'): Promise<void> {
+  if (!analyst.client || analyst.busy) return;
+  const ta = document.getElementById('an-text') as HTMLTextAreaElement | null;
+  analyst.text = ta ? ta.value.trim().slice(0, 1500) : analyst.text;
+  if (task === 'guide' && !analyst.text) {
+    setAnStatus('Describe your situation first, or choose "Explain these results".', true);
+    return;
+  }
+  analyst.busy = true;
+  analyst.ctrl = new AbortController();
+  setAnStatus('Thinking…');
+  syncAnButtons();
+  try {
+    const raw = await analyst.client.ask(analystPrompt(task), analyst.ctrl.signal);
+    const ans = sanitizeAnswer(raw, { fields: analystFields(), addableCarIds: new Set(addableCars().map((v) => v.id)), removableCarIds: new Set(state.selected) });
+    if (!hasContent(ans)) {
+      analyst.answer = null;
+      setAnStatus('The analyst did not return anything usable. Try rewording, or ask again.', true);
+    } else {
+      analyst.answer = ans;
+      analyst.applied = new Set();
+      analyst.history.push({ user: analyst.text || 'Explain the results', summary: ans.summary });
+      setAnStatus('');
+    }
+  } catch (e) {
+    const err = e as { name?: string; code?: string; message?: string };
+    if (err?.name === 'AbortError' || err?.code === 'aborted') setAnStatus('Stopped.');
+    else if (err?.code === 'rate_limited') setAnStatus('You have hit a usage limit for now. Try again in a little while.', true);
+    else if (err?.code === 'not_granted') {
+      analyst.client = null;
+      setAnStatus('', false);
+      renderAnalyst();
+      return;
+    } else setAnStatus('The analyst could not answer just now. Your inputs are unchanged; try again.', true);
+  } finally {
+    analyst.busy = false;
+    analyst.ctrl = null;
+  }
+  renderAnalystOut();
+  syncAnButtons();
+}
+
+function syncAnButtons(): void {
+  document.querySelectorAll<HTMLButtonElement>('[data-act="an-analyze"],[data-act="an-explain"]').forEach((b) => (b.disabled = analyst.busy));
+  const stop = document.querySelector<HTMLElement>('[data-act="an-stop"]');
+  if (stop) stop.hidden = !analyst.busy;
+}
+
+/** Render the analyst panel into #analyst, or hide it when no client is available. */
+export function renderAnalyst(): void {
+  const host = $('analyst');
+  if (!analyst.client) {
+    host.hidden = true;
+    return;
+  }
+  host.hidden = false;
+  host.innerHTML = `<h2>Ask the analyst</h2>
+  <p class="fine">Describe your situation in your own words. The analyst suggests which inputs to set (and to what), can add cars worth comparing, and explains what would change the result. It only reads the numbers on this page, and nothing changes until you tap Apply. Uses your Claude usage.</p>
+  <label class="fine" for="an-text">Your situation</label>
+  <textarea id="an-text" maxlength="1500" placeholder="e.g. I commute 40 miles a day, have solar panels, and my current car needs a $3,000 repair soon. Is it time to switch?"></textarea>
+  <div class="an-examples" aria-label="Examples">${AN_EXAMPLES.map((t, i) => `<button class="chip" data-act="an-example" data-val="${i}">${esc(t)}</button>`).join('')}</div>
+  <div class="an-actions"><button class="btn" data-act="an-analyze">Analyze my situation</button><button class="btn ghost" data-act="an-explain">Explain these results</button><button class="btn ghost" data-act="an-stop" hidden>Stop</button><span id="an-status" role="status" aria-live="polite"></span></div>
+  <div id="an-out" class="an-out"></div>`;
+  (document.getElementById('an-text') as HTMLTextAreaElement).value = analyst.text;
+  setAnStatus(analyst.status, analyst.statusErr);
+  renderAnalystOut();
+  syncAnButtons();
+}
+
+/** Render the last answer (questions, suggestions, cars, settings, explanation) with Apply controls. */
+export function renderAnalystOut(): void {
+  const out = document.getElementById('an-out');
+  if (!out) return;
+  const a = analyst.answer;
+  if (!a) {
+    out.innerHTML = '';
+    return;
+  }
+  const fields = analystFields();
+  const block = (title: string, inner: string) => (inner ? `<div class="an-block"><h3>${title}</h3>${inner}</div>` : '');
+  const ul = (items: string[]) => (items.length ? `<ul>${items.map((i) => `<li>${esc(i)}</li>`).join('')}</ul>` : '');
+
+  const head = a.summary || a.interpretation ? `<div class="an-block"><p class="an-summary"><b>${esc(a.summary)}</b></p>${a.interpretation ? `<p>${esc(a.interpretation)}</p>` : ''}</div>` : '';
+
+  const qs = a.questions
+    .map((q, i) => {
+      const f = q.field ? fields.get(q.field) : undefined;
+      let ctl = '';
+      if (f) {
+        const start = q.value ?? f.value;
+        ctl =
+          f.kind === 'yesno'
+            ? `<select id="an-q-${i}" aria-label="${esc(f.label)}"><option value="1" ${start ? 'selected' : ''}>Yes</option><option value="0" ${start ? '' : 'selected'}>No</option></select>`
+            : `<input id="an-q-${i}" type="number" inputmode="decimal" value="${toShown(f, start)}" aria-label="${esc(f.label)}"><em class="fine">${esc(f.kind === 'fraction' ? '%' : f.unit)}</em>`;
+        const done = analyst.applied.has('f:' + f.id);
+        ctl += done ? ' <span class="an-done">Set</span>' : ` <button class="btn small" data-act="an-qset" data-val="${i}">Set</button>`;
+      }
+      return `<div class="an-q"><b>${esc(q.question)}</b>${q.why ? `<span class="an-why">${esc(q.why)}</span>` : ''}${f ? `<div class="an-row"><span class="fine">${esc(f.label)} (now ${esc(fmtField(f, f.value))}):</span>${ctl}</div>` : ''}</div>`;
+    })
+    .join('');
+
+  const pending = a.suggestions.filter((s) => !analyst.applied.has('f:' + s.field));
+  const sugs = a.suggestions
+    .map((s, i) => {
+      const f = fields.get(s.field) as FieldInfo;
+      const done = analyst.applied.has('f:' + s.field);
+      return `<div class="an-s"><b>${esc(f.label)}</b><span class="an-arrow">${esc(fmtField(f, f.value))} → <b>${esc(fmtField(f, s.value))}</b></span>${s.reason ? `<span class="an-why">${esc(s.reason)}</span>` : ''}<div class="an-row">${done ? '<span class="an-done">Applied</span>' : `<button class="btn small" data-act="an-apply" data-val="${i}">Apply</button>`}</div></div>`;
+    })
+    .join('');
+  const applyAll = pending.length > 1 ? `<div class="an-row"><button class="btn small" data-act="an-applyall">Apply all ${pending.length}</button></div>` : '';
+
+  const cars = a.addCars
+    .map((c) => {
+      const v = state.vehicles.find((x) => x.id === c.id);
+      if (!v) return '';
+      const on = state.selected.includes(c.id);
+      return `<div class="an-s"><b>${esc(v.short)}</b><span class="an-why">${esc(c.reason)}</span><div class="an-row">${on ? '<span class="an-done">Added</span>' : `<button class="btn small" data-act="an-addcar" data-val="${c.id}">Add to comparison</button>`}</div></div>`;
+    })
+    .join('');
+
+  const newCars = a.newCars
+    .map((c, i) => {
+      const done = analyst.applied.has('newcar:' + i);
+      const eff = c.kind === 'ev' ? `${num(c.efficiency, 0)} kWh/100 mi` : `${num(c.efficiency, 0)} mpg`;
+      return `<div class="an-s"><b>${esc(c.name)}</b><span class="an-arrow">${esc(c.kind === 'ev' ? 'EV' : c.kind === 'hybrid' ? 'Hybrid' : 'Gas')} · ${usd(c.price)} · ${esc(eff)}</span>${c.reason ? `<span class="an-why">${esc(c.reason)}</span>` : ''}<div class="an-row">${done ? '<span class="an-done">Added</span>' : `<button class="btn small" data-act="an-newcar" data-val="${i}">Add this car</button>`}</div></div>`;
+    })
+    .join('');
+  const removes = a.removeCars
+    .map((c) => {
+      const v = state.vehicles.find((x) => x.id === c.id);
+      if (!v) return '';
+      const gone = !state.selected.includes(c.id);
+      return `<div class="an-s"><b>Drop ${esc(v.short)}</b><span class="an-why">${esc(c.reason)}</span><div class="an-row">${gone ? '<span class="an-done">Removed</span>' : `<button class="btn small" data-act="an-removecar" data-val="${c.id}">Remove from comparison</button>`}</div></div>`;
+    })
+    .join('');
+  const carName = a.currentCarName
+    ? `<div class="an-s"><b>${esc(a.currentCarName)}</b><span class="an-why">Name for the car you have now. Its value, mpg and costs come from the input suggestions above.</span><div class="an-row">${analyst.applied.has('name') ? '<span class="an-done">Applied</span>' : '<button class="btn small" data-act="an-carname">Use this name</button>'}</div></div>`
+    : '';
+
+  let settings = '';
+  if (a.settings) {
+    const st = a.settings;
+    const parts = [st.path && `path: ${PATHS.find((p) => p.id === st.path)?.label}`, st.mode && `scoring: ${MODES.find((m) => m.id === st.mode)?.label}`, st.scale && `scale: ${st.scale}`, st.preset && `weighting: ${PRESET_LABELS[st.preset]}`, st.view && `financing: ${st.view}`].filter(Boolean).join(' · ');
+    settings = `<div class="an-s"><b>${esc(parts)}</b>${st.reason ? `<span class="an-why">${esc(st.reason)}</span>` : ''}<div class="an-row">${analyst.applied.has('settings') ? '<span class="an-done">Applied</span>' : '<button class="btn small" data-act="an-settings">Apply settings</button>'}</div></div>`;
+  }
+
+  const flips = a.flipFactors.length ? `<ul>${a.flipFactors.map((f) => `<li><b>${esc(f.factor)}:</b> ${esc(f.effect)}</li>`).join('')}</ul>` : '';
+  out.innerHTML =
+    head +
+    block('Questions that would sharpen the answer', qs) +
+    block('Suggested inputs', sugs + applyAll) +
+    block('Your current car', carName) +
+    block('Cars worth adding', cars + newCars) +
+    block('Cars to drop', removes) +
+    block('Suggested scoring settings', settings) +
+    block('What the results mean', ul(a.explanation)) +
+    block('What could change the outcome', flips) +
+    block('Keep in mind', ul(a.caveats));
+}
+
+function applyAnalystField(fieldId: string, value: number): boolean {
+  const f = fieldRegistry.get(fieldId);
+  if (!f) return false;
+  writeField(f, value);
+  const input = document.getElementById(`in-${fieldId}`) as HTMLInputElement | HTMLSelectElement | null;
+  if (input) input.value = String(f.meta.bool ? (value >= 0.5 ? 1 : 0) : Math.round(readField(f) * (f.meta.pct ? 100 : 1) * 10000) / 10000);
+  analyst.applied.add('f:' + fieldId);
+  return true;
+}
+
+/** Handle an `an-*` action from the panel; returns true when the action was recognised. */
+export function onAnalystAction(act: string, val: string): boolean {
+  const a = analyst.answer;
+  switch (act) {
+    case 'an-example': {
+      const ta = document.getElementById('an-text') as HTMLTextAreaElement;
+      ta.value = AN_EXAMPLES[Number(val)] ?? '';
+      ta.focus();
+      return true;
+    }
+    case 'an-analyze':
+      void runAnalyst('guide');
+      return true;
+    case 'an-explain':
+      void runAnalyst('explain');
+      return true;
+    case 'an-stop':
+      analyst.ctrl?.abort();
+      return true;
+    case 'an-apply': {
+      const s = a?.suggestions[Number(val)];
+      if (s && applyAnalystField(s.field, s.value)) {
+        refreshEdited();
+        renderResults();
+        renderAnalystOut();
+      }
+      return true;
+    }
+    case 'an-applyall': {
+      let n = 0;
+      for (const s of a?.suggestions ?? []) if (!analyst.applied.has('f:' + s.field) && applyAnalystField(s.field, s.value)) n++;
+      if (n) {
+        refreshEdited();
+        renderResults();
+        renderAnalystOut();
+        setAnStatus(`Applied ${n} input${n === 1 ? '' : 's'}. Scroll down to see the new results.`);
+      }
+      return true;
+    }
+    case 'an-qset': {
+      const q = a?.questions[Number(val)];
+      const f = q?.field ? analystFields().get(q.field) : undefined;
+      const el = document.getElementById(`an-q-${val}`) as HTMLInputElement | HTMLSelectElement | null;
+      if (!q || !f || !el || el.value.trim() === '') return true;
+      const n = parseFloat(el.value);
+      if (!Number.isFinite(n)) return true;
+      if (applyAnalystField(f.id, f.kind === 'yesno' ? n : fromShown(f, n))) {
+        refreshEdited();
+        renderResults();
+        renderAnalystOut();
+      }
+      return true;
+    }
+    case 'an-addcar': {
+      if (state.selected.includes(val)) return true;
+      if (state.selected.length >= MAX_SELECTED) {
+        state.notice = `Pick up to ${MAX_SELECTED} cars. Remove one first.`;
+        setAnStatus(state.notice, true);
+        refresh.picker();
+        return true;
+      }
+      state.selected.push(val);
+      state.notice = '';
+      refresh.all();
+      renderAnalystOut();
+      return true;
+    }
+    case 'an-newcar': {
+      const nc = a?.newCars[Number(val)];
+      if (!nc || analyst.applied.has('newcar:' + val)) return true;
+      if (state.selected.length >= MAX_SELECTED) {
+        state.notice = `Pick up to ${MAX_SELECTED} cars. Remove one first.`;
+        setAnStatus(state.notice, true);
+        refresh.picker();
+        return true;
+      }
+      state.customCount += 1;
+      const d = makeCustomVehicle(nc.kind, state.customCount);
+      d.vehicle.name = nc.name;
+      d.vehicle.short = nc.name;
+      d.vehicle.price = nc.price;
+      if (nc.kind === 'ev') d.vehicle.kwhPer100mi = nc.efficiency;
+      else d.vehicle.mpg = nc.efficiency;
+      if (d.vehicle.loan) d.vehicle.loan.down = Math.round((nc.price * 0.1) / 500) * 500;
+      state.vehicles.push(clone(d.vehicle));
+      state.defaults.push(clone(d.vehicle));
+      state.meta[d.vehicle.id] = d.meta;
+      state.ratingNotes[d.vehicle.id] = {};
+      state.groups[d.vehicle.id] = 'custom';
+      state.selected.push(d.vehicle.id);
+      state.notice = '';
+      analyst.applied.add('newcar:' + val);
+      refresh.all();
+      renderAnalystOut();
+      return true;
+    }
+    case 'an-removecar': {
+      state.selected = state.selected.filter((id) => id !== val);
+      refresh.all();
+      renderAnalystOut();
+      return true;
+    }
+    case 'an-carname': {
+      const name = a?.currentCarName;
+      if (!name) return true;
+      state.vehicles = state.vehicles.map((v) => (v.owned ? { ...v, name, short: name } : v));
+      state.defaults = state.defaults.map((v) => (v.owned ? { ...v, name, short: name } : v));
+      analyst.applied.add('name');
+      refresh.all();
+      renderAnalystOut();
+      return true;
+    }
+    case 'an-settings': {
+      const st = a?.settings;
+      if (!st) return true;
+      if (st.path) state.g.disposal = st.path;
+      if (st.mode) state.mode = st.mode;
+      if (st.scale) state.scale = st.scale;
+      if (st.preset && WEIGHT_PRESETS[st.preset]) {
+        state.preset = st.preset;
+        state.weights = { ...WEIGHT_PRESETS[st.preset] };
+      }
+      if (st.view) state.view = st.view;
+      analyst.applied.add('settings');
+      refresh.controls();
+      refresh.all();
+      renderAnalystOut();
+      return true;
+    }
+    default:
+      return false;
+  }
+}
+
+/** Resolve the client once and render the panel; the panel stays hidden when the client is unavailable. */
+export async function initAnalyst(client: AnalystClient = new ArtifactSampleClient()): Promise<void> {
+  analyst.client = (await client.available()) ? client : null;
+  renderAnalyst();
+}
