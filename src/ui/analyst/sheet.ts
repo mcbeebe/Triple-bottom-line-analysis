@@ -6,7 +6,7 @@ import { MODES, PRESET_LABELS, state } from '../../app/state';
 import { analyst } from '../../app/analystSession';
 import { AN_EXAMPLES, addableCars, analystFields, analystPrompt, fmtField, fromShown, toShown } from '../../app/analystBridge';
 import { ArtifactSampleClient, type AnalystClient } from '../../app/analystClient';
-import { PATHS } from '../steps/decision';
+import { PATHS } from '../legacy/pathPanel';
 import { renderResults } from '../answer/answer';
 import { refreshEdited } from '../answer/fineTune';
 import { addCatalogCar, addCustomCar } from '../../app/mutations';

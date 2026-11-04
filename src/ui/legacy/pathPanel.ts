@@ -22,10 +22,28 @@ function pathBlurb(): string {
   return 'You are buying without selling or trading a car in, so there is no keep-it option and no sale money. Cars are compared with each other and against a typical new car.';
 }
 
+/** The old page's top lines. The Lexus example keeps the original test-case wording; any other car gets neutral copy (decision P10). */
+export function heroText(carPreset: string): { lead: string; pill: string } {
+  if (carPreset === 'lexus')
+    return {
+      lead: 'Compare a personal purchase by its effect on the planet, on people, and on your wallet. Test case: keep a 1999 Lexus LX 470, or sell it and replace it with an EV on a loan or a lease.',
+      pill: 'Test case · prices and rates as of Nov 1, 2026 · every input is editable'
+    };
+  return {
+    lead: 'Compare keeping your current car with buying another, by its effect on the planet, on people and on your wallet.',
+    pill: 'Prices and rates as of Nov 1, 2026 · every input is editable'
+  };
+}
+
 /** Render the "Your decision" panel: path chips, the analyst shortcut and the current-car presets. */
 export function renderPath(): void {
   const presetChips = CAR_PRESETS.map((p) => chip('carpreset', p.id, p.label, p.blurb, state.carPreset === p.id)).join('');
   const nameBox = `<label class="fine" for="in-carname">Name of your current car</label> <input id="in-carname" class="vname" type="text" maxlength="40" value="${esc(lx().short)}" data-vname="lx" aria-label="Name of your current car">`;
+  const hero = heroText(state.carPreset);
+  const lead = document.getElementById('hero-lead');
+  const pill = document.getElementById('hero-pill');
+  if (lead) lead.textContent = hero.lead;
+  if (pill) pill.textContent = hero.pill;
   $('path').innerHTML = `<h2>Your decision</h2>
   <p class="fine">What are you doing with the car you have now? Then pick the cars in play below, or just describe it to the analyst above.</p>
   <div class="chips" role="group" aria-label="What happens to your current car">${PATHS.map((p) => chip('path', p.id, p.label, p.sub, state.g.disposal === p.id)).join('')}${analyst.client ? '<button class="chip" data-act="askanalyst">Not sure<small>ask the analyst</small></button>' : ''}</div>
