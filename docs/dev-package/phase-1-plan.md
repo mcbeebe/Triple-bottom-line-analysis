@@ -1,6 +1,6 @@
 # Phase 1 plan: design system
 
-Status: **approved Nov 4, 2026, with all five recommended defaults (A to E).** Decision 4 (plain TypeScript, no framework) is confirmed.
+Status: **approved Nov 4, 2026, with all five recommended defaults (A to E); built on branch `phase-1-design-system`.** Results are at the end of this file. Decision 4 (plain TypeScript, no framework) is confirmed.
 
 ## Goal
 Build the parts the guided-steps screens will be made of, without changing the current page. That means tokens, two themes, the shared components from the Option B mockups, a bottom sheet with correct keyboard behavior, and a hidden `#style-guide` view that shows all of them. Source: `04-phases.md` Phase 1 and `02-ux-spec.md`. Reference screens: B1 to B4 in `docs/ux-options/ux-options.html`.
@@ -80,3 +80,29 @@ Build the parts the guided-steps screens will be made of, without changing the c
 
 ## Estimate
 About 1 day of build time, matching `04-phases.md`.
+
+## Results (Nov 4, 2026)
+
+| Check | Phase 0 | Phase 1 |
+| --- | --- | --- |
+| Unit tests | 160 | 236 (39 token contrast, 11 sheet controller, 24 component, 2 module smoke) |
+| Browser checks | 168 | 215 (47 new in `qa-components.cjs`) |
+| axe WCAG 2.1 A/AA on the style guide | n/a | 0 violations at 390 and 1280 px, both themes, sheet open and closed |
+| Controls under 44 x 44 px in the style guide | n/a | 0 |
+| Old page screenshots at 390 and 1280 px | baseline | byte-identical |
+| `dist/index.html` | 133,609 bytes | 154,667 bytes (+21.1 KB, +15.8%) |
+
+**Colors chosen.** Control borders: Ledger `#7d8478`, Night `#6b7a8b` (at least 3.2:1 on every background they sit on). Night highlight tint: `#16302a`.
+
+**Deviations from the plan**
+- **Bundle growth was larger than estimated:** 21 KB, against the plan's 6 to 10 KB. About 8 KB is component CSS; the rest is the sheet behavior, the style guide and the route. The size baseline was raised in two commits (143,261, then 154,641 bytes) because every commit has to pass verify. Phase 3 removes the old layout's CSS and code.
+- **Load order:** `components.css` loads after `style.css`, not before, so `ds-` rules win ties against the old page's global `h2`, `h3` and `input[type=number]` rules.
+- **Disabled buttons** use the native `disabled` attribute plus `aria-describedby` pointing at a visible reason, rather than `aria-disabled`.
+- **Step progress bar** is hidden from screen readers; the visible "Step N of M" text carries the information.
+- **The guide's "Back to the scorecard"** is a 44 px link-button rather than an inline text link, so every control meets the touch-target rule with no exceptions.
+- **Process slip, fixed before push:** one local commit was made while the size check was failing, because my command chain did not test the verify exit code. It was undone, and every later commit runs only if `npm run verify` exits cleanly.
+
+**Found for later phases**
+- **Old page, axe (report-only):** `scrollable-region-focusable` (serious) on 2 to 3 sideways-scrolling tables: keyboard users cannot scroll them. Fixing it would change the old page, so it is left for Phase 3, which replaces that layout.
+- **Number fields** show `7000`, not `7,000`: native number inputs do not format. Decide in Phase 2 whether money fields should be text inputs with formatting.
+- **Field guide theme** stays on the old page until Phase 3 (decision A).
