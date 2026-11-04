@@ -1,15 +1,15 @@
 import { WEIGHT_PRESETS } from '../../engine';
 import { hasContent, sanitizeAnswer, type FieldInfo } from '../../analyst';
-import { makeCustomVehicle } from '../../data';
 import { esc, num, usd } from '../../app/format';
 import { fieldRegistry, readField, writeField } from '../../app/fields';
-import { MAX_SELECTED, MODES, PRESET_LABELS, clone, state } from '../../app/state';
+import { MODES, PRESET_LABELS, state } from '../../app/state';
 import { analyst } from '../../app/analystSession';
 import { AN_EXAMPLES, addableCars, analystFields, analystPrompt, fmtField, fromShown, toShown } from '../../app/analystBridge';
 import { ArtifactSampleClient, type AnalystClient } from '../../app/analystClient';
 import { PATHS } from '../steps/decision';
 import { renderResults } from '../answer/answer';
 import { refreshEdited } from '../answer/fineTune';
+import { addCatalogCar, addCustomCar } from '../../app/mutations';
 import { refresh } from '../refresh';
 import { $ } from '../dom';
 
@@ -247,15 +247,13 @@ export function onAnalystAction(act: string, val: string): boolean {
       return true;
     }
     case 'an-addcar': {
-      if (state.selected.includes(val)) return true;
-      if (state.selected.length >= MAX_SELECTED) {
-        state.notice = `Pick up to ${MAX_SELECTED} cars. Remove one first.`;
+      const r = addCatalogCar(state, val);
+      if (r === 'limit') {
         setAnStatus(state.notice, true);
         refresh.picker();
         return true;
       }
-      state.selected.push(val);
-      state.notice = '';
+      if (r !== 'added') return true;
       refresh.all();
       renderAnalystOut();
       return true;
@@ -263,27 +261,11 @@ export function onAnalystAction(act: string, val: string): boolean {
     case 'an-newcar': {
       const nc = a?.newCars[Number(val)];
       if (!nc || analyst.applied.has('newcar:' + val)) return true;
-      if (state.selected.length >= MAX_SELECTED) {
-        state.notice = `Pick up to ${MAX_SELECTED} cars. Remove one first.`;
+      if (addCustomCar(state, { kind: nc.kind, name: nc.name, price: nc.price, efficiency: nc.efficiency }) === null) {
         setAnStatus(state.notice, true);
         refresh.picker();
         return true;
       }
-      state.customCount += 1;
-      const d = makeCustomVehicle(nc.kind, state.customCount);
-      d.vehicle.name = nc.name;
-      d.vehicle.short = nc.name;
-      d.vehicle.price = nc.price;
-      if (nc.kind === 'ev') d.vehicle.kwhPer100mi = nc.efficiency;
-      else d.vehicle.mpg = nc.efficiency;
-      if (d.vehicle.loan) d.vehicle.loan.down = Math.round((nc.price * 0.1) / 500) * 500;
-      state.vehicles.push(clone(d.vehicle));
-      state.defaults.push(clone(d.vehicle));
-      state.meta[d.vehicle.id] = d.meta;
-      state.ratingNotes[d.vehicle.id] = {};
-      state.groups[d.vehicle.id] = 'custom';
-      state.selected.push(d.vehicle.id);
-      state.notice = '';
       analyst.applied.add('newcar:' + val);
       refresh.all();
       renderAnalystOut();
@@ -308,7 +290,10 @@ export function onAnalystAction(act: string, val: string): boolean {
     case 'an-settings': {
       const st = a?.settings;
       if (!st) return true;
-      if (st.path) state.g.disposal = st.path;
+      if (st.path) {
+        state.g.disposal = st.path;
+        state.pathChosen = true;
+      }
       if (st.mode) state.mode = st.mode;
       if (st.scale) state.scale = st.scale;
       if (st.preset && WEIGHT_PRESETS[st.preset]) {

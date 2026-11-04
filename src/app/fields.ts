@@ -1,6 +1,6 @@
 import type { Vehicle } from '../engine';
 import { DEFAULT_GLOBALS, type ParamMeta } from '../data';
-import { state } from './state';
+import { state, type State } from './state';
 
 /** An editable input: a global (`scope` "g") or a vehicle field (`scope` = vehicle id), optionally under loan or lease. */
 export interface Field {
@@ -24,33 +24,42 @@ export function holderOf(f: Field, vehicles: Vehicle[]): Record<string, unknown>
   return (f.sub === '' ? v : f.sub === 'loan' ? v.loan : v.lease) as unknown as Record<string, unknown> | undefined;
 }
 
-/** Current value in stored units (booleans as 0 or 1). */
-export function readField(f: Field): number {
-  const raw = f.scope === 'g' ? (state.g as unknown as Record<string, unknown>)[f.key] : holderOf(f, state.vehicles)?.[f.key];
+/** Current value in stored units (booleans as 0 or 1), read from state `s`. */
+export function readFieldIn(s: State, f: Field): number {
+  const raw = f.scope === 'g' ? (s.g as unknown as Record<string, unknown>)[f.key] : holderOf(f, s.vehicles)?.[f.key];
   return typeof raw === 'boolean' ? (raw ? 1 : 0) : Number(raw ?? 0);
 }
 
-/** Default value in stored units, from the sourced defaults. */
-export function defaultOf(f: Field): number {
-  const raw = f.scope === 'g' ? (DEFAULT_GLOBALS as unknown as Record<string, unknown>)[f.key] : holderOf(f, state.defaults)?.[f.key];
+/** Default value in stored units: globals from DEFAULT_GLOBALS, vehicle fields from `s.defaults`. */
+export function defaultOfIn(s: State, f: Field): number {
+  const raw = f.scope === 'g' ? (DEFAULT_GLOBALS as unknown as Record<string, unknown>)[f.key] : holderOf(f, s.defaults)?.[f.key];
   return typeof raw === 'boolean' ? (raw ? 1 : 0) : Number(raw ?? 0);
 }
 
-/** Write a value in stored units, clamped to the field range (booleans from >= 0.5). */
-export function writeField(f: Field, value: number): void {
+/** Write a value in stored units into state `s`, clamped to the field range (booleans from >= 0.5). */
+export function writeFieldIn(s: State, f: Field, value: number): void {
   if (f.meta.bool) {
     const b = value >= 0.5;
-    if (f.scope === 'g') (state.g as unknown as Record<string, unknown>)[f.key] = b;
-    else (holderOf(f, state.vehicles) as Record<string, unknown>)[f.key] = b;
+    if (f.scope === 'g') (s.g as unknown as Record<string, unknown>)[f.key] = b;
+    else (holderOf(f, s.vehicles) as Record<string, unknown>)[f.key] = b;
     return;
   }
   const clamped = Math.min(f.meta.max, Math.max(f.meta.min, value));
-  if (f.scope === 'g') (state.g as unknown as Record<string, unknown>)[f.key] = clamped;
+  if (f.scope === 'g') (s.g as unknown as Record<string, unknown>)[f.key] = clamped;
   else {
-    const h = holderOf(f, state.vehicles);
+    const h = holderOf(f, s.vehicles);
     if (h) h[f.key] = clamped;
   }
 }
+
+/** Current value in stored units (booleans as 0 or 1). */
+export const readField = (f: Field): number => readFieldIn(state, f);
+
+/** Default value in stored units, from the sourced defaults. */
+export const defaultOf = (f: Field): number => defaultOfIn(state, f);
+
+/** Write a value in stored units, clamped to the field range (booleans from >= 0.5). */
+export const writeField = (f: Field, value: number): void => writeFieldIn(state, f, value);
 
 /** True when the current value differs from the default. */
 export function isEdited(f: Field): boolean {

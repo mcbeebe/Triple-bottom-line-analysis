@@ -35,6 +35,8 @@ export interface State {
   customCount: number;
   criteria: Criterion[];
   notice: string;
+  /** True once the visitor has picked what they are deciding (Step 1, the old path chips or the analyst). */
+  pathChosen: boolean;
 }
 
 /** Most cars that can be selected for comparison at once. */
@@ -60,31 +62,37 @@ export const PRESET_LABELS: Record<string, string> = { balanced: 'Balanced', pla
 /** Deep copy of plain data (defaults are cloned so edits never touch the originals). */
 export const clone = <T,>(x: T): T => JSON.parse(JSON.stringify(x)) as T;
 
-/** The application state, initialised from the sourced defaults. */
-export const state: State = {
-  theme: 'ledger',
-  mode: 'hybrid',
-  aggregation: 'average',
-  scale: 'benchmark',
-  preset: 'balanced',
-  weights: { ...WEIGHT_PRESETS.balanced },
-  carPreset: 'lexus',
-  view: 'both',
-  tab: 'profit',
-  showAll: false,
-  resultsView: 'cards',
-  sortKey: 'rank',
-  sortDir: 1,
-  copyNote: '',
-  secOpen: { confirm: true, drivers: true, cars: true, emissions: false, other: false },
-  g: clone(DEFAULT_GLOBALS),
-  vehicles: clone(DEFAULT_VEHICLES),
-  defaults: clone(DEFAULT_VEHICLES),
-  meta: clone(VEHICLE_META),
-  ratingNotes: clone(RATING_NOTES),
-  groups: Object.fromEntries(CATALOG.map((d) => [d.vehicle.id, d.group])),
-  selected: [...DEFAULT_SELECTED],
-  customCount: 0,
-  criteria: clone(DEFAULT_CRITERIA),
-  notice: ''
-};
+/** A new application state, initialised from the sourced defaults. Every call returns independent copies. */
+export function freshState(): State {
+  return {
+    theme: 'ledger',
+    mode: 'hybrid',
+    aggregation: 'average',
+    scale: 'benchmark',
+    preset: 'balanced',
+    weights: { ...WEIGHT_PRESETS.balanced },
+    carPreset: 'lexus',
+    view: 'both',
+    tab: 'profit',
+    showAll: false,
+    resultsView: 'cards',
+    sortKey: 'rank',
+    sortDir: 1,
+    copyNote: '',
+    secOpen: { confirm: true, drivers: true, cars: true, emissions: false, other: false },
+    g: clone(DEFAULT_GLOBALS),
+    vehicles: clone(DEFAULT_VEHICLES),
+    defaults: clone(DEFAULT_VEHICLES),
+    meta: clone(VEHICLE_META),
+    ratingNotes: clone(RATING_NOTES),
+    groups: Object.fromEntries(CATALOG.map((d) => [d.vehicle.id, d.group])),
+    selected: [...DEFAULT_SELECTED],
+    customCount: 0,
+    criteria: clone(DEFAULT_CRITERIA),
+    notice: '',
+    pathChosen: false
+  };
+}
+
+/** The application state the page uses. */
+export const state: State = freshState();
