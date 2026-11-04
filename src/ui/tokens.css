@@ -1,0 +1,21 @@
+/* Design tokens (Phase 1). Ledger is the default; Night applies when body[data-theme="night"].
+   Names are new (--color-*, --space-*, ...) so the old page's variables are untouched.
+   Contrast targets are enforced by src/ui/tokens.test.ts. */
+:root{
+  --color-bg:#f6f3ec;--color-surface:#fffdf8;--color-soft:#efe9da;--color-tint:#e3efe9;
+  --color-ink:#1d2a24;--color-muted:#5d6a63;--color-line:#ddd6c6;--color-control:#7d8478;
+  --color-accent:#1f5f4a;--color-on-accent:#ffffff;
+  --font-body:"Inter",system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;
+  --font-head:"Source Serif 4","Iowan Old Style",Georgia,serif;
+  --text-xs:11px;--text-sm:13px;--text-md:15px;--text-lg:18px;--text-xl:24px;
+  --space-1:4px;--space-2:8px;--space-3:12px;--space-4:16px;--space-5:20px;--space-6:24px;--space-7:32px;
+  --radius-sm:10px;--radius-md:12px;--radius-lg:14px;--radius-pill:999px;
+  --tap:44px;--tap-lg:48px;
+  --shadow-sheet:0 -8px 28px rgba(60,50,20,.16);--backdrop:rgba(20,26,22,.45)
+}
+body[data-theme="night"]{
+  --color-bg:#0d1218;--color-surface:#151c24;--color-soft:#1b2530;--color-tint:#16302a;
+  --color-ink:#e6edf3;--color-muted:#8b98a6;--color-line:#263241;--color-control:#6b7a8b;
+  --color-accent:#4cc9a0;--color-on-accent:#06130e;
+  --shadow-sheet:0 -8px 28px rgba(0,0,0,.5);--backdrop:rgba(0,0,0,.6)
+}

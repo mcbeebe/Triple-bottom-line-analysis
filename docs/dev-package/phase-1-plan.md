@@ -1,6 +1,6 @@
 # Phase 1 plan: design system
 
-Status: **waiting for owner approval** (Nov 4, 2026). Decision 4 (plain TypeScript, no framework) is confirmed. Nothing in `src/` has changed yet.
+Status: **approved Nov 4, 2026, with all five recommended defaults (A to E).** Decision 4 (plain TypeScript, no framework) is confirmed.
 
 ## Goal
 Build the parts the guided-steps screens will be made of, without changing the current page. That means tokens, two themes, the shared components from the Option B mockups, a bottom sheet with correct keyboard behavior, and a hidden `#style-guide` view that shows all of them. Source: `04-phases.md` Phase 1 and `02-ux-spec.md`. Reference screens: B1 to B4 in `docs/ux-options/ux-options.html`.
