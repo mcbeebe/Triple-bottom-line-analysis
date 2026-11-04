@@ -1,8 +1,8 @@
 /**
  * Visual regression guard for the Phase 0 module split.
  *
- * Builds the baseline git ref (default: tag `phase-0-baseline`, override with
- * TBL_BASELINE) in a temporary worktree, screenshots that build and the current
+ * Builds the baseline git ref (default: tag `phase-0-baseline`, else commit 89402fa;
+ * override with TBL_BASELINE) in a temporary worktree, screenshots that build and the current
  * `dist/index.html` full-page at 390 px and 1280 px, and fails unless the PNGs
  * are byte-identical. Web fonts are blocked in both runs so the comparison does
  * not depend on the network. On a mismatch both images are written to qa-shots/.
@@ -14,7 +14,9 @@ const os = require('os');
 const path = require('path');
 
 const root = path.resolve(__dirname, '..');
-const ref = process.env.TBL_BASELINE || 'phase-0-baseline';
+// The tag may be missing from a fresh clone; the same commit is on main, so fall back to its SHA.
+const BASELINE_SHA = '89402fa130e315c2967e095c33aa2dfa6cb35657';
+let ref = process.env.TBL_BASELINE || 'phase-0-baseline';
 const shots = path.join(root, 'qa-shots');
 const widths = [390, 1280];
 let failures = 0;
@@ -25,10 +27,11 @@ function git(cmd, cwd = root) {
 }
 
 function buildBaseline() {
-  try {
-    git(`rev-parse --verify --quiet ${ref}^{commit}`);
-  } catch {
-    throw new Error(`Baseline ref "${ref}" is not in this clone. Run: git fetch origin tag ${ref}`);
+  const has = (r) => { try { git(`rev-parse --verify --quiet ${r}^{commit}`); return true; } catch { return false; } };
+  if (!has(ref)) {
+    if (process.env.TBL_BASELINE || !has(BASELINE_SHA)) throw new Error(`Baseline ref "${ref}" is not in this clone. Fetch more history: git fetch --depth=50 origin main`);
+    console.log(`note: tag ${ref} not found; using baseline commit ${BASELINE_SHA.slice(0, 7)}`);
+    ref = BASELINE_SHA;
   }
   const tmp = fs.mkdtempSync(path.join(os.tmpdir(), 'tbl-baseline-'));
   git(`worktree add --detach "${tmp}" ${ref}`);

@@ -17,7 +17,7 @@ Read `docs/dev-package/README.md` first. The plan is in `docs/dev-package/04-pha
 ## Stack and commands
 - TypeScript only. ESM. esbuild bundles to a single file: `dist/index.html`.
 - `npm run check`: typecheck, unit tests (vitest), build.
-- `npm run qa`: three headless-browser suites, a bundle-size guard (5% over the Phase 0 baseline) and a pixel compare against tag `phase-0-baseline` (needs `npm i -D playwright tsx && npx playwright install chromium` once; `git fetch origin tag phase-0-baseline` if the tag is missing).
+- `npm run qa`: three headless-browser suites, a bundle-size guard (5% over the Phase 0 baseline) and a pixel compare against tag `phase-0-baseline` (needs `npm i -D playwright tsx && npx playwright install chromium` once; without the tag it compares against baseline commit 89402fa).
 - `npm run verify`: `check` then `qa`. Run before every commit.
 - `npx tsx scripts/dump.ts`: print default results (useful for sample numbers).
 

@@ -122,4 +122,4 @@ Deviations from the plan, all minor:
 - `colorKey` moved to `app/options.ts`; every renderer needs it.
 - `sensitivityGrid` sits in `app/options.ts` rather than `ui/answer/verdict.ts` because it is pure and both the verdict and the sensitivity table use it.
 - `modules.test.ts` also fails on any export in `src/app` or `src/ui` without a JSDoc comment, enforcing the CLAUDE.md rule.
-- The `phase-0-baseline` tag could not be pushed from the cloud session (the git proxy closes the connection on tag pushes, and the REST route is blocked). `qa-visual.cjs` accepts `TBL_BASELINE=89402fa` as a fallback.
+- The `phase-0-baseline` tag could not be pushed from the cloud session (the git proxy closes the connection on tag pushes, and the REST route is blocked). `qa-visual.cjs` therefore falls back to the baseline commit `89402fa` (already on `main`) when the tag is missing, and prints a note when it does.
