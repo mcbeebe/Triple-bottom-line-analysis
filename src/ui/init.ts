@@ -13,6 +13,7 @@ import { renderSources } from './answer/why';
 import { applyTheme, bindEvents, refreshAll } from './events';
 import { bindStyleGuide, renderStyleGuide } from './styleGuide';
 import { bindSheets, hideSheet } from './components/sheet';
+import { bindNumberFields } from './components/field';
 
 /** Show the style guide on `#style-guide`, otherwise the scorecard (and restore the scorecard's theme). */
 function route(): void {
@@ -43,6 +44,7 @@ export function init(): void {
   registerRenderers({ all: refreshAll, controls: renderControls, picker: renderPicker });
   void initAnalyst();
   bindSheets();
+  bindNumberFields();
   bindStyleGuide();
   window.addEventListener('hashchange', route);
   route();

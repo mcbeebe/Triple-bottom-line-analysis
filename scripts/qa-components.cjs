@@ -165,6 +165,37 @@ const active = (page) => page.evaluate(() => {
     await ctx.close();
   }
 
+  // Number fields: commas, strict parsing, clamping (Phase 2, owner decision: add commas).
+  {
+    const { ctx, page, errors } = await open(browser, 390, 'ledger');
+    const events = [];
+    await page.exposeFunction('__numEvent', (d) => events.push(d));
+    await page.evaluate(() => document.addEventListener('ds:number', (e) => window.__numEvent(e.detail)));
+    const f = '#sg-sale';
+    const read = () => page.evaluate((sel) => { const el = document.querySelector(sel); return { v: el.value, inv: el.getAttribute('aria-invalid'), err: document.getElementById(el.id + '-error').textContent, last: el.dataset.last }; }, f);
+    check('field: starts with commas', (await read()).v === '9,000');
+    await page.fill(f, '12000');
+    await page.locator(f).blur();
+    let r = await read();
+    check('field: typing 12000 commits 12000 and shows 12,000 after leaving', r.v === '12,000' && r.last === '12000' && events.some((e) => e.name === 'sg-sale' && e.value === 12000), JSON.stringify(r));
+    await page.fill(f, '$15,500');
+    await page.locator(f).blur();
+    check('field: "$15,500" is read as 15500', (await read()).last === '15500');
+    await page.fill(f, '7k');
+    r = await read();
+    check('field: unreadable text is marked invalid with the range and an example', r.inv === 'true' && r.err === 'Enter an amount from $1,000 to $150,000, like 9,000.' && r.last === '15500', JSON.stringify(r));
+    await page.fill(f, '-5');
+    await page.locator(f).blur();
+    r = await read();
+    check('field: an out-of-range value is clamped on leaving, with a message', r.v === '1,000' && r.last === '1000' && r.err === 'Changed to $1,000, the lowest allowed.' && r.inv === null, JSON.stringify(r));
+    await page.fill(f, '');
+    await page.locator(f).blur();
+    check('field: an emptied field goes back to the last valid value', (await read()).v === '1,000');
+    check('field: the input is a text box with a numeric keyboard', await page.evaluate((sel) => { const el = document.querySelector(sel); return el.type === 'text' && el.inputMode === 'numeric'; }, f));
+    check('number fields: no console errors', errors.length === 0, errors.join(' | '));
+    await ctx.close();
+  }
+
   // Routing: the guide is hidden by default and leaving it restores the scorecard and its theme.
   {
     const ctx = await browser.newContext({ viewport: { width: 390, height: 844 } });

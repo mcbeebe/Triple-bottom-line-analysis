@@ -134,21 +134,44 @@ describe('dsDisclosure', () => {
 });
 
 describe('dsField', () => {
-  it('labels the input and states the allowed range', () => {
-    const h = dsField({ id: 'miles', label: 'Miles per year', value: 7500, min: 1000, max: 30000, step: 500, unit: 'miles' });
+  it('is a labeled text input with commas, a numeric keyboard and the allowed range', () => {
+    const h = dsField({ id: 'miles', label: 'Miles per year', value: 7500, min: 1000, max: 25000, step: 500, unit: 'miles', name: 'miles' });
     expect(h).toContain('<label for="miles"');
     expect(h).toContain('id="miles"');
-    expect(h).toContain('type="number"');
-    expect(h).toContain('min="1000" max="30000" step="500" value="7500"');
-    expect(h).toContain('aria-describedby="miles-hint"');
-    expect(h).toContain('Allowed: 1,000 to 30,000 miles');
+    expect(h).toContain('type="text" inputmode="numeric"');
+    expect(h).toContain('value="7,500"');
+    expect(h).toContain('aria-describedby="miles-hint miles-error"');
+    expect(h).toContain('data-num="miles" data-min="1000" data-max="25000" data-step="500" data-example="7500" data-last="7500" data-unit="miles"');
+    expect(h).toContain('Allowed: 1,000 to 25,000 miles');
+    expect(h).toContain('<p class="ds-error" id="miles-error" aria-live="polite"></p>');
+    expect(h).not.toContain('aria-invalid');
+  });
+
+  it('uses a decimal keyboard and step precision when the step has cents', () => {
+    const h = dsField({ id: 'gas', label: 'Gas price', value: 4.85, min: 1, max: 15, step: 0.05, money: true });
+    expect(h).toContain('inputmode="decimal"');
+    expect(h).toContain('value="4.85"');
+    expect(h).toContain('data-money="1"');
   });
 
   it('shows a dollar prefix for money and escapes label and note', () => {
     const h = dsField({ id: 'sale', label: EVIL, value: 7000, min: 0, max: 200000, step: 100, money: true, note: EVIL });
     expect(h).toContain('class="ds-prefix"');
+    expect(h).toContain('value="7,000"');
     expect(h).toContain('Allowed: $0 to $200,000');
     expect(count(h, SAFE)).toBe(2);
+  });
+
+  it('renders an error state with aria-invalid and the message', () => {
+    const h = dsField({ id: 'sale', label: 'Value', value: 7000, min: 1000, max: 150000, step: 250, money: true, error: 'Enter an amount from $1,000 to $150,000, like 7,000.' });
+    expect(h).toContain('aria-invalid="true"');
+    expect(h).toContain('ds-field ds-field-invalid');
+    expect(h).toContain('>Enter an amount from $1,000 to $150,000, like 7,000.</p>');
+  });
+
+  it('places an optional status label next to the field label', () => {
+    const h = dsField({ id: 'v', label: 'Value', value: 1, min: 0, max: 2, step: 1, statusHtml: '<span class="ds-status">Placeholder</span>' });
+    expect(h).toContain('<div class="ds-label-row"><label for="v" class="ds-label">Value</label><span class="ds-status">Placeholder</span></div>');
   });
 });
 
