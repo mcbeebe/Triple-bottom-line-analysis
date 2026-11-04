@@ -6,6 +6,8 @@ import type { State } from '../../app/state';
 import { answerCards, breakEvenLine, cardTags, flipLine, pickFlip, verdictSentence, type VerdictOption } from '../../app/verdict';
 import { dsButton } from '../components/button';
 import { dsOptionCard } from '../components/optionCard';
+import { aiOfferHtml } from '../analyst/offer';
+import { analyst } from '../../app/analystSession';
 
 /** Footer dates (decision Q7) and audience (Q4). */
 export const DATA_NOTE = 'Estimates for comparison, not financial or tax advice. California rules and prices. Prices and rates as of Nov 1, 2026; default cars checked Nov 4, 2026.';
@@ -46,9 +48,9 @@ export function changeLines(s: State, scored: ScoredOption[]): string[] {
 
 /**
  * The answer screen (Option B, screen B4): verdict sentence, basis line with Edit, three cards plus keep,
- * "What would change this", the panel buttons and the not-advice footer.
+ * "What would change this", the panel buttons (plus "Ask the analyst" when `ai`) and the not-advice footer.
  */
-export function answerScreenHtml(s: State): string {
+export function answerScreenHtml(s: State, ai: boolean = analyst.client !== null): string {
   const { scored, ranked } = rankedOptions(s);
   const carName = hasCar() ? lx().short : null;
   const tags = cardTags(ranked);
@@ -68,7 +70,8 @@ export function answerScreenHtml(s: State): string {
     dsButton({ label: 'Why this result', act: 'ans-why', variant: 'secondary', id: 'ans-why' }),
     dsButton({ label: 'Fine-tune', act: 'ans-finetune', variant: 'secondary', id: 'ans-finetune' }),
     dsButton({ label: 'Table', act: 'ans-table', variant: 'secondary', id: 'ans-table' }),
-    dsButton({ label: 'Share', act: 'ans-share', variant: 'secondary', id: 'ans-share' })
+    dsButton({ label: 'Share', act: 'ans-share', variant: 'secondary', id: 'ans-share' }),
+    aiOfferHtml('answer', ai)
   ].join('');
   return `<div class="ds-answer">
 <div class="ds-answer-main">

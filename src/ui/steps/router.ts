@@ -4,6 +4,7 @@ import { backAction, guardRoute, hashFor, parseRoute, titleFor, type HistoryTag,
 import { applyTheme, refreshAll } from '../events';
 import { renderStyleGuide } from '../styleGuide';
 import { hideSheet } from '../components/sheet';
+import { setAnalystHost } from '../analyst/sheet';
 import { carsHtml, newAddCarForm, type AddCarForm } from './cars';
 import { decisionHtml } from './decision';
 import { drivingHtml } from './driving';
@@ -29,6 +30,21 @@ export function renderStep(focusSelector?: string): void {
   if (!host) return;
   host.innerHTML = current === 'step-1' ? decisionHtml(state) : current === 'step-2' ? drivingHtml(state) : carsHtml(state, addCarForm.value);
   if (focusSelector) document.querySelector<HTMLElement>(focusSelector)?.focus();
+}
+
+/**
+ * Re-render the step or answer on show after a change made elsewhere (the analyst sheet, or the analyst becoming
+ * available), putting focus back on the same control when it was inside the screen.
+ */
+export function rerenderScreen(): void {
+  const host = current === 'answer' ? el('answer-screen') : current === 'step-1' || current === 'step-2' || current === 'step-3' ? el('steps') : null;
+  if (!host || host.hidden) return;
+  const active = document.activeElement as HTMLElement | null;
+  const inside = active && host.contains(active) ? active : null;
+  const key = inside?.id ? `#${CSS.escape(inside.id)}` : inside?.dataset.act ? `[data-act="${CSS.escape(inside.dataset.act)}"][data-val="${CSS.escape(inside.dataset.val ?? '')}"]` : null;
+  if (current === 'answer') host.innerHTML = answerScreenHtml(state);
+  else renderStep();
+  if (key) host.querySelector<HTMLElement>(key)?.focus();
 }
 
 /** Bar under "All the details" (the old page): back to the answer, or change the step answers. */
@@ -78,6 +94,7 @@ function show(route: Route, focus: boolean): void {
       el('ans-title')?.focus();
     }
   } else if (route === 'details') {
+    setAnalystHost('analyst');
     refreshAll();
     detailsBar();
     if (focus) {

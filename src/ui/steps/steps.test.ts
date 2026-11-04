@@ -21,6 +21,17 @@ describe('Step 1 renderer', () => {
     setPath(s, 'trade');
     expect(decisionHtml(s)).toMatch(/aria-pressed="true" data-act="st-path" data-val="trade"/);
   });
+  it('adds "Not sure? Describe it in a sentence" only when the analyst is available, outside the choice group', () => {
+    const s = fresh();
+    expect(decisionHtml(s, false)).not.toContain('data-act="ai-open"');
+    const h = decisionHtml(s, true);
+    expect(count(h, 'data-act="ai-open"')).toBe(1);
+    expect(h).toContain('Not sure? Describe it in a sentence');
+    expect(h).toMatch(/id="st-ai" aria-haspopup="dialog"/);
+    const group = h.slice(h.indexOf('role="group"'), h.indexOf('</div>', h.indexOf('role="group"')));
+    expect(group).not.toContain('ai-open');
+    expect(h.indexOf('ai-open')).toBeLessThan(h.indexOf('st-back'));
+  });
 });
 
 describe('Step 2 renderer', () => {

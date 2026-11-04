@@ -13,6 +13,7 @@ import { renderPicker } from './legacy/pickerPanel';
 import { renderResults } from './answer/answer';
 import { refreshEdited, renderAssumptions } from './answer/fineTune';
 import { tableAsTsv } from './answer/table';
+import { refresh } from './refresh';
 
 /** Apply the current theme to the document body. */
 export function applyTheme(): void {
@@ -27,9 +28,12 @@ export function refreshAll(): void {
   renderResults();
 }
 
+/** Analyst actions that change the scenario, so the screen behind the sheet must be re-rendered. */
+const ANALYST_EDITS = new Set(['an-apply', 'an-applyall', 'an-qset', 'an-addcar', 'an-newcar', 'an-removecar', 'an-carname', 'an-settings']);
+
 function onAction(act: string, val: string): void {
   if (act.startsWith('an-')) {
-    onAnalystAction(act, val);
+    if (onAnalystAction(act, val) && ANALYST_EDITS.has(act)) refresh.screen();
     return;
   }
   switch (act) {
