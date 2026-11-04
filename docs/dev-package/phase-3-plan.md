@@ -1,6 +1,6 @@
 # Phase 3 plan: answer screen, Fine-tune and share links
 
-Status: **waiting for owner approval** (Nov 4, 2026). Nothing in `src/` has changed. Mockups: `docs/dev-package/phase-3-mockups.html` (9 frames, real engine numbers, built with the real components; pieces not built yet are marked in the page).
+Status: **decisions made Nov 4, 2026 (Q1 to Q9); Phase 3a in progress** on branch `phase-3-answer-screen`. Mockups: `docs/dev-package/phase-3-mockups.html` (9 frames, real engine numbers, built with the real components; pieces not built yet are marked in the page).
 
 ## Goal
 Replace the old single page with the Option B answer screen. It has:
@@ -13,18 +13,19 @@ Replace the old single page with the Option B answer screen. It has:
 
 The old layout is then removed, with no feature lost. Sources: `04-phases.md` Phase 3 and `02-ux-spec.md` (Answer, Why, Fine-tune, Table, Share, verdict rules).
 
-## Decisions for you (recommended option first)
+## Decisions (owner, Nov 4, 2026, answered in structured questions)
 
-| # | Question | Options | Recommendation and why |
-| --- | --- | --- | --- |
-| Q1 | How to retire the old page | (A) Move the old renderers into the new panels as they are, re-themed with the new colors. (B) Rebuild everything with the new components. (C) Hybrid: rebuild what a newcomer sees (answer, cards, verdict, the 5 top drivers, Share, the Why summary); move the deep expert content (the full assumptions grid, People ratings editor, full results table, sensitivity table) into the panels as is, re-themed. | **(C).** The newcomer path gets the approved design; the expert tables keep their current behavior and the checks that cover it, at low risk. Rebuild them later if usability testing says so. (A) leaves the first screen looking old; (B) roughly doubles the phase. |
-| Q2 | Share links on the artifact host, which allows only a plain `#name` | (a) `#s-` followed by the scenario in letters and digits only (base32), checked on the real host like Back; (b) no restorable link on the host, copy a text summary instead | **(a).** It works on both the artifact and the future website. If the host rejects it, fall back to (b) for the artifact only. The link holds numbers only, never typed names. It is capped at 2 KB. |
-| Q3 | The pixel check that guards the old page | retire it in Phase 3 / re-baseline it on the new answer screen | **Retire it.** The page it protects is being replaced on purpose. A new pixel guard is worth adding only before a refactor-only phase. |
-| Q4 | Decision 2: launch audience (needed for footer and incentive copy) | California only / US-wide with a generic mode | **California first.** The incentives and the trade-in tax rule are sourced for California; the footer says "California rules and prices". |
-| Q5 | The analyst until Phase 4 | (a) a "Ask the analyst" button on the answer that opens today's analyst panel inside a panel; (b) hide it until Phase 4 | **(a).** Nothing is lost in between; Phase 4 rebuilds it. Hidden when the AI is unavailable, as today. |
-| Q6 | Themes | Ledger and Night only (Field guide retired, as decided in Phase 1, decision A) | **As decided.** A saved "field" choice falls back to Ledger. |
-| Q8 | Verdict wording when keeping your car is first and the top two are within 2 points (spec rules 2 and 4 both apply), and how to name your car in a sentence | (a) the near-tie rule wins, with natural names: "It is close. Keeping your gas sedan and the Chevy Bolt (loan) are within 2 points." ("My gas sedan" reads as "your gas sedan"; a name you typed reads as "your Old Civic"); (b) the spec's literal template: "It is close. Keep My gas sedan and Chevy Bolt (loan) are within 2 points." | **(a).** Same rule, readable sentence. Unit-tested for every preset name and a typed name. |
-| Q7 | "Data checked" date in the footer | one date / two dates | **Two dates, honestly:** "Prices and rates as of Nov 1, 2026; default cars checked Nov 4, 2026." |
+| # | Decision | Owner's choice |
+| --- | --- | --- |
+| Q1 | How to retire the old page | **Rebuild everything in the new design** (chosen over the recommended hybrid; about 7 to 8 days, more risk of regressions, so every old check is ported before anything is deleted) |
+| Q2 | Share links on the artifact host | **Encoded `#s-` name in letters and digits**, checked on the real host; fall back to a text summary if the host rejects it |
+| Q3 | Pixel check of the old page | **Retire it** when the old page is deleted |
+| Q4 | Launch audience (decision 2) | **California first**; footer says "California rules and prices" |
+| Q5 | Analyst until Phase 4 | **Keep it, in a panel** ("Ask the analyst", restyled), hidden when AI is unavailable |
+| Q6 | Themes | Ledger and Night only (Phase 1 decision A) |
+| Q7 | Footer date | **Both dates**: "Prices and rates as of Nov 1, 2026; default cars checked Nov 4, 2026." |
+| Q8 | Verdict wording | **Natural names**: "It is close. Keeping your gas sedan and the Chevy Bolt (loan) are within 2 points." |
+| Q9 | Delivery | **Two PRs**: Phase 3a then Phase 3b |
 
 ## The answer screen (spec copy unless marked *proposed*)
 - **Heading:** the verdict sentence from a pure `verdict.ts`, following the five spec rules. With today's defaults the top two are 1.9 points apart, so rules 2 and 4 both apply; Q8 picks the near-tie wording: "It is close. Keeping your gas sedan and the Chevy Bolt (loan) are within 2 points." Unit-tested for every rule.
@@ -92,16 +93,22 @@ Every action and input of the old page has a new home:
   - no console errors.
 - The step suite keeps its checks; `qa-visual.cjs` is retired (Q3).
 
-## Commit plan (verify green before each)
-1. `verdict.ts` with tests: the sentence, "what would change", card tags.
-2. Scenario extension and `share.ts` with tests.
-3. Answer screen (new design) behind `#answer`, with the old page still reachable for the old suites; `qa-answer.cjs` begins.
-4. Why this result panel: re-themed old content, summary, focus and Escape.
-5. Fine-tune panel: top drivers, All assumptions, Scoring and appearance, live updates.
-6. Table and Share panels; share links in the router.
-7. Ask the analyst panel (Q5).
-8. Old page removed: template, legacy panels, page-level CSS. Old suites retired once `qa-answer.cjs` covers every row of the feature table. `qa-visual.cjs` retired.
-9. Size baseline (floating, in its own commit), docs, plan results, preview artifact for you to test share links on the host.
+## Delivery and commit plan (verify green before each)
+**Phase 3a (this PR, about 3 to 4 days): the new answer screen.** The old page stays reachable behind the panels, so nothing is lost in between.
+1. `verdict.ts` with tests: the sentence (all rules, natural names), "what would change", card tags.
+2. Scenario extension (edits, settings) and `share.ts` with tests.
+3. Answer screen in the new design on `#answer`: verdict, basis line with Edit, cards, what would change, footer with both dates; the panel buttons open sheets; the old page's content is reachable from them until 3b.
+4. Fine-tune sheet, top drivers (new design), live updates announced.
+5. Share sheet and `#s-` links in the router; preview artifact for the host check.
+6. `qa-answer.cjs` for everything above; docs.
+
+**Phase 3b (next PR, about 4 days): rebuild the rest, then delete the old page.**
+7. Why this result rebuilt: pillar summaries, ratings and criteria weights editor, bars, sensitivity, sources, limitations.
+8. Fine-tune rebuilt in full: All assumptions (confirm box, key drivers, cars grid with edit marks, reset one or all, add lease, rename, emissions, other) and Scoring and appearance.
+9. Table rebuilt: sortable, copy as spreadsheet text, every option.
+10. Ask the analyst panel (restyled), Q5.
+11. Old suites ported check for check into `qa-answer.cjs`; every row of the feature table exercised; then the old page, legacy panels and page-level CSS are deleted and `qa-visual.cjs` is retired.
+12. Size baseline (floating), docs, plan results.
 
 ## Risks
 | Risk | Mitigation |
@@ -113,4 +120,4 @@ Every action and input of the old page has a new home:
 | Size | old page CSS and code are removed in commit 8; measured before and after |
 
 ## Estimate
-About 4 days. `04-phases.md` says 1.5. The difference is real: four panels, share links, and porting about 165 old-page checks so that no feature is lost.
+About 7 to 8 days in two PRs (3a about 3 to 4, 3b about 4). `04-phases.md` says 1.5. The difference: rebuilding every table and control (Q1), four panels, share links, and porting about 165 old-page checks so that no feature is lost.
