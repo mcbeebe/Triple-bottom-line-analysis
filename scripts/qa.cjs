@@ -124,23 +124,29 @@ const check = (name, ok, extra = '') => { console.log(`${ok ? 'PASS' : 'FAIL'}  
 
   // ---------- picker: EVs, hybrids and gas ----------
   check('picker lists electric, hybrid and gas groups', (await page.locator('#picker .pgroup h3').allTextContents()).join('|') === 'Electric|Hybrid|Gas');
+  // The limit is 4 cars (owner decision P3), so free a slot before adding a hybrid and a gas car.
+  await page.click('[data-act="pick"][data-val="rivian"]');
   await page.click('[data-act="pick"][data-val="rav4h"]');
   await page.click('[data-act="pick"][data-val="corolla"]');
   const picked = await snap();
   check('selecting a hybrid and a gas car adds their options (rav4h loan+lease, corolla loan)', ['rav4h-loan', 'rav4h-lease', 'corolla-loan'].every((id) => picked.ranks.some((r) => r.id === id)));
-  check('the matrix gained columns for the new cars', (await page.locator('.matrix thead th.vh').count()) === 6);
+  check('the matrix gained columns for the new cars', (await page.locator('.matrix thead th.vh').count()) === 5);
   check('a gas-only car has no lease option', !picked.ranks.some((r) => r.id === 'corolla-lease'));
   await page.click('[data-act="pick"][data-val="tesla"]');
   check('deselecting a car removes its options', !(await snap()).ranks.some((r) => r.id.startsWith('tesla')));
   await page.click('[data-act="pick"][data-val="tesla"]');
-  // cap at 8
-  for (const id of ['equinoxev', 'ioniq5', 'crvh', 'camryh', 'hlh', 'crvg', 'hlg']) await page.click(`[data-act="pick"][data-val="${id}"]`);
+  // cap at 4: a fifth car is refused with a notice
+  await page.click('[data-act="pick"][data-val="equinoxev"]');
   const capped = await snap();
-  check('selection is capped at 8 cars', capped.selected.length === 8, `(${capped.selected.length})`);
-  check('a notice explains the cap', /Pick up to 8/.test(await page.locator('#picker .notice').innerText()));
-  check('card list collapses to top 8 with a Show-all button', (await cards()) <= 9 && (await page.locator('[data-act="showall"]').count()) === 1);
+  check('selection is capped at 4 cars', capped.selected.length === 4 && !capped.selected.includes('equinoxev'), `(${capped.selected.length})`);
+  check('a notice explains the cap', /Pick up to 4/.test(await page.locator('#picker .notice').innerText()));
+  // 4 cars that all lease give 9 options, one more than the 8 cards shown before "Show all"
+  await page.click('[data-act="pick"][data-val="corolla"]');
+  await page.click('[data-act="pick"][data-val="rivian"]');
+  const nine = await snap();
+  check('card list collapses to top 8 with a Show-all button', nine.ranks.length === 9 && (await cards()) <= 9 && (await page.locator('[data-act="showall"]').count()) === 1, `(${nine.ranks.length} options)`);
   await page.click('[data-act="showall"]');
-  check('Show all reveals every option', (await cards()) === capped.ranks.length);
+  check('Show all reveals every option', (await cards()) === nine.ranks.length);
   await page.click('[data-act="clearpicks"]');
   check('clear selection leaves only the Lexus', (await snap()).ranks.length === 1);
   for (const id of ['tesla', 'rivian', 'bolt']) await page.click(`[data-act="pick"][data-val="${id}"]`);

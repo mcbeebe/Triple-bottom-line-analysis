@@ -40,7 +40,7 @@ export interface State {
 }
 
 /** Most cars that can be selected for comparison at once. */
-export const MAX_SELECTED = 8;
+export const MAX_SELECTED = 4;
 
 /** Theme chips, in display order. */
 export const THEMES: { id: Theme; label: string }[] = [

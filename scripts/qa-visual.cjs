@@ -56,7 +56,8 @@ async function shoot(browser, file, width) {
   await page.route('**/*', (route) => (/fonts\.(googleapis|gstatic)\.com/.test(route.request().url()) ? route.abort() : route.continue()));
   await page.goto('file://' + file, { waitUntil: 'load' });
   await page.waitForTimeout(400);
-  const png = await page.screenshot({ fullPage: true });
+  // The car limit changed from 8 to 4 in Phase 2 (owner decision P3); that one line of text is masked.
+  const png = await page.screenshot({ fullPage: true, mask: [page.locator('#picker > p.fine')] });
   const height = await page.evaluate(() => document.documentElement.scrollHeight);
   await ctx.close();
   return { png, height };
