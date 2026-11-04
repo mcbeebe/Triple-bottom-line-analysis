@@ -1,6 +1,6 @@
 # Phase 2 plan: guided steps 1 to 3
 
-Status: **revised after review, waiting for owner approval** (Nov 4, 2026). Nothing in `src/` has changed.
+Status: **approved Nov 4, 2026, with all eleven recommendations (P1 to P11)**; being built on branch `phase-2-guided-steps`.
 
 **How this plan was made:**
 - Four read-only researchers mapped the spec, the state code, the test impact and the default cars.

@@ -6,6 +6,10 @@
  * `dist/index.html` full-page at 390 px and 1280 px, and fails unless the PNGs
  * are byte-identical. Web fonts are blocked in both runs so the comparison does
  * not depend on the network. On a mismatch both images are written to qa-shots/.
+ *
+ * The baseline is built with the CURRENT src/data.ts copied in, so the guard compares
+ * interface code only. Data changes (prices, ratings, sources) are covered by the unit
+ * tests; this check catches layout and rendering changes to the old page.
  */
 const { chromium } = require('playwright');
 const { execSync } = require('child_process');
@@ -36,6 +40,7 @@ function buildBaseline() {
   const tmp = fs.mkdtempSync(path.join(os.tmpdir(), 'tbl-baseline-'));
   git(`worktree add --detach "${tmp}" ${ref}`);
   fs.symlinkSync(path.join(root, 'node_modules'), path.join(tmp, 'node_modules'), 'dir');
+  fs.copyFileSync(path.join(root, 'src', 'data.ts'), path.join(tmp, 'src', 'data.ts'));
   execSync('node scripts/build.mjs', { cwd: tmp, stdio: 'pipe' });
   return { dir: tmp, dist: path.join(tmp, 'dist', 'index.html') };
 }
