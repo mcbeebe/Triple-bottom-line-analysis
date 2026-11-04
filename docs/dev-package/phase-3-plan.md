@@ -1,6 +1,6 @@
 # Phase 3 plan: answer screen, Fine-tune and share links
 
-Status: **waiting for owner approval** (Nov 4, 2026). Nothing in `src/` has changed. Mockups: `docs/dev-package/phase-3-mockups.html`.
+Status: **waiting for owner approval** (Nov 4, 2026). Nothing in `src/` has changed. Mockups: `docs/dev-package/phase-3-mockups.html` (9 frames, real engine numbers, built with the real components; pieces not built yet are marked in the page).
 
 ## Goal
 Replace the old single page with the Option B answer screen. It has:
@@ -23,12 +23,13 @@ The old layout is then removed, with no feature lost. Sources: `04-phases.md` Ph
 | Q4 | Decision 2: launch audience (needed for footer and incentive copy) | California only / US-wide with a generic mode | **California first.** The incentives and the trade-in tax rule are sourced for California; the footer says "California rules and prices". |
 | Q5 | The analyst until Phase 4 | (a) a "Ask the analyst" button on the answer that opens today's analyst panel inside a panel; (b) hide it until Phase 4 | **(a).** Nothing is lost in between; Phase 4 rebuilds it. Hidden when the AI is unavailable, as today. |
 | Q6 | Themes | Ledger and Night only (Field guide retired, as decided in Phase 1, decision A) | **As decided.** A saved "field" choice falls back to Ledger. |
+| Q8 | Verdict wording when keeping your car is first and the top two are within 2 points (spec rules 2 and 4 both apply), and how to name your car in a sentence | (a) the near-tie rule wins, with natural names: "It is close. Keeping your gas sedan and the Chevy Bolt (loan) are within 2 points." ("My gas sedan" reads as "your gas sedan"; a name you typed reads as "your Old Civic"); (b) the spec's literal template: "It is close. Keep My gas sedan and Chevy Bolt (loan) are within 2 points." | **(a).** Same rule, readable sentence. Unit-tested for every preset name and a typed name. |
 | Q7 | "Data checked" date in the footer | one date / two dates | **Two dates, honestly:** "Prices and rates as of Nov 1, 2026; default cars checked Nov 4, 2026." |
 
 ## The answer screen (spec copy unless marked *proposed*)
-- **Heading:** the verdict sentence from a pure `verdict.ts`, following the five spec rules. With today's defaults the top two are 1.9 points apart, so rule 4 applies, worded exactly as the spec gives it: "It is close. Keep My gas sedan and Chevy Bolt (loan) are within 2 points." Names come from `optionName`; unit-tested.
+- **Heading:** the verdict sentence from a pure `verdict.ts`, following the five spec rules. With today's defaults the top two are 1.9 points apart, so rules 2 and 4 both apply; Q8 picks the near-tie wording: "It is close. Keeping your gas sedan and the Chevy Bolt (loan) are within 2 points." Unit-tested for every rule.
 - **Basis line:** "Sell, then buy · 7,500 miles a year · 8 years, in today's dollars" with Edit, which goes to the step that holds the value.
-- **Cards:** the top three options that are not "keep", plus keep. Each has a tag in words: "Highest overall score", "Lowest carbon", "Lowest cost" (assigned from the numbers, each at most once), score out of 100, cost over 8 years, carbon in tonnes and People score.
+- **Cards:** the top three options by score, plus "Keep your car" when it is not already among them (spec). With today's defaults keep is first, so there are three cards. Tags in words: "Highest overall score", "Lowest carbon", "Lowest cost", each given to the option that earns it; one card can carry two (keep is both highest and cheapest today), and a card with none shows none. score out of 100, cost over 8 years, carbon in tonnes and People score.
 - **"What would change this":** break-even gas price, using the spec's three forms (finite, none below $40, already cheaper), plus one what-if line when the winner flips. Hidden when there is no keep option.
 - **Buttons:** Why this result, Fine-tune, Table, Share. Each opens a bottom sheet on phones; on 1024 px and up, the answer uses two columns and the sheets open as side panels.
 - **Footer (always visible):** "Estimates for comparison, not financial or tax advice. California rules and prices. Prices and rates as of Nov 1, 2026; default cars checked Nov 4, 2026." with a Sources link.
@@ -55,6 +56,13 @@ Every action and input of the old page has a new home:
 | per-pillar tabs, ratings, criteria weights, embodied mode, bars, sensitivity, sources, limitations | Why this result |
 | assumptions with edit marks, reset one or all, collapse and expand | Fine-tune, All assumptions |
 | analyst | Ask the analyst (Q5) |
+
+## What the mockups showed (real engine numbers, default scenario)
+- Break-even: gas would have to pass **$15.29 a gallon** before the Chevy Bolt (loan) costs less than keeping the sedan; the tool assumes $5.50 (sourced, California average). The what-if line that flips the winner: "If your sedan were scrapped instead of driven by a new owner, the Chevy Bolt (loan) would score highest."
+- The first card ends at 319 px on a 390 x 844 phone; the four panel buttons sit right at the fold. Acceptable for the spec's "first card within one screen"; Phase 5 usability testing will tell.
+- "Cash at start" is negative for every new car (money back from selling the sedan and rebates). The Profit tab explains the sign in one line.
+- 74 sources: the Why panel shows the ones behind this answer and keeps the full list behind "All 74 sources".
+- Single-choice settings (Yes/No, method, scale, weighting, financing, theme) are radio buttons styled like chips, for screen readers.
 
 ## Share link format
 - `Scenario` gains `edits` (field id to value; only fields that differ from their default) and `settings` (mode, scale, aggregation, preset or custom weights, view).
