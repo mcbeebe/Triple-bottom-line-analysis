@@ -17,7 +17,7 @@ Read `docs/dev-package/README.md` first. The plan is in `docs/dev-package/04-pha
 ## Stack and commands
 - TypeScript only. ESM. esbuild bundles to a single file: `dist/index.html`.
 - `npm run check`: typecheck, unit tests (vitest), build.
-- `npm run qa`: four headless-browser suites (the old page's three, plus `qa-components.cjs` for the design system with axe, touch targets and sheet keyboard behavior), a bundle-size guard (5% over the baseline in `scripts/qa-size.cjs`) and a pixel compare of the old page against tag `phase-0-baseline` (needs `npm i -D playwright tsx && npx playwright install chromium` once; without the tag it compares against baseline commit 89402fa).
+- `npm run qa`: five headless-browser suites (the old page's three, which load `#answer` with the legacy QA scenario; `qa-components.cjs` for the design system; `qa-steps.cjs` for the guided steps, with axe and 44 px checks on every screen), a bundle-size guard (5% over the baseline in `scripts/qa-size.cjs`) and a pixel compare of the old page against tag `phase-0-baseline` (needs `npm i -D playwright tsx && npx playwright install chromium` once; without the tag it compares against baseline commit 89402fa).
 - `npm run verify`: `check` then `qa`. Run before every commit.
 - `npx tsx scripts/dump.ts`: print default results (useful for sample numbers).
 
@@ -33,8 +33,8 @@ Read `docs/dev-package/README.md` first. The plan is in `docs/dev-package/04-pha
 
 ## Layout
 - `src/engine.ts`, `src/data.ts`, `src/analyst.ts` (+ tests): pure logic.
-- `src/app/`: state, field registry, option selectors, formatters, analyst session, prompt bridge and `AnalystClient`. No DOM; imports only core and app.
-- `src/ui/`: rendering and events. `answer/` (verdict, cards, why, table, fineTune), `steps/` (decision, cars), `analyst/sheet.ts`, `controls.ts`, `events.ts`, `init.ts`, and `refresh.ts` (renderer hub that keeps the import graph acyclic).
+- `src/app/`: state (`freshState()`), field registry, option selectors, formatters, number text (`numberText.ts`), shared mutations (`mutations.ts`), scenario and defaults (`scenario.ts`), step routes and rules (`steps.ts`), sheet controller, analyst session, prompt bridge and `AnalystClient`. No DOM; imports only core and app.
+- `src/ui/`: rendering and events. `steps/` (the guided Steps 1 to 3, `router.ts`, `actions.ts`), `answer/` (verdict, cards, why, table, fineTune: the old page, which is the answer screen until Phase 3), `legacy/` (the old page's decision and picker panels), `analyst/sheet.ts`, `controls.ts`, `events.ts`, `init.ts`, and `refresh.ts` (renderer hub that keeps the import graph acyclic).
 - `src/ui/tokens.css` (Ledger and Night design tokens), `src/ui/components.css` (`ds-` classes only), `src/ui/components/` (`ds*` HTML renderers: button, chip, option button, step header, option card, disclosure, field, sheet), `src/ui/styleGuide.ts` (hidden `#style-guide` view). New UI uses these; `src/style.css` styles only the old page until Phase 3 retires it.
 - `src/ui.ts`: one-line re-export of `init` for `main.ts`.
 - Imports only go downward (ui -> app -> core); `src/modules.test.ts` fails on cycles, upward imports or exports without JSDoc.

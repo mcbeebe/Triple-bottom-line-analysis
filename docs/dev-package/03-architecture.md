@@ -47,6 +47,7 @@ interface Scenario {
 Rules: store only differences from defaults; clamp on decode; reject unknown ids; cap payload at about 2 KB.
 
 ## Routing and share links
+- **As built in Phase 2:** routes are `#step-1`, `#step-2`, `#step-3`, `#answer` and `#style-guide`. The pure parts (parse, next/prev, deep-link guard, back decision, titles) are in `app/steps.ts`; the DOM router is `ui/steps/router.ts`, which tags each history entry so in-app Back uses `history.back()` only when the previous entry is the wanted step. `app/scenario.ts` holds the Phase 2 subset of `Scenario` (no edits or settings yet; custom cars without names), `PUBLIC_DEFAULTS` and `LEGACY_SCENARIO`; `app/mutations.ts` is the one place state changes for the steps, the old page and the analyst. A QA-only boot hook (`window.__TBL_QA__`, set by Playwright, never read from the URL) loads the legacy scenario for the old suites.
 - Steps and sheets use the history API so the browser Back button works. **On the artifact host only a plain `#name` hash is allowed**; on the website use `#step-2`, `#answer`, and `?s=<base64url scenario>` for share links. Abstract this behind `router.ts` so both hosts work.
 - Decoding a share link lands on the Answer with the scenario applied and "Edit" available.
 - Never put keys, tokens or free text (the analyst sentence) in the URL.

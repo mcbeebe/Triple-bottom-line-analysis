@@ -1,6 +1,6 @@
 # Phase 2 plan: guided steps 1 to 3
 
-Status: **approved Nov 4, 2026, with all eleven recommendations (P1 to P11)**; being built on branch `phase-2-guided-steps`.
+Status: **approved Nov 4, 2026, with all eleven recommendations (P1 to P11); built on branch `phase-2-guided-steps`.** Results are at the end of this file.
 
 **How this plan was made:**
 - Four read-only researchers mapped the spec, the state code, the test impact and the default cars.
@@ -185,3 +185,44 @@ Verify green before each.
 
 ## Estimate
 About 3 days. `04-phases.md` says 1.5. The difference comes from the shared mutations refactor, three new components, status labels on every value, the data fixes, and adapting four existing suites.
+
+## Results (Nov 4, 2026)
+
+| Check | Phase 1 | Phase 2 |
+| --- | --- | --- |
+| Unit tests | 236 | 350 |
+| Browser checks | 215 | 415 (189 in the new `qa-steps.cjs`) |
+| axe WCAG 2.1 A/AA on every step screen (390 and 1280 px; Ledger, Night, Field) | n/a | 0 violations |
+| Controls under 44 x 44 px on the steps | n/a | 0 |
+| Old page (the answer screen) vs the Phase 0 baseline | identical | still byte-identical (legacy QA scenario) |
+| `dist/index.html` | 154,667 bytes | 185,141 bytes (+30.5 KB) |
+
+**Default answer after the data fixes** (sell path, app default scoring):
+
+| Rank | Option | Overall | Cost over 8 years |
+| --- | --- | --- | --- |
+| 1 | Keep my gas sedan | 61.6 | $20,984 |
+| 2 | Bolt (loan) | 59.7 | $39,480 |
+| 3 | Camry Hybrid (loan) | 58.1 | $37,736 |
+| 4 | Camry Hybrid (lease) | 56.6 | $46,891 |
+| 5 | Bolt (lease) | 56.3 | $58,933 |
+| 6 | Corolla (loan) | 53.4 | $34,252 |
+
+The old page already calls a lead under 2 points "effectively a tie"; Phase 3's verdict says "It is close".
+
+**Deviations from the plan**
+- **Host probe (commit 1) moved to the end.** Checking Back inside the artifact frame needs a person to press Back, so it is folded into the preview check in the last step.
+- **Planned commits 9 and 10 were merged.** Splitting them needed a temporary hack to keep the old page on a fresh load; the new browser suite landed in the same commit.
+- **The row-to-field map stayed in `ui/answer/fineTune.ts`.** The steps only touch the owned car's top-level fields, which do not need it.
+- **"Change my answers" sits in a fixed bar** below the old page, and `qa-visual` now screenshots the old `<main>` (with the bar hidden), so the comparison stays exact.
+- **The size baseline was raised twice** (166,427, then 185,141 bytes), each in its own commit.
+- **An unknown hash** shows Step 1 and corrects the address to `#step-1`.
+
+**Mistakes caught during the build**
+- A test edit to `qa.cjs` matched the wrong anchor and deleted about 48 unrelated checks. The failing suite exposed it; the file was restored and the edit redone (215 checks, as before).
+- The first pixel compare after the answer bar failed because a mask paints over the page. Hiding the bar instead fixed it; the old page itself had not changed.
+
+**Known limitations, for Phase 3**
+- The answer is still the old page, including its own decision panel and picker; editing from the answer is "Change my answers" back to the steps.
+- Old page fields are still `type=number` without commas.
+- `scrollable-region-focusable` on the old page's wide tables (found in Phase 1) remains until Phase 3 replaces them.

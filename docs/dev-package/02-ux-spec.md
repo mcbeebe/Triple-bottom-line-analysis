@@ -20,22 +20,24 @@ Visual reference: the Option B screens in `docs/ux-options/ux-options.html` (B1 
   - **Sell my car, then buy**: "Sell it yourself and put the money toward the next car" (path `sell`)
   - **Trade my car in**: "A dealer takes it off the price" (path `trade`)
   - **Just buy**: "No car to sell, or I am keeping mine" (path `none`)
-  - **Not sure: describe it in a sentence**: opens the analyst sheet (hidden if AI is unavailable)
+  - **Not sure: describe it in a sentence**: opens the analyst sheet (hidden if AI is unavailable). Hidden until Phase 4 builds the sheet (decision P8).
 - Footer: "Back" (disabled) and "Skip to answer".
 - Public-site default: nothing preselected (a tap is required). Demo mode may preselect `sell`.
 
 ### Step 2: Your car and driving (hidden when path is `none`, except miles)
 - Heading: "Your car and your driving". Sub: "Start from a preset. Values marked as placeholders are not sourced."
 - "Car you have now": chips for the presets (Lexus LX 470 example, older sedan, older SUV, older hybrid) and "Something else" (opens editable fields: name, value, mpg, repair cost per mile, insurance).
-- "What it would sell for" (or "trade-in offer" when path is `trade`): money field.
-- "Miles per year": slider with numeric readout (1,000 to 30,000; default 7,500).
+- "What it would sell for" (or "Trade-in offer" when path is `trade`): money field with thousands separators. The offer is the private value less the assumed trade-in discount, and the line under it says the discount is a placeholder (decision P4).
+- Every value shows its status as text: "Placeholder", "Source" (a link), or "Your number" once edited.
+- "Miles per year": slider with numeric readout (1,000 to 25,000 in steps of 500, the range in `data.ts`; default 7,500; decision P5).
+- Just buy: heading "Your driving", sub "Miles change fuel and charging costs.", miles only (decision P9).
 - Note: "Not sure of a number? Leave it. Placeholders are marked and you can change them from the answer screen."
 - Primary: "Continue to cars". Secondary: "Back", "Skip to answer".
 
 ### Step 3: Cars
 - Heading: "Which cars should we compare?" Sub: "3 of up to 4 chosen. Each is compared on a loan and, where known, a lease."
-- Rows with checkbox, name, type (Electric / Hybrid / Gas). Pre-checked defaults: the three from the current defaults (Tesla Model Y, Chevy Bolt, Rivian R2), as an open decision for the public site.
-- Limit 4 on mobile (engine supports 8); at the limit, remaining boxes are disabled with the message "Pick up to 4. Uncheck one first."
+- Rows with checkbox, name, price and "Loan only" where there is no lease, grouped under Electric / Hybrid / Gas / Your own. Pre-checked defaults: Chevy Bolt, Toyota Camry Hybrid, Toyota Corolla (decision P1).
+- Limit 4 at every width and everywhere in the app (decision P3); at the limit, remaining boxes are disabled and the always-present status line reads "4 of 4 chosen. Pick up to 4. Uncheck one first."
 - "+ Add my own car" opens a small form (name, type, price, mpg or kWh per 100 mi) using existing custom-car logic.
 - Primary: "Show my answer".
 
