@@ -1,17 +1,14 @@
 import {
   breakEvenGasPrice,
   computeOption,
-  optionsFor,
   paybackYear,
   scoreOptions,
   WEIGHT_PRESETS,
   type Aggregation,
   type Disposal,
-  type OptionSpec,
   type PillarWeights,
   type ScaleMode,
   type ScoredOption,
-  type Scoring,
   type ScoringMode,
   type Vehicle
 } from './engine';
@@ -39,87 +36,10 @@ import {
 } from './data';
 import { MAX_SELECTED, MODES, PRESET_LABELS, THEMES, clone, state, type Tab, type Theme, type View } from './app/state';
 import { safeStore } from './app/storage';
-import { $, esc, num, usd } from './ui/format';
+import { esc, num, usd } from './app/format';
+import { activeVehicles, carNow, gasBreakEven, hasCar, incentiveTotal, keepOf, kindLabel, lx, optionName, paybackText, scaleBlurb, scaleLabel, scoring, sensitivityGrid, tagFor, vehicle, visibleOptions } from './app/options';
+import { $ } from './ui/dom';
 
-
-/* ----------------------------- helpers ----------------------------- */
-
-const lx = (): Vehicle => state.vehicles.find((v) => v.owned) as Vehicle;
-const vehicle = (id: string): Vehicle => state.vehicles.find((v) => v.id === id) as Vehicle;
-const hasCar = (): boolean => state.g.disposal !== 'none';
-const activeVehicles = (): Vehicle[] => state.vehicles.filter((v) => (v.owned && hasCar()) || (!v.owned && state.selected.includes(v.id)));
-const keepOf = (scored: ScoredOption[]): ScoredOption | null => scored.find((s) => s.spec.financing === 'none') ?? null;
-/** Short name of the car you have now, for sentences. */
-const carNow = (): string => lx().short;
-
-function allOptions(): OptionSpec[] {
-  return optionsFor(state.vehicles, state.selected, hasCar());
-}
-
-function visibleOptions(): OptionSpec[] {
-  return allOptions().filter((o) => o.financing === 'none' || state.view === 'both' || o.financing === state.view);
-}
-
-function scoring(over: Partial<Scoring> = {}): Scoring {
-  return {
-    mode: state.mode,
-    aggregation: state.aggregation,
-    scale: state.scale,
-    pillarWeights: state.weights,
-    criteria: state.criteria,
-    ...over
-  };
-}
-
-function optionName(o: OptionSpec): string {
-  const v = vehicle(o.vehicleId);
-  return o.financing === 'none' ? `Keep ${v.short}` : `${v.short} (${o.financing})`;
-}
-
-function tagFor(o: OptionSpec): string {
-  return o.financing === 'none' ? 'Status quo' : o.financing === 'loan' ? 'Loan' : 'Lease';
-}
-
-const scaleLabel = (): string => (state.scale === 'benchmark' ? 'vs. a typical new car' : state.scale === 'anchored' ? (hasCar() ? 'vs. keeping your car' : 'vs. a typical new car') : 'vs. the field');
-const scaleBlurb = (): string =>
-  state.scale === 'benchmark'
-    ? '<b>50 = costs and emits the same as a typical new car</b> (AAA and EPA averages at your mileage); higher is better. Every car, including the one you own, moves when its own inputs change.'
-    : state.scale === 'anchored'
-      ? (hasCar() ? '<b>50 = same as keeping your current car</b>, so it always scores exactly 50 on Planet and Profit; higher is better than keeping it.' : '<b>50 = a typical new car</b> (there is no current car to anchor on, so this uses the typical-new-car scale); higher is better.')
-      : 'best option in the field = 100, worst = 10 (scores shift when options are added or removed).';
-
-const kindLabel = (v: Vehicle): string => (v.kind === 'ev' ? 'EV' : v.kind === 'hybrid' ? 'Hybrid' : 'Gas');
-
-/* ------------------------------ results ------------------------------ */
-
-function gasBreakEven(o: ScoredOption): string {
-  if (o.spec.financing === 'none' || !hasCar()) return '-';
-  const p = breakEvenGasPrice(state.g, o.vehicle, o.spec.financing, lx());
-  if (p === null) return 'Not below $40/gal';
-  if (p === 0) return 'Wins even at $0';
-  return `$${num(p, 2)}/gal`;
-}
-
-function paybackText(o: ScoredOption, keep: ScoredOption | null): string {
-  if (o.spec.financing === 'none' || !keep) return '-';
-  const y = paybackYear(o.result, keep.result);
-  return y === null ? `Not within ${state.g.horizonYears} yrs` : `Year ${y}`;
-}
-
-const incentiveTotal = (r: ScoredOption['result']): number =>
-  r.incentives.zevRebate + r.incentives.cc4aGrant + r.incentives.chargerSavings + r.incentives.loanDeduction;
-
-function sensitivityGrid(): { preset: string; cells: { mode: ScoringMode; winner: string }[] }[] {
-  const opts = visibleOptions();
-  return Object.entries(WEIGHT_PRESETS).map(([preset, w]) => ({
-    preset,
-    cells: MODES.map((m) => {
-      const s = scoreOptions(state.g, state.vehicles, opts, scoring({ mode: m.id, pillarWeights: w }));
-      const top = s.find((x) => x.rank === 1) as ScoredOption;
-      return { mode: m.id, winner: optionName(top.spec) };
-    })
-  }));
-}
 
 function buildVerdict(scored: ScoredOption[]): string {
   const sorted = [...scored].sort((a, b) => a.rank - b.rank);
