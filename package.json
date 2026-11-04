@@ -1,0 +1,25 @@
+{
+  "name": "tbl-decision-tool",
+  "version": "1.0.0",
+  "description": "Triple-bottom-line decision scorecard (planet, people, profit)",
+  "main": "index.js",
+  "scripts": {
+    "test": "vitest run",
+    "typecheck": "tsc --noEmit",
+    "build": "node scripts/build.mjs",
+    "check": "npm run typecheck && npm test && npm run build",
+    "qa": "node scripts/qa.cjs && node scripts/qa-analyst.cjs && node scripts/qa-path.cjs",
+    "verify": "npm run check && npm run qa"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "devDependencies": {
+    "@types/node": "^26.6.6",
+    "esbuild": "^0.28.2",
+    "typescript": "^7.0.2",
+    "vitest": "^5.0.5"
+  },
+  "private": true,
+  "type": "module"
+}

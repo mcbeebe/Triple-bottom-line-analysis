@@ -1,0 +1,1 @@
+Run `npm run verify` (typecheck, unit tests, build, then the three browser QA suites). If anything fails, fix the cause (do not weaken tests), rerun, and report the final counts. For any UI change also open the built page at 390 px and 1280 px and check for overflow, clipped text and console errors before saying it is done.

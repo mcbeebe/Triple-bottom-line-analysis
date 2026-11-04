@@ -1,0 +1,5 @@
+node_modules
+qa-shots
+dist
+__pycache__
+docs/ux-options/project
