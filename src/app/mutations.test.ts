@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { freshState, MAX_SELECTED, state } from './state';
-import { addCatalogCar, addCustomCar, applyCarPreset, canAddCar, limitMessage, removeCustomCar, setPath, togglePick } from './mutations';
+import { priceFromOffer, tradeOffer, addCatalogCar, addCustomCar, applyCarPreset, canAddCar, limitMessage, removeCustomCar, setPath, togglePick } from './mutations';
 import { defaultOfIn, readFieldIn, writeFieldIn, type Field } from './fields';
 import { DEFAULT_SELECTED, GLOBAL_META } from '../data';
 
@@ -116,5 +116,13 @@ describe('mutations', () => {
     expect(s.selected).not.toContain(id);
     removeCustomCar(s, 'tesla');
     expect(s.vehicles.some((v) => v.id === 'tesla')).toBe(true);
+  });
+});
+
+describe('trade-in offer (P4)', () => {
+  it('converts between private value and dealer offer and round-trips exactly', () => {
+    expect(tradeOffer(9000, 0.15)).toBeCloseTo(7650, 9);
+    expect(priceFromOffer(7650, 0.15)).toBeCloseTo(9000, 9);
+    for (const p of [1000, 7000, 12345, 150000]) for (const d of [0, 0.15, 0.5]) expect(priceFromOffer(tradeOffer(p, d), d)).toBeCloseTo(p, 9);
   });
 });

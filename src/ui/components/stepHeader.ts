@@ -20,7 +20,8 @@ export function dsStepHeader(o: DsStepHeaderOpts): string {
   if (!Number.isInteger(o.step) || o.step < 1 || o.step > o.total) throw new RangeError(`step ${o.step} is outside 1..${o.total}`);
   const h = `h${o.level ?? 1}`;
   const segs = Array.from({ length: o.total }, (_, i) => `<i class="ds-seg${i < o.step ? ' ds-seg-on' : ''}"></i>`).join('');
-  return `<header class="ds-step"><p class="ds-step-count">Step ${o.step} of ${o.total}</p><div class="ds-progress" aria-hidden="true">${segs}</div><${h} id="${esc(o.id)}" class="ds-step-title" tabindex="-1">${esc(o.title)}</${h}>${o.sub ? `<p class="ds-step-sub">${esc(o.sub)}</p>` : ''}</header>`;
+  const id = esc(o.id);
+  return `<header class="ds-step"><p class="ds-step-count" id="${id}-count">Step ${o.step} of ${o.total}</p><div class="ds-progress" aria-hidden="true">${segs}</div><${h} id="${id}" class="ds-step-title" tabindex="-1" aria-describedby="${id}-count">${esc(o.title)}</${h}>${o.sub ? `<p class="ds-step-sub">${esc(o.sub)}</p>` : ''}</header>`;
 }
 
 /** Options for {@link dsStepFooter}. */

@@ -28,7 +28,7 @@ export function renderResults(): void {
   const mode = MODES.find((m) => m.id === state.mode) as (typeof MODES)[number];
   const tabBody = state.tab === 'planet' ? planetTable(scored, keep) : state.tab === 'people' ? peopleTable(scored) : profitTable(scored, keep);
   const tabBtn = (t: Tab, label: string) => `<button role="tab" class="tab ${state.tab === t ? 'on' : ''}" aria-selected="${state.tab === t}" data-act="tab" data-val="${t}">${label}</button>`;
-  $('res-verdict').innerHTML = `<section class="panel verdict"><h2>What the numbers say</h2>${buildVerdict(scored)}
+  $('res-verdict').innerHTML = `<section class="panel verdict"><h2 id="answer-title" tabindex="-1">What the numbers say</h2>${buildVerdict(scored)}
     <p class="fine">Scoring: <b>${mode.label}</b>. ${mode.blurb} Scale: ${scaleBlurb()}
     <button class="linkbtn" data-act="jump">Edit assumptions</button></p>
     <div class="vgo"><span class="fine">See every option as:</span>

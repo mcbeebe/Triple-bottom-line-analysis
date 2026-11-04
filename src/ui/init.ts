@@ -12,23 +12,12 @@ import { renderResults } from './answer/answer';
 import { renderAssumptions } from './answer/fineTune';
 import { renderSources } from './answer/why';
 import { applyTheme, bindEvents, refreshAll } from './events';
-import { bindStyleGuide, renderStyleGuide } from './styleGuide';
-import { bindSheets, hideSheet } from './components/sheet';
+import { bindStyleGuide } from './styleGuide';
+import { bindStepActions } from './steps/actions';
+import { startRouter } from './steps/router';
+import { bindSheets } from './components/sheet';
 import { bindNumberFields } from './components/field';
 import { bindSliders } from './components/slider';
-
-/** Show the style guide on `#style-guide`, otherwise the scorecard (and restore the scorecard's theme). */
-function route(): void {
-  const guide = document.getElementById('style-guide');
-  const main = document.querySelector('main');
-  if (!guide || !main) return;
-  const onGuide = location.hash === '#style-guide';
-  if (!onGuide) hideSheet();
-  main.hidden = onGuide;
-  guide.hidden = !onGuide;
-  if (onGuide) renderStyleGuide();
-  else applyTheme();
-}
 
 /** Boot the page: theme, panels, results, event handlers, analyst, and the read-only `window.__tbl` hook used by QA. */
 export function init(): void {
@@ -51,8 +40,8 @@ export function init(): void {
   bindNumberFields();
   bindSliders();
   bindStyleGuide();
-  window.addEventListener('hashchange', route);
-  route();
+  bindStepActions();
+  startRouter();
   // Expose a tiny read-only hook so automated QA can verify state without scraping.
   (window as unknown as { __tbl: unknown }).__tbl = {
     snapshot: () => {

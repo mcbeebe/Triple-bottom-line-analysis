@@ -59,8 +59,12 @@ async function shoot(browser, file, width) {
   await page.goto('file://' + file + '#answer', { waitUntil: 'load' });
   await page.waitForTimeout(400);
   // The car limit changed from 8 to 4 in Phase 2 (owner decision P3); that one line of text is masked.
-  const png = await page.screenshot({ fullPage: true, mask: [page.locator('#picker > p.fine')] });
-  const height = await page.evaluate(() => document.documentElement.scrollHeight);
+  // Phase 2: screenshot the old page itself (<main>), not the whole document, so the hidden step screens
+  // cannot shift the comparison. The fixed answer bar (absent in the baseline) is hidden rather than masked,
+  // because a mask paints over the page and would differ from the baseline wherever the bar sits.
+  await page.addStyleTag({ content: '#answer-bar{display:none!important}' });
+  const png = await page.locator('main:not(#steps)').screenshot({ mask: [page.locator('#picker > p.fine')] });
+  const height = await page.evaluate(() => Math.round(document.querySelector('main:not(#steps)').getBoundingClientRect().height));
   await ctx.close();
   return { png, height };
 }

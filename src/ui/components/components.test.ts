@@ -72,7 +72,8 @@ describe('dsStepHeader', () => {
 
   it('makes the heading focusable by script only, at the requested level', () => {
     const h = dsStepHeader({ step: 1, total: 3, title: EVIL, id: 'h1x', level: 2 });
-    expect(h).toContain('<h2 id="h1x" class="ds-step-title" tabindex="-1">');
+    expect(h).toContain('<h2 id="h1x" class="ds-step-title" tabindex="-1" aria-describedby="h1x-count">');
+    expect(h).toContain('<p class="ds-step-count" id="h1x-count">Step 1 of 3</p>');
     expect(h).toContain(SAFE);
     expect(dsStepHeader({ step: 1, total: 3, title: 't', id: 'a' })).toContain('<h1 ');
   });

@@ -1,6 +1,6 @@
 import type { Disposal } from '../engine';
 import { CATALOG, GLOBAL_META, currentCarFromPreset, makeCustomVehicle, type ParamMeta } from '../data';
-import { addCustomCar, applyCarPreset, removeCustomCar } from './mutations';
+import { addCustomCar, removeCustomCar, selectCarPreset } from './mutations';
 import { MAX_SELECTED, type State } from './state';
 
 /** Starting points for the car you have now; 'custom' is "Something else" (sedan values, named "My car"). */
@@ -109,12 +109,7 @@ export function normalizeScenario(sc: Scenario): { scenario: Scenario; problems:
 export function applyScenario(s: State, sc: Scenario): State {
   const n = normalizeScenario(sc).scenario;
   s.g.disposal = n.path;
-  if (n.carPreset === 'custom') {
-    applyCarPreset(s, 'sedan');
-    s.vehicles = s.vehicles.map((v) => (v.owned ? { ...v, name: 'My car', short: 'My car' } : v));
-    s.defaults = s.defaults.map((v) => (v.owned ? { ...v, name: 'My car', short: 'My car' } : v));
-    s.carPreset = 'custom';
-  } else applyCarPreset(s, n.carPreset);
+  selectCarPreset(s, n.carPreset);
   const owned = s.vehicles.find((v) => v.owned);
   if (owned) for (const [k, v] of Object.entries(n.carOverrides)) (owned as unknown as Record<string, number>)[k] = v as number;
   s.g.milesPerYear = n.miles;

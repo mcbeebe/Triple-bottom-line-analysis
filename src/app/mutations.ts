@@ -29,6 +29,18 @@ export function applyCarPreset(s: State, presetId: string): void {
   s.carPreset = presetId;
 }
 
+/** Choose the car you have now: a preset id, or 'custom' ("Something else": the sedan's values, named "My car"). */
+export function selectCarPreset(s: State, id: string): void {
+  if (id !== 'custom') {
+    applyCarPreset(s, id);
+    return;
+  }
+  applyCarPreset(s, 'sedan');
+  s.vehicles = s.vehicles.map((v) => (v.owned ? { ...v, name: 'My car', short: 'My car' } : v));
+  s.defaults = s.defaults.map((v) => (v.owned ? { ...v, name: 'My car', short: 'My car' } : v));
+  s.carPreset = 'custom';
+}
+
 /** Select or deselect a car. Refuses unknown ids and, at the limit, sets the limit notice. */
 export function togglePick(s: State, id: string): 'added' | 'removed' | 'limit' | 'unknown' {
   if (!known(s, id)) return 'unknown';
@@ -112,3 +124,9 @@ export function removeCustomCar(s: State, id: string): void {
   delete s.groups[id];
   delete s.ratingNotes[id];
 }
+
+/** Dealer trade-in offer for a private-sale value, given the assumed discount (P4). */
+export const tradeOffer = (price: number, discount: number): number => price * (1 - discount);
+
+/** Private-sale value implied by a dealer offer, given the assumed discount (P4). */
+export const priceFromOffer = (offer: number, discount: number): number => offer / (1 - discount);

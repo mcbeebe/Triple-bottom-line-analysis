@@ -1,8 +1,8 @@
 /* Styles for ds- components (Phase 1). Loaded after style.css so ds- rules win ties;
    every rule targets a ds- class, so the old page is unaffected. */
-.ds-guide,.ds-sheet{font-family:var(--font-body);color:var(--color-ink);font-size:var(--text-md);line-height:1.5}
-.ds-guide :focus-visible,.ds-sheet :focus-visible,.ds-backdrop :focus-visible{outline:2px solid var(--color-accent);outline-offset:2px}
-.ds-guide [tabindex="-1"]:focus,.ds-sheet[tabindex="-1"]:focus{outline:none}
+.ds-guide,.ds-sheet,.ds-app,.ds-app-bar{font-family:var(--font-body);color:var(--color-ink);font-size:var(--text-md);line-height:1.5}
+.ds-guide :focus-visible,.ds-sheet :focus-visible,.ds-backdrop :focus-visible,.ds-app :focus-visible,.ds-app-bar :focus-visible{outline:2px solid var(--color-accent);outline-offset:2px}
+.ds-guide [tabindex="-1"]:focus,.ds-sheet[tabindex="-1"]:focus,.ds-app [tabindex="-1"]:focus{outline:none}
 
 /* buttons */
 .ds-btn{appearance:none;display:inline-flex;align-items:center;justify-content:center;gap:var(--space-2);min-height:var(--tap-lg);min-width:var(--tap);padding:var(--space-3) var(--space-4);border-radius:var(--radius-md);border:1px solid var(--color-accent);font:600 var(--text-md)/1.2 var(--font-body);cursor:pointer;text-align:center}
@@ -131,3 +131,29 @@ a.ds-status-src{color:var(--color-accent);min-height:var(--tap);min-width:var(--
 .ds-slider-row{display:flex;align-items:center;gap:var(--space-3)}
 .ds-slider-row input[type=range]{flex:1;min-width:0;height:var(--tap);margin:0;accent-color:var(--color-accent);cursor:pointer}
 .ds-slider-out{flex:none;min-width:84px;text-align:right;font:600 var(--text-lg)/1.2 var(--font-body);font-variant-numeric:tabular-nums;color:var(--color-ink)}
+
+/* guided steps (Phase 2) */
+.ds-app{background:var(--color-bg);min-height:100vh;padding:var(--space-5) var(--space-4) var(--space-7)}
+.ds-screen{max-width:540px;margin:0 auto;display:grid;grid-template-columns:minmax(0,1fr);gap:var(--space-4)}
+.ds-screen>.ds-step{margin:0}
+.ds-group-h{margin:var(--space-2) 0 0;font:600 var(--text-sm)/1.3 var(--font-body);color:var(--color-ink);text-transform:none;letter-spacing:0}
+.ds-note{margin:0;padding:var(--space-3) var(--space-4);border-radius:var(--radius-md);background:var(--color-soft);color:var(--color-ink);font-size:var(--text-sm)}
+.ds-count{margin:0;font:600 var(--text-sm)/1.4 var(--font-body);color:var(--color-ink)}
+.ds-groups{display:grid;gap:var(--space-5)}
+.ds-check-wrap{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:var(--space-2);align-items:center}
+.ds-subform{display:grid;gap:var(--space-2);padding:var(--space-4);border:1px solid var(--color-line);border-radius:var(--radius-lg);background:var(--color-surface)}
+.ds-subform .ds-field{margin:0 0 var(--space-2)}
+.ds-subform h3.ds-group-h{margin:0}
+.ds-radios{display:flex;flex-wrap:wrap;gap:var(--space-2);margin:0 0 var(--space-2);padding:0;border:0;min-width:0}
+.ds-radios legend{margin:0 0 6px;padding:0}
+.ds-radio{position:relative;display:inline-flex}
+.ds-radio input{position:absolute;inset:0;width:100%;height:100%;margin:0;opacity:0;cursor:pointer}
+.ds-radio span{display:inline-flex;align-items:center;min-height:var(--tap);min-width:var(--tap);padding:0 var(--space-4);border-radius:var(--radius-pill);border:1px solid var(--color-control);background:var(--color-bg);color:var(--color-ink);font:600 var(--text-sm)/1 var(--font-body)}
+.ds-radio input:checked+span{background:var(--color-accent);border-color:var(--color-accent);color:var(--color-on-accent)}
+.ds-radio input:focus-visible+span{outline:2px solid var(--color-accent);outline-offset:2px}
+.ds-app .ds-step-nav{margin-top:0}
+.ds-app-bar{position:fixed;left:0;right:0;bottom:0;z-index:40;background:var(--color-surface);border-top:1px solid var(--color-line);box-shadow:0 -4px 16px rgba(0,0,0,.08)}
+.ds-app-bar[hidden]{display:none}
+.ds-app-bar-inner{max-width:1040px;margin:0 auto;padding:var(--space-2) var(--space-4);display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:var(--space-2) var(--space-3)}
+.ds-app-bar-note{margin:0;font-size:var(--text-sm);color:var(--color-ink)}
+body.has-answer-bar{padding-bottom:88px}
