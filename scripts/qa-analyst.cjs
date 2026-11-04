@@ -1,6 +1,7 @@
 const { chromium } = require('playwright');
 const path = require('path');
-const url = 'file://' + path.resolve(__dirname, '../dist/index.html');
+// Phase 2: the old page is the answer screen (#answer); QA loads it with the original Lexus test case via a boot hook.
+const url = 'file://' + path.resolve(__dirname, '../dist/index.html') + '#answer';
 let failures = 0;
 const check = (n, ok, x = '') => { console.log(`${ok ? 'PASS' : 'FAIL'}  ${n}${x ? '  ' + x : ''}`); if (!ok) failures++; };
 
@@ -22,6 +23,7 @@ const ANSWER = {
 
 async function open(browser, w, mock) {
   const ctx = await browser.newContext({ viewport: { width: w, height: 900 } });
+  await ctx.addInitScript(() => { window.__TBL_QA__ = { scenario: 'legacy' }; });
   const page = await ctx.newPage();
   const errors = [];
   page.on('pageerror', (e) => errors.push(String(e)));

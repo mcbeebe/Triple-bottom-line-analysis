@@ -6,6 +6,7 @@ Test case: keep a 1999 Lexus LX 470 vs. replace with a Tesla Model Y, Rivian R2 
 - `src/engine.ts`: pure cost (NPV), lifecycle CO2e and scoring engine
 - `src/data.ts`: defaults, each labeled Sourced (with link) or Assumption
 - `src/app/` and `src/ui/`: single-page UI with 3 scoring modes (layout in `CLAUDE.md`)
+- A fresh load opens the guided steps (Step 1 to 3); the answer is at `#answer`
 - Design system for the guided-steps redesign: open `dist/index.html#style-guide`
 - `npm run check`: typecheck, unit tests, build to `dist/index.html`
 - `node scripts/qa.cjs`: headless-browser QA (needs Playwright)

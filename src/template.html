@@ -11,8 +11,8 @@
 <main>
   <header class="hero">
     <h1>Triple Bottom Line Decision Scorecard</h1>
-    <p>Compare a personal purchase by its effect on the planet, on people, and on your wallet. Test case: keep a 1999 Lexus LX 470, or sell it and replace it with an EV on a loan or a lease.</p>
-    <span class="pill">Test case · prices and rates as of Nov 1, 2026 · every input is editable</span>
+    <p id="hero-lead">Compare a personal purchase by its effect on the planet, on people, and on your wallet. Test case: keep a 1999 Lexus LX 470, or sell it and replace it with an EV on a loan or a lease.</p>
+    <span class="pill" id="hero-pill">Test case · prices and rates as of Nov 1, 2026 · every input is editable</span>
   </header>
   <section class="panel analyst" id="analyst" aria-label="AI analyst" hidden></section>
   <section class="panel" id="path" aria-label="Your decision"></section>
@@ -25,6 +25,8 @@
   <section class="panel" id="sources"></section>
   <footer>Planet = lifecycle CO2e. People = safety, health, supply chain and community ratings. Profit = present-value net cost of ownership. Not financial advice.</footer>
 </main>
+<main id="steps" class="ds-app" hidden></main>
+<div id="answer-bar" class="ds-app-bar" hidden></div>
 <div id="style-guide" class="ds-guide" hidden></div>
 <div id="ds-sheets"></div>
 <script>/*JS*/</script>

@@ -1,14 +1,15 @@
 import { scoreOptions, WEIGHT_PRESETS, type Aggregation, type Disposal, type PillarWeights, type ScaleMode, type ScoringMode } from '../engine';
-import { currentCarFromPreset, DEFAULT_CRITERIA, DEFAULT_GLOBALS, makeCustomVehicle } from '../data';
-import { MAX_SELECTED, MODES, clone, state, type Tab, type Theme, type View } from '../app/state';
+import { DEFAULT_CRITERIA, DEFAULT_GLOBALS } from '../data';
+import { MODES, clone, state, type Tab, type Theme, type View } from '../app/state';
 import { defaultOf, fieldRegistry, writeField } from '../app/fields';
 import { safeStore } from '../app/storage';
 import { keepOf, scaleLabel, scoring, vehicle, visibleOptions } from '../app/options';
 import { $ } from './dom';
 import { onAnalystAction } from './analyst/sheet';
+import { addCustomCar, applyCarPreset, removeCustomCar, setPath, togglePick, type CustomCarSpec } from '../app/mutations';
 import { renderControls } from './controls';
-import { renderPath } from './steps/decision';
-import { renderPicker } from './steps/cars';
+import { renderPath } from './legacy/pathPanel';
+import { renderPicker } from './legacy/pickerPanel';
 import { renderResults } from './answer/answer';
 import { refreshEdited, renderAssumptions } from './answer/fineTune';
 import { tableAsTsv } from './answer/table';
@@ -60,20 +61,13 @@ function onAction(act: string, val: string): void {
       renderControls();
       break;
     case 'path':
-      state.g.disposal = val as Disposal;
-      state.notice = '';
+      setPath(state, val as Disposal);
       refreshAll();
       return;
-    case 'carpreset': {
-      const c = currentCarFromPreset(val);
-      state.vehicles = state.vehicles.map((v) => (v.owned ? clone(c.vehicle) : v));
-      state.defaults = state.defaults.map((v) => (v.owned ? clone(c.vehicle) : v));
-      state.meta.lx = c.meta;
-      state.ratingNotes.lx = c.ratingNotes;
-      state.carPreset = val;
+    case 'carpreset':
+      applyCarPreset(state, val);
       refreshAll();
       return;
-    }
     case 'askanalyst':
       document.getElementById('analyst')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
       (document.getElementById('an-text') as HTMLTextAreaElement | null)?.focus();
@@ -128,46 +122,23 @@ function onAction(act: string, val: string): void {
     case 'jump':
       document.getElementById('assump')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
       return;
-    case 'pick': {
-      const i = state.selected.indexOf(val);
-      state.notice = '';
-      if (i >= 0) state.selected.splice(i, 1);
-      else if (state.selected.length >= MAX_SELECTED) state.notice = `Pick up to ${MAX_SELECTED} cars. Remove one first.`;
-      else state.selected.push(val);
+    case 'pick':
+      togglePick(state, val);
       refreshAll();
       return;
-    }
     case 'clearpicks':
       state.selected = [];
       state.notice = '';
       refreshAll();
       return;
-    case 'addcustom': {
-      if (state.selected.length >= MAX_SELECTED) {
-        state.notice = `Pick up to ${MAX_SELECTED} cars. Remove one first.`;
-        renderPicker();
-        return;
-      }
-      state.customCount += 1;
-      const d = makeCustomVehicle(val as 'ice' | 'hybrid' | 'ev', state.customCount);
-      state.vehicles.push(clone(d.vehicle));
-      state.defaults.push(clone(d.vehicle));
-      state.meta[d.vehicle.id] = d.meta;
-      state.ratingNotes[d.vehicle.id] = {};
-      state.groups[d.vehicle.id] = 'custom';
-      state.selected.push(d.vehicle.id);
-      state.notice = '';
+    case 'addcustom':
+      if (addCustomCar(state, { kind: val as CustomCarSpec['kind'] }) === null) renderPicker();
+      else refreshAll();
+      return;
+    case 'rmcustom':
+      removeCustomCar(state, val);
       refreshAll();
       return;
-    }
-    case 'rmcustom': {
-      state.vehicles = state.vehicles.filter((v) => v.id !== val);
-      state.defaults = state.defaults.filter((v) => v.id !== val);
-      state.selected = state.selected.filter((id) => id !== val);
-      delete state.meta[val];
-      refreshAll();
-      return;
-    }
     case 'addlease': {
       const v = vehicle(val);
       const monthly = Math.round((v.price * 0.011) / 5) * 5;

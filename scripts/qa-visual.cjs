@@ -6,6 +6,10 @@
  * `dist/index.html` full-page at 390 px and 1280 px, and fails unless the PNGs
  * are byte-identical. Web fonts are blocked in both runs so the comparison does
  * not depend on the network. On a mismatch both images are written to qa-shots/.
+ *
+ * The baseline is built with the CURRENT src/data.ts copied in, so the guard compares
+ * interface code only. Data changes (prices, ratings, sources) are covered by the unit
+ * tests; this check catches layout and rendering changes to the old page.
  */
 const { chromium } = require('playwright');
 const { execSync } = require('child_process');
@@ -36,6 +40,7 @@ function buildBaseline() {
   const tmp = fs.mkdtempSync(path.join(os.tmpdir(), 'tbl-baseline-'));
   git(`worktree add --detach "${tmp}" ${ref}`);
   fs.symlinkSync(path.join(root, 'node_modules'), path.join(tmp, 'node_modules'), 'dir');
+  fs.copyFileSync(path.join(root, 'src', 'data.ts'), path.join(tmp, 'src', 'data.ts'));
   execSync('node scripts/build.mjs', { cwd: tmp, stdio: 'pipe' });
   return { dir: tmp, dist: path.join(tmp, 'dist', 'index.html') };
 }
@@ -47,12 +52,19 @@ function removeBaseline(dir) {
 
 async function shoot(browser, file, width) {
   const ctx = await browser.newContext({ viewport: { width, height: width === 390 ? 844 : 800 }, deviceScaleFactor: 1, reducedMotion: 'reduce' });
+  // Both builds get the legacy hook and #answer; the Phase 0 baseline ignores both.
+  await ctx.addInitScript(() => { window.__TBL_QA__ = { scenario: 'legacy' }; });
   const page = await ctx.newPage();
   await page.route('**/*', (route) => (/fonts\.(googleapis|gstatic)\.com/.test(route.request().url()) ? route.abort() : route.continue()));
-  await page.goto('file://' + file, { waitUntil: 'load' });
+  await page.goto('file://' + file + '#answer', { waitUntil: 'load' });
   await page.waitForTimeout(400);
-  const png = await page.screenshot({ fullPage: true });
-  const height = await page.evaluate(() => document.documentElement.scrollHeight);
+  // The car limit changed from 8 to 4 in Phase 2 (owner decision P3); that one line of text is masked.
+  // Phase 2: screenshot the old page itself (<main>), not the whole document, so the hidden step screens
+  // cannot shift the comparison. The fixed answer bar (absent in the baseline) is hidden rather than masked,
+  // because a mask paints over the page and would differ from the baseline wherever the bar sits.
+  await page.addStyleTag({ content: '#answer-bar{display:none!important}' });
+  const png = await page.locator('main:not(#steps)').screenshot({ mask: [page.locator('#picker > p.fine')] });
+  const height = await page.evaluate(() => Math.round(document.querySelector('main:not(#steps)').getBoundingClientRect().height));
   await ctx.close();
   return { png, height };
 }

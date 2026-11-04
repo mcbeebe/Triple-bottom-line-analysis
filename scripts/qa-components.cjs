@@ -49,17 +49,17 @@ const active = (page) => page.evaluate(() => {
       const st = await page.evaluate(() => ({
         theme: document.body.dataset.theme,
         guide: !document.getElementById('style-guide').hidden,
-        main: !document.querySelector('main').hidden,
+        main: !document.querySelector('main:not(#steps)').hidden || !document.getElementById('steps').hidden,
         overflow: document.documentElement.scrollWidth - window.innerWidth,
         counts: Object.fromEntries(Object.entries({
           primary: '.ds-btn-primary', secondary: '.ds-btn-secondary', link: '.ds-btn-link', chip: '.ds-chip', option: '.ds-option',
-          step: '.ds-step', stepNav: '.ds-step-nav', field: '.ds-field', card: '.ds-card', cardTop: '.ds-card-top', disc: '.ds-disc', sheet: '[data-sheet="sg-sheet"]'
-        }).map(([k, sel]) => [k, document.querySelectorAll(sel).length]))
+          step: '.ds-step', stepNav: '.ds-step-nav', slider: '.ds-slider input[type=range]', check: '.ds-check input[type=checkbox]', status: '.ds-status', field: '.ds-field', card: '.ds-card', cardTop: '.ds-card-top', disc: '.ds-disc', sheet: '[data-sheet="sg-sheet"]'
+        }).map(([k, sel]) => [k, document.querySelectorAll(`:is(#style-guide, #ds-sheets) ${sel}`).length]))
       }));
       const c = st.counts;
       check(`${label}: guide shown, scorecard hidden, theme applied`, st.guide && !st.main && st.theme === theme);
       check(`${label}: no horizontal overflow`, st.overflow <= 0, `overflow=${st.overflow}`);
-      check(`${label}: every component renders`, c.primary >= 2 && c.secondary >= 1 && c.link >= 3 && c.chip >= 7 && c.option === 4 && c.step === 2 && c.stepNav === 2 && c.field >= 3 && c.card >= 2 && c.cardTop === 1 && c.disc === 2 && c.sheet === 1, JSON.stringify(c));
+      check(`${label}: every component renders`, c.primary >= 2 && c.secondary >= 1 && c.link >= 3 && c.chip >= 7 && c.option === 4 && c.step === 2 && c.stepNav === 2 && c.field >= 3 && c.card >= 2 && c.cardTop === 1 && c.disc === 2 && c.sheet === 1 && c.slider === 1 && c.check === 3 && c.status === 4, JSON.stringify(c));
       const small = await page.evaluate((sel) => [...document.querySelectorAll(sel)]
         .filter((el) => el.getClientRects().length)
         .map((el) => { const r = el.getBoundingClientRect(); return { w: r.width, h: r.height, d: el.outerHTML.slice(0, 60) }; })
@@ -84,7 +84,7 @@ const active = (page) => page.evaluate(() => {
       visible: !document.querySelector('[data-sheet="sg-sheet"]').hidden,
       lock: document.documentElement.classList.contains('ds-scroll-lock'),
       guideInert: document.getElementById('style-guide').inert,
-      mainInert: document.querySelector('main').inert
+      mainInert: document.querySelector('main:not(#steps)').inert && document.getElementById('steps').inert
     }));
     check('sheet: opens', opened.visible);
     check('sheet: page behind is inert and scroll-locked', opened.lock && opened.guideInert && opened.mainInert, JSON.stringify(opened));
@@ -106,7 +106,7 @@ const active = (page) => page.evaluate(() => {
     const closed = await page.evaluate(() => ({
       hidden: document.querySelector('[data-sheet="sg-sheet"]').hidden,
       lock: document.documentElement.classList.contains('ds-scroll-lock'),
-      inert: document.getElementById('style-guide').inert || document.querySelector('main').inert
+      inert: document.getElementById('style-guide').inert || document.querySelector('main:not(#steps)').inert || document.getElementById('steps').inert
     }));
     check('sheet: Escape closes and restores the page', closed.hidden && !closed.lock && !closed.inert, JSON.stringify(closed));
     check('sheet: focus returns to the opener after Escape', (await active(page)).id === 'sg-open-sheet');
@@ -165,20 +165,56 @@ const active = (page) => page.evaluate(() => {
     await ctx.close();
   }
 
-  // Routing: the guide is hidden by default and leaving it restores the scorecard and its theme.
+  // Number fields: commas, strict parsing, clamping (Phase 2, owner decision: add commas).
+  {
+    const { ctx, page, errors } = await open(browser, 390, 'ledger');
+    const events = [];
+    await page.exposeFunction('__numEvent', (d) => events.push(d));
+    await page.evaluate(() => document.addEventListener('ds:number', (e) => window.__numEvent(e.detail)));
+    const f = '#sg-sale';
+    const read = () => page.evaluate((sel) => { const el = document.querySelector(sel); return { v: el.value, inv: el.getAttribute('aria-invalid'), err: document.getElementById(el.id + '-error').textContent, last: el.dataset.last }; }, f);
+    check('field: starts with commas', (await read()).v === '9,000');
+    await page.fill(f, '12000');
+    await page.locator(f).blur();
+    let r = await read();
+    check('field: typing 12000 commits 12000 and shows 12,000 after leaving', r.v === '12,000' && r.last === '12000' && events.some((e) => e.name === 'sg-sale' && e.value === 12000), JSON.stringify(r));
+    await page.fill(f, '$15,500');
+    await page.locator(f).blur();
+    check('field: "$15,500" is read as 15500', (await read()).last === '15500');
+    await page.fill(f, '7k');
+    r = await read();
+    check('field: unreadable text is marked invalid with the range and an example', r.inv === 'true' && r.err === 'Enter an amount from $1,000 to $150,000, like 9,000.' && r.last === '15500', JSON.stringify(r));
+    await page.fill(f, '-5');
+    await page.locator(f).blur();
+    r = await read();
+    check('field: an out-of-range value is clamped on leaving, with a message', r.v === '1,000' && r.last === '1000' && r.err === 'Changed to $1,000, the lowest allowed.' && r.inv === null, JSON.stringify(r));
+    await page.fill(f, '');
+    await page.locator(f).blur();
+    check('field: an emptied field goes back to the last valid value', (await read()).v === '1,000');
+    check('field: the input is a text box with a numeric keyboard', await page.evaluate((sel) => { const el = document.querySelector(sel); return el.type === 'text' && el.inputMode === 'numeric'; }, f));
+    check('number fields: no console errors', errors.length === 0, errors.join(' | '));
+    await ctx.close();
+  }
+
+  // Routing (Phase 2): a fresh load shows Step 1; #answer shows the old page with the public defaults; leaving the guide restores the theme.
   {
     const ctx = await browser.newContext({ viewport: { width: 390, height: 844 } });
     const page = await ctx.newPage();
     await page.goto(url, { waitUntil: 'load' });
-    const start = await page.evaluate(() => ({ guide: document.getElementById('style-guide').hidden, main: document.querySelector('main').hidden }));
-    check('route: scorecard by default, guide hidden', start.guide && !start.main);
+    const vis = () => page.evaluate(() => ({ guide: !document.getElementById('style-guide').hidden, steps: !document.getElementById('steps').hidden, answer: !document.querySelector('main:not(#steps)').hidden }));
+    check('route: a fresh load shows Step 1, not the guide or the old page', JSON.stringify(await vis()) === JSON.stringify({ guide: false, steps: true, answer: false }), JSON.stringify(await vis()));
+    await page.evaluate(() => { location.hash = 'answer'; });
+    await page.waitForFunction(() => !document.querySelector('main:not(#steps)').hidden);
+    const defaults = await page.evaluate(() => ({ selected: window.__tbl.snapshot().selected, keep: [...document.querySelectorAll('#res-main .card h3')].map((h) => h.textContent).find((t) => t.startsWith('Keep')) }));
+    check('without the QA hook, the public defaults apply (sedan; Bolt, Camry Hybrid, Corolla)', defaults.selected.join(',') === 'bolt,camryh,corolla' && defaults.keep === 'Keep My gas sedan', JSON.stringify(defaults));
     await page.evaluate(() => { location.hash = 'style-guide'; });
     await page.waitForFunction(() => !document.getElementById('style-guide').hidden);
+    check('route: the guide hides the steps and the old page', JSON.stringify(await vis()) === JSON.stringify({ guide: true, steps: false, answer: false }));
     await page.click('[data-act="sg-theme"][data-val="night"]');
     await page.click('#style-guide a[href="#"]');
-    await page.waitForFunction(() => !document.querySelector('main').hidden);
+    await page.waitForFunction(() => !document.getElementById('steps').hidden);
     const back = await page.evaluate(() => ({ guide: document.getElementById('style-guide').hidden, theme: document.body.dataset.theme, snap: window.__tbl.snapshot().theme }));
-    check('route: Back to the scorecard restores the scorecard and its own theme', back.guide && back.theme === back.snap && back.theme === 'ledger', JSON.stringify(back));
+    check('route: Back to the scorecard shows Step 1 and restores its own theme', back.guide && back.theme === back.snap && back.theme === 'ledger', JSON.stringify(back));
     await ctx.close();
   }
 

@@ -1,0 +1,311 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Phase 2 Screens Mockup</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&family=Source+Serif+4:opsz,wght@8..60,600&display=swap" rel="stylesheet">
+<style>
+/* ===== REAL design system: src/ui/tokens.css ===== */
+/* Design tokens (Phase 1). Ledger is the default; Night applies when body[data-theme="night"].
+   Names are new (--color-*, --space-*, ...) so the old page's variables are untouched.
+   Contrast targets are enforced by src/ui/tokens.test.ts. */
+:root{
+  --color-bg:#f6f3ec;--color-surface:#fffdf8;--color-soft:#efe9da;--color-tint:#e3efe9;
+  --color-ink:#1d2a24;--color-muted:#5d6a63;--color-line:#ddd6c6;--color-control:#7d8478;
+  --color-accent:#1f5f4a;--color-on-accent:#ffffff;
+  --font-body:"Inter",system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;
+  --font-head:"Source Serif 4","Iowan Old Style",Georgia,serif;
+  --text-xs:11px;--text-sm:13px;--text-md:15px;--text-lg:18px;--text-xl:24px;
+  --space-1:4px;--space-2:8px;--space-3:12px;--space-4:16px;--space-5:20px;--space-6:24px;--space-7:32px;
+  --radius-sm:10px;--radius-md:12px;--radius-lg:14px;--radius-pill:999px;
+  --tap:44px;--tap-lg:48px;
+  --shadow-sheet:0 -8px 28px rgba(60,50,20,.16);--backdrop:rgba(20,26,22,.45)
+}
+body[data-theme="night"]{
+  --color-bg:#0d1218;--color-surface:#151c24;--color-soft:#1b2530;--color-tint:#16302a;
+  --color-ink:#e6edf3;--color-muted:#8b98a6;--color-line:#263241;--color-control:#6b7a8b;
+  --color-accent:#4cc9a0;--color-on-accent:#06130e;
+  --shadow-sheet:0 -8px 28px rgba(0,0,0,.5);--backdrop:rgba(0,0,0,.6)
+}
+
+/* ===== REAL design system: src/ui/components.css ===== */
+/* Styles for ds- components (Phase 1). Loaded after style.css so ds- rules win ties;
+   every rule targets a ds- class, so the old page is unaffected. */
+.ds-guide,.ds-sheet{font-family:var(--font-body);color:var(--color-ink);font-size:var(--text-md);line-height:1.5}
+.ds-guide :focus-visible,.ds-sheet :focus-visible,.ds-backdrop :focus-visible{outline:2px solid var(--color-accent);outline-offset:2px}
+.ds-guide [tabindex="-1"]:focus,.ds-sheet[tabindex="-1"]:focus{outline:none}
+
+/* buttons */
+.ds-btn{appearance:none;display:inline-flex;align-items:center;justify-content:center;gap:var(--space-2);min-height:var(--tap-lg);min-width:var(--tap);padding:var(--space-3) var(--space-4);border-radius:var(--radius-md);border:1px solid var(--color-accent);font:600 var(--text-md)/1.2 var(--font-body);cursor:pointer;text-align:center}
+.ds-btn-primary{background:var(--color-accent);color:var(--color-on-accent)}
+.ds-btn-secondary{background:transparent;color:var(--color-accent)}
+.ds-btn-link{background:transparent;border-color:transparent;color:var(--color-accent);min-height:var(--tap);padding:var(--space-2) var(--space-2);font-size:var(--text-sm);text-decoration:underline;text-underline-offset:3px}
+.ds-btn-full{display:flex;width:100%}
+.ds-btn:disabled{cursor:not-allowed;opacity:.55}
+.ds-btn-link:disabled{text-decoration:none;color:var(--color-muted)}
+
+/* chips */
+.ds-chip{appearance:none;display:inline-flex;flex-direction:column;align-items:flex-start;justify-content:center;min-height:var(--tap);min-width:var(--tap);padding:var(--space-2) var(--space-4);border-radius:var(--radius-pill);border:1px solid var(--color-control);background:var(--color-bg);color:var(--color-ink);font:600 var(--text-sm)/1.2 var(--font-body);cursor:pointer;text-align:left}
+.ds-chip small{display:block;font-size:var(--text-xs);font-weight:400;color:var(--color-muted);margin-top:2px}
+.ds-chip-on{background:var(--color-accent);border-color:var(--color-accent);color:var(--color-on-accent)}
+.ds-chip-on small{color:inherit}
+.ds-chips{display:flex;flex-wrap:wrap;gap:var(--space-2)}
+
+/* option buttons (Step 1) */
+.ds-option{appearance:none;display:block;width:100%;min-height:64px;padding:var(--space-4);border-radius:var(--radius-lg);border:1px solid var(--color-control);background:var(--color-surface);color:var(--color-ink);text-align:left;cursor:pointer;font-family:var(--font-body)}
+.ds-option-on{background:var(--color-tint);border:2px solid var(--color-accent);padding:calc(var(--space-4) - 1px)}
+.ds-option-title{display:block;font-weight:600;font-size:var(--text-md)}
+.ds-option-sub{display:block;margin-top:2px;font-size:var(--text-sm);color:var(--color-muted)}
+.ds-options{display:grid;gap:var(--space-3)}
+
+/* step header and footer */
+.ds-step{margin:0 0 var(--space-5)}
+.ds-step-count{margin:0 0 var(--space-2);font:600 var(--text-sm)/1.3 var(--font-body);color:var(--color-muted)}
+.ds-progress{display:flex;gap:6px;margin:0 0 var(--space-4)}
+.ds-seg{flex:1;height:4px;border-radius:2px;background:var(--color-line)}
+.ds-seg-on{background:var(--color-accent)}
+.ds-step-title{margin:0;font:600 var(--text-xl)/1.2 var(--font-head);color:var(--color-ink);text-transform:none;letter-spacing:0}
+.ds-step-sub{margin:var(--space-2) 0 0;font-size:var(--text-md);color:var(--color-muted)}
+.ds-step-nav{display:flex;justify-content:space-between;align-items:center;gap:var(--space-3);margin-top:var(--space-4)}
+
+/* option card (answer screen) */
+.ds-card{background:var(--color-surface);border:1px solid var(--color-line);border-radius:var(--radius-lg);padding:var(--space-4)}
+.ds-card-top{background:var(--color-tint);border:2px solid var(--color-accent);padding:calc(var(--space-4) - 1px)}
+.ds-card-head{display:flex;justify-content:space-between;align-items:flex-start;gap:var(--space-3)}
+.ds-card-names{min-width:0}
+.ds-card-name{margin:0;font:600 var(--text-md)/1.3 var(--font-body);color:var(--color-ink);text-transform:none;letter-spacing:0;overflow-wrap:anywhere}
+.ds-card-tag{margin:2px 0 0;font:600 var(--text-xs)/1.3 var(--font-body);letter-spacing:.06em;text-transform:uppercase;color:var(--color-accent)}
+.ds-card-score{margin:0;white-space:nowrap;color:var(--color-ink)}
+.ds-card-score b{font:600 28px/1 var(--font-head)}
+.ds-card-score span{font-size:var(--text-sm);color:var(--color-muted);margin-left:2px}
+.ds-card-stats{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:var(--space-2);margin:var(--space-3) 0 0;padding-top:var(--space-3);border-top:1px solid var(--color-line)}
+.ds-card-stats div{min-width:0}
+.ds-card-stats dt{font-size:var(--text-xs);color:var(--color-muted)}
+.ds-card-stats dd{margin:0;font-weight:600;font-variant-numeric:tabular-nums;overflow-wrap:anywhere}
+.ds-cards{display:grid;gap:var(--space-3)}
+@media(min-width:1024px){.ds-cards{grid-template-columns:repeat(2,minmax(0,1fr))}}
+
+/* disclosure */
+.ds-disc{background:var(--color-surface);border:1px solid var(--color-line);border-radius:var(--radius-md)}
+.ds-disc-sum{display:flex;justify-content:space-between;align-items:center;gap:var(--space-3);min-height:var(--tap-lg);padding:0 var(--space-4);cursor:pointer;list-style:none;font-weight:600}
+.ds-disc-sum::-webkit-details-marker{display:none}
+.ds-disc-sum::after{content:"Show";font-size:var(--text-sm);color:var(--color-accent);flex:none}
+.ds-disc[open]>.ds-disc-sum::after{content:"Hide"}
+.ds-disc-title{min-width:0}
+.ds-disc-meta{margin-left:auto;font-weight:400;font-size:var(--text-sm);color:var(--color-muted)}
+.ds-disc-body{padding:0 var(--space-4) var(--space-4)}
+
+/* field */
+.ds-field{margin:0 0 var(--space-4)}
+.ds-label{display:block;margin:0 0 6px;font:600 var(--text-sm)/1.3 var(--font-body);color:var(--color-ink)}
+.ds-input{display:flex;align-items:center;gap:var(--space-2);min-height:var(--tap-lg);padding:0 var(--space-3);background:var(--color-surface);border:1px solid var(--color-control);border-radius:var(--radius-sm)}
+.ds-input:focus-within{outline:2px solid var(--color-accent);outline-offset:2px}
+.ds-input input{flex:1;min-width:0;min-height:var(--tap);border:0;background:transparent;padding:0;font:600 var(--text-lg)/1.2 var(--font-body);color:var(--color-ink);font-variant-numeric:tabular-nums}
+.ds-input input:focus-visible{outline:none}
+.ds-prefix,.ds-unit{color:var(--color-muted);font-size:var(--text-sm)}
+.ds-hint{margin:6px 0 0;font-size:var(--text-sm);color:var(--color-muted)}
+
+/* bottom sheet */
+.ds-backdrop{position:fixed;inset:0;z-index:50;display:flex;align-items:flex-end;justify-content:center;background:var(--backdrop)}
+.ds-backdrop[hidden]{display:none}
+.ds-sheet{width:min(560px,100%);max-height:85vh;max-height:85dvh;overflow:auto;background:var(--color-surface);border-radius:var(--radius-lg) var(--radius-lg) 0 0;box-shadow:var(--shadow-sheet);padding:var(--space-4) var(--space-5) var(--space-6)}
+.ds-sheet-head{display:flex;justify-content:space-between;align-items:center;gap:var(--space-3);margin-bottom:var(--space-3)}
+.ds-sheet-title{margin:0;font:600 var(--text-lg)/1.3 var(--font-head);color:var(--color-ink);text-transform:none;letter-spacing:0}
+html.ds-scroll-lock,html.ds-scroll-lock body{overflow:hidden}
+
+/* style guide page */
+.ds-guide{background:var(--color-bg);min-height:100vh;padding:var(--space-5) var(--space-4) var(--space-7)}
+.ds-guide-inner{max-width:960px;margin:0 auto;display:grid;gap:var(--space-6)}
+.ds-guide-title{margin:0;font:600 28px/1.2 var(--font-head);color:var(--color-ink)}
+.ds-guide-lead{margin:var(--space-2) 0 0;color:var(--color-muted);max-width:65ch}
+.ds-guide-sec{background:var(--color-surface);border:1px solid var(--color-line);border-radius:var(--radius-lg);padding:var(--space-4)}
+.ds-guide-h{margin:0 0 var(--space-3);font:600 var(--text-lg)/1.3 var(--font-head);color:var(--color-ink);text-transform:none;letter-spacing:0}
+.ds-guide-row{display:flex;flex-wrap:wrap;gap:var(--space-3);align-items:center}
+.ds-guide-col{max-width:560px;display:grid;gap:var(--space-3)}
+.ds-guide-note{margin:0;font-size:var(--text-sm);color:var(--color-muted)}
+.ds-swatches{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:var(--space-2);margin:0;padding:0;list-style:none}
+.ds-swatch{display:flex;align-items:center;gap:var(--space-2);font-size:var(--text-sm)}
+.ds-swatch i{width:28px;height:28px;border-radius:6px;border:1px solid var(--color-control);flex:none}
+.ds-guide-col+.ds-guide-col{margin-top:var(--space-6);padding-top:var(--space-5);border-top:1px dashed var(--color-line)}
+
+</style>
+<style>/* ===== proposed, not built yet ===== */
+/* PROPOSED, NOT BUILT YET (Phase 2 plan): ds-slider, ds-check, text-mode ds-field (badge, error), groups, notes.
+   Tokens only; 44 px minimum targets; visible focus. */
+.ds-label-row{display:flex;align-items:baseline;justify-content:space-between;gap:var(--space-2);margin:0 0 6px}
+.ds-label-row .ds-label{margin:0}
+.ds-badge{display:inline-flex;align-items:center;min-height:var(--tap);padding:0 var(--space-2);margin:calc((var(--tap) - 1.3em) / -2) 0;font:600 var(--text-xs)/1.3 var(--font-body);letter-spacing:.04em;text-transform:uppercase;color:var(--color-muted)}
+a.ds-badge{color:var(--color-accent);text-decoration:underline;text-underline-offset:3px}
+.ds-group{border:0;margin:0 0 var(--space-5);padding:0;min-width:0}
+.ds-group-tight{margin-bottom:var(--space-4)}
+.ds-group>legend.ds-label{margin-bottom:var(--space-2);padding:0}
+.ds-group-title{padding:0;margin:0 0 var(--space-2);font:600 var(--text-xs)/1.3 var(--font-body);letter-spacing:.06em;text-transform:uppercase;color:var(--color-muted)}
+.ds-subform{margin:0 0 var(--space-5);padding:var(--space-4);background:var(--color-surface);border:1px solid var(--color-line);border-radius:var(--radius-md)}
+.ds-subform-title{margin:0 0 var(--space-3);font:600 var(--text-md)/1.3 var(--font-body)}
+.ds-subform .ds-field:last-of-type{margin-bottom:var(--space-4)}
+.ds-hint+.ds-hint{margin-top:2px}
+.ds-row{display:flex;flex-wrap:wrap;gap:var(--space-3);align-items:center}
+.ds-note{margin:0 0 var(--space-5);padding:var(--space-3) var(--space-4);background:var(--color-soft);border-radius:var(--radius-md);font-size:var(--text-sm);color:var(--color-ink)}
+/* text-mode field error: thicker ink border + icon + words, so color is not the only signal */
+.ds-field-error .ds-input{border:2px solid var(--color-ink);padding:0 calc(var(--space-3) - 1px)}
+.ds-error{display:flex;gap:var(--space-2);align-items:flex-start;margin:6px 0 0;font:600 var(--text-sm)/1.4 var(--font-body);color:var(--color-ink)}
+.ds-error-icon{flex:none;display:inline-grid;place-items:center;width:18px;height:18px;margin-top:1px;border-radius:50%;background:var(--color-ink);color:var(--color-surface);font-size:var(--text-xs)}
+/* slider with linked number field */
+.ds-slider-row{display:flex;align-items:center;gap:var(--space-3)}
+.ds-range{flex:1;min-width:0;height:var(--tap);margin:0;background:transparent;accent-color:var(--color-accent);-webkit-appearance:none;appearance:none;cursor:pointer}
+.ds-range::-webkit-slider-runnable-track{height:6px;border-radius:3px;background:linear-gradient(to right,var(--color-accent) var(--fill),var(--color-line) var(--fill))}
+.ds-range::-webkit-slider-thumb{-webkit-appearance:none;width:28px;height:28px;margin-top:-11px;border-radius:50%;background:var(--color-surface);border:2px solid var(--color-accent);box-shadow:0 1px 3px rgba(0,0,0,.2)}
+.ds-range::-moz-range-track{height:6px;border-radius:3px;background:var(--color-line)}
+.ds-range::-moz-range-progress{height:6px;border-radius:3px;background:var(--color-accent)}
+.ds-range::-moz-range-thumb{width:28px;height:28px;border-radius:50%;background:var(--color-surface);border:2px solid var(--color-accent)}
+.ds-range:focus-visible{outline:2px solid var(--color-accent);outline-offset:2px;border-radius:var(--radius-sm)}
+.ds-input-num{flex:none;width:7.5em}
+/* checkbox rows */
+.ds-checks{display:grid;gap:var(--space-2)}
+.ds-check{display:flex;align-items:flex-start;gap:var(--space-3);min-height:var(--tap-lg);padding:var(--space-3) var(--space-4);background:var(--color-surface);border:1px solid var(--color-line);border-radius:var(--radius-md);cursor:pointer}
+.ds-check:has(input:checked){background:var(--color-tint);border-color:var(--color-accent)}
+.ds-check:focus-within{outline:2px solid var(--color-accent);outline-offset:2px}
+.ds-check input{flex:none;width:22px;height:22px;margin:1px 0 0;accent-color:var(--color-accent)}
+.ds-check input:focus-visible{outline:none}
+.ds-check-text{display:grid;min-width:0}
+.ds-check-name{font-weight:600;font-size:var(--text-md);overflow-wrap:anywhere}
+.ds-check-meta{font-size:var(--text-sm);color:var(--color-muted)}
+.ds-check-disabled{cursor:not-allowed;background:var(--color-bg)}
+.ds-check-disabled .ds-check-name{color:var(--color-muted)}
+.ds-tag{display:inline-block;margin-left:var(--space-1);padding:0 6px;border:1px solid var(--color-control);border-radius:var(--radius-pill);font-size:var(--text-xs);color:var(--color-ink)}
+.ds-limit{display:flex;gap:var(--space-2);align-items:center;margin:0 0 var(--space-4);padding:var(--space-3) var(--space-4);border:2px solid var(--color-accent);border-radius:var(--radius-md);background:var(--color-surface);font-weight:600;font-size:var(--text-sm)}
+.ds-limit span{display:inline-grid;place-items:center;flex:none;width:18px;height:18px;border-radius:50%;background:var(--color-accent);color:var(--color-on-accent);font-size:var(--text-xs);font-style:italic}
+.ds-screen>.ds-btn-full{margin-top:var(--space-2)}
+</style>
+<style>
+/* MOCKUP PAGE CHROME ONLY (not part of the app) */
+body{margin:0;background:#e9e5da;font-family:var(--font-body);color:var(--color-ink)}
+.mock-page{padding:32px 32px 64px;max-width:1400px;margin:0 auto}
+.mock-title{font:600 30px/1.2 var(--font-head);margin:0 0 12px}
+.mock-lead{max-width:80ch;margin:0 0 32px;font-size:15px;line-height:1.55;color:var(--color-muted)}
+.mock-grid{display:flex;flex-wrap:wrap;gap:40px 32px;align-items:flex-start}
+.mock-item{width:390px}
+.mock-cap{margin:0 0 8px;font:600 14px/1.3 var(--font-body);color:var(--color-ink)}
+.mock-cap b{display:inline-block;min-width:1.6em}
+.phone{width:390px;box-sizing:border-box;border:1px solid #b9b2a2;border-radius:32px;overflow:hidden;background:var(--color-bg);box-shadow:0 6px 24px rgba(40,30,10,.12)}
+.ds-screen{box-sizing:border-box;padding:var(--space-6) var(--space-4) var(--space-5);font-family:var(--font-body);font-size:var(--text-md);line-height:1.5;color:var(--color-ink);background:var(--color-bg)}
+.ds-screen *,.ds-screen *::before,.ds-screen *::after{box-sizing:border-box}
+.ds-screen :focus-visible{outline:2px solid var(--color-accent);outline-offset:2px}
+.ds-screen [tabindex="-1"]:focus{outline:none}
+.night-frame{
+  --color-bg:#0d1218;--color-surface:#151c24;--color-soft:#1b2530;--color-tint:#16302a;
+  --color-ink:#e6edf3;--color-muted:#8b98a6;--color-line:#263241;--color-control:#6b7a8b;
+  --color-accent:#4cc9a0;--color-on-accent:#06130e;
+  --shadow-sheet:0 -8px 28px rgba(0,0,0,.5);--backdrop:rgba(0,0,0,.6)
+}
+.night-frame.phone{border-color:#3a4554}
+</style>
+</head>
+<body data-theme="ledger"><div style="max-width:1100px;margin:16px auto;padding:12px 16px;border:2px solid #1f5f4a;border-radius:12px;background:#e3efe9;font:15px/1.5 Inter,system-ui,sans-serif;color:#1d2a24"><strong>Drawn from the first draft.</strong> The revised plan (docs/dev-package/phase-2-plan.md) changes four things: the trade path field becomes &ldquo;Trade-in offer&rdquo; (P4); miles is one slider with a readout, no typed field (P5); the &ldquo;Not sure&rdquo; option is hidden until Phase 4 (P8); &ldquo;Something else&rdquo; does not repeat the value field. Every value also shows Placeholder, Source or Your number.</div>
+<div class="mock-page">
+<h1 class="mock-title">TBL Scorecard: Phase 2 screens (mockup)</h1>
+<p class="mock-lead">Ten phone-width (390 px) screens for Phase 2, drawn with the real design system: the tokens and component styles are copied from <code>src/ui/tokens.css</code> and <code>src/ui/components.css</code>, and the step header, footer, option buttons, chips and buttons are produced by the real <code>ds*</code> renderers. The slider, checkbox rows, comma-formatted text money fields (with their error state), the "Something else" and "Add my own car" sub-forms, the Placeholder label, the note box and the 4-car message are <b>proposed, not built yet</b>; their styles sit in a separate block and use only existing tokens. Copy follows <code>docs/dev-package/phase-2-plan.md</code> (Screens section); captions say "proposed" where the plan marks copy as proposed. Car names and prices come from <code>CATALOG</code> in <code>src/data.ts</code>. This is a static picture: nothing is wired up.</p>
+<div class="mock-grid">
+<section class="mock-item" aria-label="Screen 1"><p class="mock-cap"><b>1.</b> Step 1, fresh load (nothing selected)</p><div class="phone" data-frame="1"><div class="ds-screen"><header class="ds-step"><p class="ds-step-count">Step 1 of 3</p><div class="ds-progress" aria-hidden="true"><i class="ds-seg ds-seg-on"></i><i class="ds-seg"></i><i class="ds-seg"></i></div><h1 id="s1-h" class="ds-step-title" tabindex="-1">What are you deciding?</h1><p class="ds-step-sub">Pick the closest one. You can change it later.</p></header>
+<div class="ds-options">
+<button type="button" class="ds-option" aria-pressed="false" data-act="path" data-val="sell"><span class="ds-option-title">Sell my car, then buy</span><span class="ds-option-sub">Sell it yourself and put the money toward the next car</span></button>
+<button type="button" class="ds-option" aria-pressed="false" data-act="path" data-val="trade"><span class="ds-option-title">Trade my car in</span><span class="ds-option-sub">A dealer takes it off the price</span></button>
+<button type="button" class="ds-option" aria-pressed="false" data-act="path" data-val="none"><span class="ds-option-title">Just buy</span><span class="ds-option-sub">No car to sell, or I am keeping mine</span></button>
+<button type="button" class="ds-option" aria-pressed="false" data-act="path" data-val="analyst"><span class="ds-option-title">Not sure: describe it in a sentence</span><span class="ds-option-sub">Opens the analyst</span></button>
+</div>
+<nav class="ds-step-nav" aria-label="Step navigation"><button type="button" class="ds-btn ds-btn-link" data-act="back" disabled>Back</button><button type="button" class="ds-btn ds-btn-link" data-act="skip">Skip to answer</button></nav></div></div></section>
+<section class="mock-item" aria-label="Screen 2"><p class="mock-cap"><b>2.</b> Step 2, sell path, older gas sedan preset</p><div class="phone" data-frame="2"><div class="ds-screen"><header class="ds-step"><p class="ds-step-count">Step 2 of 3</p><div class="ds-progress" aria-hidden="true"><i class="ds-seg ds-seg-on"></i><i class="ds-seg ds-seg-on"></i><i class="ds-seg"></i></div><h1 id="s2-h" class="ds-step-title" tabindex="-1">Your car and your driving</h1><p class="ds-step-sub">Start from a preset. Values marked as placeholders are not sourced.</p></header><fieldset class="ds-group"><legend class="ds-label">Car you have now</legend><div class="ds-chips">
+<button type="button" class="ds-chip ds-chip-on" aria-pressed="true" data-act="preset" data-val="sedan">Older gas sedan</button><button type="button" class="ds-chip" aria-pressed="false" data-act="preset" data-val="suv">Older gas SUV</button><button type="button" class="ds-chip" aria-pressed="false" data-act="preset" data-val="hybrid">Older hybrid</button><button type="button" class="ds-chip" aria-pressed="false" data-act="preset" data-val="lexus">Lexus LX 470 (example)</button>
+<button type="button" class="ds-chip" aria-pressed="false" data-act="preset" data-val="custom">Something else</button></div></fieldset><div class="ds-field"><div class="ds-label-row"><label for="s2-value" class="ds-label">What it would sell for</label><span class="ds-badge">Placeholder</span></div>
+<div class="ds-input"><span class="ds-prefix" aria-hidden="true">$</span><input id="s2-value" type="text" inputmode="decimal" value="9,000" aria-describedby="s2-value-hint"></div>
+<p class="ds-hint" id="s2-value-hint">Allowed: $1,000 to $150,000.</p></div><div class="ds-field ds-slider"><label for="s2-miles-num" class="ds-label">Miles per year</label>
+<div class="ds-slider-row"><input class="ds-range" type="range" id="s2-miles" aria-label="Miles per year" aria-valuetext="7,500 miles" min="1000" max="25000" step="500" value="7500" aria-describedby="s2-miles-hint" style="--fill:27.1%">
+<div class="ds-input ds-input-num"><input id="s2-miles-num" type="text" inputmode="decimal" value="7,500" aria-describedby="s2-miles-hint"><span class="ds-unit">mi</span></div></div>
+<p class="ds-hint" id="s2-miles-hint">Allowed: 1,000 to 25,000 mi, in steps of 500.</p></div><p class="ds-note">Not sure of a number? Leave it. Placeholders are marked and you can change them from the answer screen.</p>
+<button type="button" class="ds-btn ds-btn-primary ds-btn-full" data-act="next">Continue to cars</button>
+<nav class="ds-step-nav" aria-label="Step navigation"><button type="button" class="ds-btn ds-btn-link" data-act="back">Back</button><button type="button" class="ds-btn ds-btn-link" data-act="skip">Skip to answer</button></nav></div></div></section>
+<section class="mock-item" aria-label="Screen 3"><p class="mock-cap"><b>3.</b> Step 2, trade path (proposed label and offer line)</p><div class="phone" data-frame="3"><div class="ds-screen"><header class="ds-step"><p class="ds-step-count">Step 2 of 3</p><div class="ds-progress" aria-hidden="true"><i class="ds-seg ds-seg-on"></i><i class="ds-seg ds-seg-on"></i><i class="ds-seg"></i></div><h1 id="s3-h" class="ds-step-title" tabindex="-1">Your car and your driving</h1><p class="ds-step-sub">Start from a preset. Values marked as placeholders are not sourced.</p></header><fieldset class="ds-group"><legend class="ds-label">Car you have now</legend><div class="ds-chips">
+<button type="button" class="ds-chip ds-chip-on" aria-pressed="true" data-act="preset" data-val="sedan">Older gas sedan</button><button type="button" class="ds-chip" aria-pressed="false" data-act="preset" data-val="suv">Older gas SUV</button><button type="button" class="ds-chip" aria-pressed="false" data-act="preset" data-val="hybrid">Older hybrid</button><button type="button" class="ds-chip" aria-pressed="false" data-act="preset" data-val="lexus">Lexus LX 470 (example)</button>
+<button type="button" class="ds-chip" aria-pressed="false" data-act="preset" data-val="custom">Something else</button></div></fieldset><div class="ds-field"><div class="ds-label-row"><label for="s3-value" class="ds-label">What it would sell for privately</label><span class="ds-badge">Placeholder</span></div>
+<div class="ds-input"><span class="ds-prefix" aria-hidden="true">$</span><input id="s3-value" type="text" inputmode="decimal" value="9,000" aria-describedby="s3-value-hint s3-value-extra"></div>
+<p class="ds-hint" id="s3-value-hint">Allowed: $1,000 to $150,000.</p><p class="ds-hint" id="s3-value-extra">A dealer offer is assumed 15% lower: about $7,650.</p></div><div class="ds-field ds-slider"><label for="s3-miles-num" class="ds-label">Miles per year</label>
+<div class="ds-slider-row"><input class="ds-range" type="range" id="s3-miles" aria-label="Miles per year" aria-valuetext="7,500 miles" min="1000" max="25000" step="500" value="7500" aria-describedby="s3-miles-hint" style="--fill:27.1%">
+<div class="ds-input ds-input-num"><input id="s3-miles-num" type="text" inputmode="decimal" value="7,500" aria-describedby="s3-miles-hint"><span class="ds-unit">mi</span></div></div>
+<p class="ds-hint" id="s3-miles-hint">Allowed: 1,000 to 25,000 mi, in steps of 500.</p></div><p class="ds-note">Not sure of a number? Leave it. Placeholders are marked and you can change them from the answer screen.</p>
+<button type="button" class="ds-btn ds-btn-primary ds-btn-full" data-act="next">Continue to cars</button>
+<nav class="ds-step-nav" aria-label="Step navigation"><button type="button" class="ds-btn ds-btn-link" data-act="back">Back</button><button type="button" class="ds-btn ds-btn-link" data-act="skip">Skip to answer</button></nav></div></div></section>
+<section class="mock-item" aria-label="Screen 4"><p class="mock-cap"><b>4.</b> Step 2, &quot;Something else&quot; fields open</p><div class="phone" data-frame="4"><div class="ds-screen"><header class="ds-step"><p class="ds-step-count">Step 2 of 3</p><div class="ds-progress" aria-hidden="true"><i class="ds-seg ds-seg-on"></i><i class="ds-seg ds-seg-on"></i><i class="ds-seg"></i></div><h1 id="s4-h" class="ds-step-title" tabindex="-1">Your car and your driving</h1><p class="ds-step-sub">Start from a preset. Values marked as placeholders are not sourced.</p></header><fieldset class="ds-group"><legend class="ds-label">Car you have now</legend><div class="ds-chips">
+<button type="button" class="ds-chip" aria-pressed="false" data-act="preset" data-val="sedan">Older gas sedan</button><button type="button" class="ds-chip" aria-pressed="false" data-act="preset" data-val="suv">Older gas SUV</button><button type="button" class="ds-chip" aria-pressed="false" data-act="preset" data-val="hybrid">Older hybrid</button><button type="button" class="ds-chip" aria-pressed="false" data-act="preset" data-val="lexus">Lexus LX 470 (example)</button>
+<button type="button" class="ds-chip ds-chip-on" aria-pressed="true" data-act="preset" data-val="custom">Something else</button></div></fieldset>
+<div class="ds-subform" role="group" aria-label="Your car's details">
+<div class="ds-field"><div class="ds-label-row"><label for="s4-name" class="ds-label">Car name</label></div>
+<div class="ds-input"><input id="s4-name" type="text" autocomplete="off" value="My gas sedan"></div>
+</div>
+<div class="ds-field"><div class="ds-label-row"><label for="s4-value" class="ds-label">What it would sell for</label><span class="ds-badge">Placeholder</span></div>
+<div class="ds-input"><span class="ds-prefix" aria-hidden="true">$</span><input id="s4-value" type="text" inputmode="decimal" value="9,000" aria-describedby="s4-value-hint"></div>
+<p class="ds-hint" id="s4-value-hint">Allowed: $1,000 to $150,000.</p></div>
+<div class="ds-field"><div class="ds-label-row"><label for="s4-mpg" class="ds-label">Fuel economy</label><span class="ds-badge">Placeholder</span></div>
+<div class="ds-input"><input id="s4-mpg" type="text" inputmode="decimal" value="28" aria-describedby="s4-mpg-hint"><span class="ds-unit">mpg</span></div>
+<p class="ds-hint" id="s4-mpg-hint">Allowed: 8 to 80 mpg.</p></div>
+<div class="ds-field"><div class="ds-label-row"><label for="s4-maint" class="ds-label">Repair cost per mile</label><span class="ds-badge">Placeholder</span></div>
+<div class="ds-input"><span class="ds-prefix" aria-hidden="true">$</span><input id="s4-maint" type="text" inputmode="decimal" value="0.09" aria-describedby="s4-maint-hint"><span class="ds-unit">per mi</span></div>
+<p class="ds-hint" id="s4-maint-hint">Allowed: $0.03 to $0.50 per mi.</p></div>
+<div class="ds-field"><div class="ds-label-row"><label for="s4-ins" class="ds-label">Insurance per year</label><span class="ds-badge">Placeholder</span></div>
+<div class="ds-input"><span class="ds-prefix" aria-hidden="true">$</span><input id="s4-ins" type="text" inputmode="decimal" value="1,400" aria-describedby="s4-ins-hint"></div>
+<p class="ds-hint" id="s4-ins-hint">Allowed: $300 to $8,000.</p></div>
+</div><div class="ds-field ds-slider"><label for="s4-miles-num" class="ds-label">Miles per year</label>
+<div class="ds-slider-row"><input class="ds-range" type="range" id="s4-miles" aria-label="Miles per year" aria-valuetext="7,500 miles" min="1000" max="25000" step="500" value="7500" aria-describedby="s4-miles-hint" style="--fill:27.1%">
+<div class="ds-input ds-input-num"><input id="s4-miles-num" type="text" inputmode="decimal" value="7,500" aria-describedby="s4-miles-hint"><span class="ds-unit">mi</span></div></div>
+<p class="ds-hint" id="s4-miles-hint">Allowed: 1,000 to 25,000 mi, in steps of 500.</p></div><p class="ds-note">Not sure of a number? Leave it. Placeholders are marked and you can change them from the answer screen.</p>
+<button type="button" class="ds-btn ds-btn-primary ds-btn-full" data-act="next">Continue to cars</button>
+<nav class="ds-step-nav" aria-label="Step navigation"><button type="button" class="ds-btn ds-btn-link" data-act="back">Back</button><button type="button" class="ds-btn ds-btn-link" data-act="skip">Skip to answer</button></nav></div></div></section>
+<section class="mock-item" aria-label="Screen 5"><p class="mock-cap"><b>5.</b> Step 2 on &quot;Just buy&quot; (proposed: miles only)</p><div class="phone" data-frame="5"><div class="ds-screen"><header class="ds-step"><p class="ds-step-count">Step 2 of 3</p><div class="ds-progress" aria-hidden="true"><i class="ds-seg ds-seg-on"></i><i class="ds-seg ds-seg-on"></i><i class="ds-seg"></i></div><h1 id="s5-h" class="ds-step-title" tabindex="-1">Your driving</h1><p class="ds-step-sub">How much you drive changes the answer most.</p></header><div class="ds-field ds-slider"><label for="s5-miles-num" class="ds-label">Miles per year</label>
+<div class="ds-slider-row"><input class="ds-range" type="range" id="s5-miles" aria-label="Miles per year" aria-valuetext="7,500 miles" min="1000" max="25000" step="500" value="7500" aria-describedby="s5-miles-hint" style="--fill:27.1%">
+<div class="ds-input ds-input-num"><input id="s5-miles-num" type="text" inputmode="decimal" value="7,500" aria-describedby="s5-miles-hint"><span class="ds-unit">mi</span></div></div>
+<p class="ds-hint" id="s5-miles-hint">Allowed: 1,000 to 25,000 mi, in steps of 500.</p></div><p class="ds-note">Not sure of a number? Leave it. Placeholders are marked and you can change them from the answer screen.</p>
+<button type="button" class="ds-btn ds-btn-primary ds-btn-full" data-act="next">Continue to cars</button>
+<nav class="ds-step-nav" aria-label="Step navigation"><button type="button" class="ds-btn ds-btn-link" data-act="back">Back</button><button type="button" class="ds-btn ds-btn-link" data-act="skip">Skip to answer</button></nav></div></div></section>
+<section class="mock-item" aria-label="Screen 6"><p class="mock-cap"><b>6.</b> Step 3, defaults (Bolt, Camry Hybrid, Corolla)</p><div class="phone" data-frame="6"><div class="ds-screen"><header class="ds-step"><p class="ds-step-count">Step 3 of 3</p><div class="ds-progress" aria-hidden="true"><i class="ds-seg ds-seg-on"></i><i class="ds-seg ds-seg-on"></i><i class="ds-seg ds-seg-on"></i></div><h1 id="s6-h" class="ds-step-title" tabindex="-1">Which cars should we compare?</h1><p class="ds-step-sub">3 of up to 4 chosen. Each is compared on a loan and, where known, a lease.</p></header>
+<fieldset class="ds-group"><legend class="ds-group-title">Electric</legend><div class="ds-checks"><label class="ds-check"><input type="checkbox" name="cars" value="tesla"><span class="ds-check-text"><span class="ds-check-name">Tesla Model Y Standard RWD</span><span class="ds-check-meta">Electric · $41,630</span></span></label><label class="ds-check"><input type="checkbox" name="cars" value="rivian"><span class="ds-check-text"><span class="ds-check-name">Rivian R2 Performance (launch)</span><span class="ds-check-meta">Electric · $57,990</span></span></label><label class="ds-check"><input type="checkbox" name="cars" value="bolt" checked><span class="ds-check-text"><span class="ds-check-name">Chevrolet Bolt LT (2027)</span><span class="ds-check-meta">Electric · $28,995</span></span></label><label class="ds-check"><input type="checkbox" name="cars" value="equinoxev"><span class="ds-check-text"><span class="ds-check-name">Chevrolet Equinox EV LT (FWD)</span><span class="ds-check-meta">Electric · $36,495 <span class="ds-tag">Loan only</span></span></span></label><label class="ds-check"><input type="checkbox" name="cars" value="ioniq5"><span class="ds-check-text"><span class="ds-check-name">Hyundai Ioniq 5 SE RWD</span><span class="ds-check-meta">Electric · $39,100</span></span></label></div></fieldset><fieldset class="ds-group"><legend class="ds-group-title">Hybrid</legend><div class="ds-checks"><label class="ds-check"><input type="checkbox" name="cars" value="rav4h"><span class="ds-check-text"><span class="ds-check-name">Toyota RAV4 Hybrid LE (FWD)</span><span class="ds-check-meta">Hybrid · $33,350</span></span></label><label class="ds-check"><input type="checkbox" name="cars" value="camryh" checked><span class="ds-check-text"><span class="ds-check-name">Toyota Camry Hybrid LE</span><span class="ds-check-meta">Hybrid · $30,495</span></span></label><label class="ds-check"><input type="checkbox" name="cars" value="crvh"><span class="ds-check-text"><span class="ds-check-name">Honda CR-V Sport Hybrid AWD</span><span class="ds-check-meta">Hybrid · $38,580</span></span></label><label class="ds-check"><input type="checkbox" name="cars" value="hlh"><span class="ds-check-text"><span class="ds-check-name">Toyota Highlander Hybrid XLE</span><span class="ds-check-meta">Hybrid · $48,020 <span class="ds-tag">Loan only</span></span></span></label></div></fieldset><fieldset class="ds-group"><legend class="ds-group-title">Gas</legend><div class="ds-checks"><label class="ds-check"><input type="checkbox" name="cars" value="corolla" checked><span class="ds-check-text"><span class="ds-check-name">Toyota Corolla LE (gas)</span><span class="ds-check-meta">Gas · $24,729 <span class="ds-tag">Loan only</span></span></span></label><label class="ds-check"><input type="checkbox" name="cars" value="crvg"><span class="ds-check-text"><span class="ds-check-name">Honda CR-V LX (gas, FWD)</span><span class="ds-check-meta">Gas · $32,315 <span class="ds-tag">Loan only</span></span></span></label><label class="ds-check"><input type="checkbox" name="cars" value="hlg"><span class="ds-check-text"><span class="ds-check-name">Toyota Highlander XLE (gas)</span><span class="ds-check-meta">Gas · $46,270 <span class="ds-tag">Loan only</span></span></span></label></div></fieldset><fieldset class="ds-group"><legend class="ds-group-title">Your own</legend><button type="button" class="ds-btn ds-btn-secondary" data-act="add-car">+ Add my own car</button></fieldset>
+<button type="button" class="ds-btn ds-btn-primary ds-btn-full" data-act="answer">Show my answer</button>
+<nav class="ds-step-nav" aria-label="Step navigation"><button type="button" class="ds-btn ds-btn-link" data-act="back">Back</button><button type="button" class="ds-btn ds-btn-link" data-act="skip">Skip to answer</button></nav></div></div></section>
+<section class="mock-item" aria-label="Screen 7"><p class="mock-cap"><b>7.</b> Step 3 at the 4-car limit</p><div class="phone" data-frame="7"><div class="ds-screen"><header class="ds-step"><p class="ds-step-count">Step 3 of 3</p><div class="ds-progress" aria-hidden="true"><i class="ds-seg ds-seg-on"></i><i class="ds-seg ds-seg-on"></i><i class="ds-seg ds-seg-on"></i></div><h1 id="s7-h" class="ds-step-title" tabindex="-1">Which cars should we compare?</h1><p class="ds-step-sub">4 of up to 4 chosen. Each is compared on a loan and, where known, a lease.</p></header><p class="ds-limit" id="limit-msg" role="status"><span aria-hidden="true">i</span> Pick up to 4. Uncheck one first.</p>
+<fieldset class="ds-group"><legend class="ds-group-title">Electric</legend><div class="ds-checks"><label class="ds-check ds-check-disabled"><input type="checkbox" name="cars" value="tesla" disabled aria-describedby="limit-msg"><span class="ds-check-text"><span class="ds-check-name">Tesla Model Y Standard RWD</span><span class="ds-check-meta">Electric · $41,630</span></span></label><label class="ds-check ds-check-disabled"><input type="checkbox" name="cars" value="rivian" disabled aria-describedby="limit-msg"><span class="ds-check-text"><span class="ds-check-name">Rivian R2 Performance (launch)</span><span class="ds-check-meta">Electric · $57,990</span></span></label><label class="ds-check"><input type="checkbox" name="cars" value="bolt" checked><span class="ds-check-text"><span class="ds-check-name">Chevrolet Bolt LT (2027)</span><span class="ds-check-meta">Electric · $28,995</span></span></label><label class="ds-check ds-check-disabled"><input type="checkbox" name="cars" value="equinoxev" disabled aria-describedby="limit-msg"><span class="ds-check-text"><span class="ds-check-name">Chevrolet Equinox EV LT (FWD)</span><span class="ds-check-meta">Electric · $36,495 <span class="ds-tag">Loan only</span></span></span></label><label class="ds-check"><input type="checkbox" name="cars" value="ioniq5" checked><span class="ds-check-text"><span class="ds-check-name">Hyundai Ioniq 5 SE RWD</span><span class="ds-check-meta">Electric · $39,100</span></span></label></div></fieldset><fieldset class="ds-group"><legend class="ds-group-title">Hybrid</legend><div class="ds-checks"><label class="ds-check ds-check-disabled"><input type="checkbox" name="cars" value="rav4h" disabled aria-describedby="limit-msg"><span class="ds-check-text"><span class="ds-check-name">Toyota RAV4 Hybrid LE (FWD)</span><span class="ds-check-meta">Hybrid · $33,350</span></span></label><label class="ds-check"><input type="checkbox" name="cars" value="camryh" checked><span class="ds-check-text"><span class="ds-check-name">Toyota Camry Hybrid LE</span><span class="ds-check-meta">Hybrid · $30,495</span></span></label><label class="ds-check ds-check-disabled"><input type="checkbox" name="cars" value="crvh" disabled aria-describedby="limit-msg"><span class="ds-check-text"><span class="ds-check-name">Honda CR-V Sport Hybrid AWD</span><span class="ds-check-meta">Hybrid · $38,580</span></span></label><label class="ds-check ds-check-disabled"><input type="checkbox" name="cars" value="hlh" disabled aria-describedby="limit-msg"><span class="ds-check-text"><span class="ds-check-name">Toyota Highlander Hybrid XLE</span><span class="ds-check-meta">Hybrid · $48,020 <span class="ds-tag">Loan only</span></span></span></label></div></fieldset><fieldset class="ds-group"><legend class="ds-group-title">Gas</legend><div class="ds-checks"><label class="ds-check"><input type="checkbox" name="cars" value="corolla" checked><span class="ds-check-text"><span class="ds-check-name">Toyota Corolla LE (gas)</span><span class="ds-check-meta">Gas · $24,729 <span class="ds-tag">Loan only</span></span></span></label><label class="ds-check ds-check-disabled"><input type="checkbox" name="cars" value="crvg" disabled aria-describedby="limit-msg"><span class="ds-check-text"><span class="ds-check-name">Honda CR-V LX (gas, FWD)</span><span class="ds-check-meta">Gas · $32,315 <span class="ds-tag">Loan only</span></span></span></label><label class="ds-check ds-check-disabled"><input type="checkbox" name="cars" value="hlg" disabled aria-describedby="limit-msg"><span class="ds-check-text"><span class="ds-check-name">Toyota Highlander XLE (gas)</span><span class="ds-check-meta">Gas · $46,270 <span class="ds-tag">Loan only</span></span></span></label></div></fieldset><fieldset class="ds-group"><legend class="ds-group-title">Your own</legend><button type="button" class="ds-btn ds-btn-secondary" data-act="add-car">+ Add my own car</button></fieldset>
+<button type="button" class="ds-btn ds-btn-primary ds-btn-full" data-act="answer">Show my answer</button>
+<nav class="ds-step-nav" aria-label="Step navigation"><button type="button" class="ds-btn ds-btn-link" data-act="back">Back</button><button type="button" class="ds-btn ds-btn-link" data-act="skip">Skip to answer</button></nav></div></div></section>
+<section class="mock-item" aria-label="Screen 8"><p class="mock-cap"><b>8.</b> Step 3 with &quot;+ Add my own car&quot; open</p><div class="phone" data-frame="8"><div class="ds-screen"><header class="ds-step"><p class="ds-step-count">Step 3 of 3</p><div class="ds-progress" aria-hidden="true"><i class="ds-seg ds-seg-on"></i><i class="ds-seg ds-seg-on"></i><i class="ds-seg ds-seg-on"></i></div><h1 id="s8-h" class="ds-step-title" tabindex="-1">Which cars should we compare?</h1><p class="ds-step-sub">3 of up to 4 chosen. Each is compared on a loan and, where known, a lease.</p></header>
+<fieldset class="ds-group"><legend class="ds-group-title">Electric</legend><div class="ds-checks"><label class="ds-check"><input type="checkbox" name="cars" value="tesla"><span class="ds-check-text"><span class="ds-check-name">Tesla Model Y Standard RWD</span><span class="ds-check-meta">Electric · $41,630</span></span></label><label class="ds-check"><input type="checkbox" name="cars" value="rivian"><span class="ds-check-text"><span class="ds-check-name">Rivian R2 Performance (launch)</span><span class="ds-check-meta">Electric · $57,990</span></span></label><label class="ds-check"><input type="checkbox" name="cars" value="bolt" checked><span class="ds-check-text"><span class="ds-check-name">Chevrolet Bolt LT (2027)</span><span class="ds-check-meta">Electric · $28,995</span></span></label><label class="ds-check"><input type="checkbox" name="cars" value="equinoxev"><span class="ds-check-text"><span class="ds-check-name">Chevrolet Equinox EV LT (FWD)</span><span class="ds-check-meta">Electric · $36,495 <span class="ds-tag">Loan only</span></span></span></label><label class="ds-check"><input type="checkbox" name="cars" value="ioniq5"><span class="ds-check-text"><span class="ds-check-name">Hyundai Ioniq 5 SE RWD</span><span class="ds-check-meta">Electric · $39,100</span></span></label></div></fieldset><fieldset class="ds-group"><legend class="ds-group-title">Hybrid</legend><div class="ds-checks"><label class="ds-check"><input type="checkbox" name="cars" value="rav4h"><span class="ds-check-text"><span class="ds-check-name">Toyota RAV4 Hybrid LE (FWD)</span><span class="ds-check-meta">Hybrid · $33,350</span></span></label><label class="ds-check"><input type="checkbox" name="cars" value="camryh" checked><span class="ds-check-text"><span class="ds-check-name">Toyota Camry Hybrid LE</span><span class="ds-check-meta">Hybrid · $30,495</span></span></label><label class="ds-check"><input type="checkbox" name="cars" value="crvh"><span class="ds-check-text"><span class="ds-check-name">Honda CR-V Sport Hybrid AWD</span><span class="ds-check-meta">Hybrid · $38,580</span></span></label><label class="ds-check"><input type="checkbox" name="cars" value="hlh"><span class="ds-check-text"><span class="ds-check-name">Toyota Highlander Hybrid XLE</span><span class="ds-check-meta">Hybrid · $48,020 <span class="ds-tag">Loan only</span></span></span></label></div></fieldset><fieldset class="ds-group"><legend class="ds-group-title">Gas</legend><div class="ds-checks"><label class="ds-check"><input type="checkbox" name="cars" value="corolla" checked><span class="ds-check-text"><span class="ds-check-name">Toyota Corolla LE (gas)</span><span class="ds-check-meta">Gas · $24,729 <span class="ds-tag">Loan only</span></span></span></label><label class="ds-check"><input type="checkbox" name="cars" value="crvg"><span class="ds-check-text"><span class="ds-check-name">Honda CR-V LX (gas, FWD)</span><span class="ds-check-meta">Gas · $32,315 <span class="ds-tag">Loan only</span></span></span></label><label class="ds-check"><input type="checkbox" name="cars" value="hlg"><span class="ds-check-text"><span class="ds-check-name">Toyota Highlander XLE (gas)</span><span class="ds-check-meta">Gas · $46,270 <span class="ds-tag">Loan only</span></span></span></label></div></fieldset><fieldset class="ds-group"><legend class="ds-group-title">Your own</legend><div class="ds-subform" role="group" aria-label="Add my own car">
+<p class="ds-subform-title">Add my own car</p>
+<div class="ds-field"><div class="ds-label-row"><label for="s8-cname" class="ds-label">Car name</label></div>
+<div class="ds-input"><input id="s8-cname" type="text" autocomplete="off" value="My gas car 1"></div>
+</div>
+<fieldset class="ds-group ds-group-tight"><legend class="ds-label">Type</legend><div class="ds-chips"><button type="button" class="ds-chip" aria-pressed="false" data-act="ckind" data-val="ev">Electric</button><button type="button" class="ds-chip" aria-pressed="false" data-act="ckind" data-val="hybrid">Hybrid</button><button type="button" class="ds-chip ds-chip-on" aria-pressed="true" data-act="ckind" data-val="ice">Gas</button></div></fieldset>
+<div class="ds-field"><div class="ds-label-row"><label for="s8-cprice" class="ds-label">Price</label><span class="ds-badge">Placeholder</span></div>
+<div class="ds-input"><span class="ds-prefix" aria-hidden="true">$</span><input id="s8-cprice" type="text" inputmode="decimal" value="30,000" aria-describedby="s8-cprice-hint"></div>
+<p class="ds-hint" id="s8-cprice-hint">Allowed: $1,000 to $150,000.</p></div>
+<div class="ds-field"><div class="ds-label-row"><label for="s8-cmpg" class="ds-label">Fuel economy</label></div>
+<div class="ds-input"><input id="s8-cmpg" type="text" inputmode="decimal" value="30" aria-describedby="s8-cmpg-hint s8-cmpg-extra"><span class="ds-unit">mpg</span></div>
+<p class="ds-hint" id="s8-cmpg-hint">Allowed: 8 to 80 mpg.</p><p class="ds-hint" id="s8-cmpg-extra">For an electric car this becomes kWh per 100 mi.</p></div>
+<div class="ds-row"><button type="button" class="ds-btn ds-btn-secondary" data-act="add-car-save">Add car</button><button type="button" class="ds-btn ds-btn-link" data-act="add-car-cancel">Cancel</button></div>
+</div></fieldset>
+<button type="button" class="ds-btn ds-btn-primary ds-btn-full" data-act="answer">Show my answer</button>
+<nav class="ds-step-nav" aria-label="Step navigation"><button type="button" class="ds-btn ds-btn-link" data-act="back">Back</button><button type="button" class="ds-btn ds-btn-link" data-act="skip">Skip to answer</button></nav></div></div></section>
+<section class="mock-item" aria-label="Screen 9"><p class="mock-cap"><b>9.</b> Money field error (typed &quot;abc&quot;)</p><div class="phone" data-frame="9"><div class="ds-screen"><header class="ds-step"><p class="ds-step-count">Step 2 of 3</p><div class="ds-progress" aria-hidden="true"><i class="ds-seg ds-seg-on"></i><i class="ds-seg ds-seg-on"></i><i class="ds-seg"></i></div><h1 id="s9-h" class="ds-step-title" tabindex="-1">Your car and your driving</h1><p class="ds-step-sub">Start from a preset. Values marked as placeholders are not sourced.</p></header><fieldset class="ds-group"><legend class="ds-label">Car you have now</legend><div class="ds-chips">
+<button type="button" class="ds-chip ds-chip-on" aria-pressed="true" data-act="preset" data-val="sedan">Older gas sedan</button><button type="button" class="ds-chip" aria-pressed="false" data-act="preset" data-val="suv">Older gas SUV</button><button type="button" class="ds-chip" aria-pressed="false" data-act="preset" data-val="hybrid">Older hybrid</button><button type="button" class="ds-chip" aria-pressed="false" data-act="preset" data-val="lexus">Lexus LX 470 (example)</button>
+<button type="button" class="ds-chip" aria-pressed="false" data-act="preset" data-val="custom">Something else</button></div></fieldset><div class="ds-field ds-field-error"><div class="ds-label-row"><label for="s9-value" class="ds-label">What it would sell for</label><span class="ds-badge">Placeholder</span></div>
+<div class="ds-input"><span class="ds-prefix" aria-hidden="true">$</span><input id="s9-value" type="text" inputmode="decimal" value="abc" aria-describedby="s9-value-err" aria-invalid="true"></div>
+<p class="ds-error" id="s9-value-err"><span class="ds-error-icon" aria-hidden="true">!</span> Enter an amount from $1,000 to $150,000, like 9,000.</p></div><div class="ds-field ds-slider"><label for="s9-miles-num" class="ds-label">Miles per year</label>
+<div class="ds-slider-row"><input class="ds-range" type="range" id="s9-miles" aria-label="Miles per year" aria-valuetext="7,500 miles" min="1000" max="25000" step="500" value="7500" aria-describedby="s9-miles-hint" style="--fill:27.1%">
+<div class="ds-input ds-input-num"><input id="s9-miles-num" type="text" inputmode="decimal" value="7,500" aria-describedby="s9-miles-hint"><span class="ds-unit">mi</span></div></div>
+<p class="ds-hint" id="s9-miles-hint">Allowed: 1,000 to 25,000 mi, in steps of 500.</p></div><p class="ds-note">Not sure of a number? Leave it. Placeholders are marked and you can change them from the answer screen.</p>
+<button type="button" class="ds-btn ds-btn-primary ds-btn-full" data-act="next">Continue to cars</button>
+<nav class="ds-step-nav" aria-label="Step navigation"><button type="button" class="ds-btn ds-btn-link" data-act="back">Back</button><button type="button" class="ds-btn ds-btn-link" data-act="skip">Skip to answer</button></nav></div></div></section>
+<section class="mock-item" aria-label="Screen 10"><p class="mock-cap"><b>10.</b> Step 1 in the Night theme</p><div class="phone night-frame" data-frame="10"><div class="ds-screen"><header class="ds-step"><p class="ds-step-count">Step 1 of 3</p><div class="ds-progress" aria-hidden="true"><i class="ds-seg ds-seg-on"></i><i class="ds-seg"></i><i class="ds-seg"></i></div><h1 id="s10-h" class="ds-step-title" tabindex="-1">What are you deciding?</h1><p class="ds-step-sub">Pick the closest one. You can change it later.</p></header>
+<div class="ds-options">
+<button type="button" class="ds-option" aria-pressed="false" data-act="path" data-val="sell"><span class="ds-option-title">Sell my car, then buy</span><span class="ds-option-sub">Sell it yourself and put the money toward the next car</span></button>
+<button type="button" class="ds-option" aria-pressed="false" data-act="path" data-val="trade"><span class="ds-option-title">Trade my car in</span><span class="ds-option-sub">A dealer takes it off the price</span></button>
+<button type="button" class="ds-option" aria-pressed="false" data-act="path" data-val="none"><span class="ds-option-title">Just buy</span><span class="ds-option-sub">No car to sell, or I am keeping mine</span></button>
+<button type="button" class="ds-option" aria-pressed="false" data-act="path" data-val="analyst"><span class="ds-option-title">Not sure: describe it in a sentence</span><span class="ds-option-sub">Opens the analyst</span></button>
+</div>
+<nav class="ds-step-nav" aria-label="Step navigation"><button type="button" class="ds-btn ds-btn-link" data-act="back" disabled>Back</button><button type="button" class="ds-btn ds-btn-link" data-act="skip">Skip to answer</button></nav></div></div></section>
+</div></div>
+</body></html>

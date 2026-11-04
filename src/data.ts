@@ -31,7 +31,8 @@ export const SRC: Record<string, { label: string; url: string }> = {
   r2Plant: { label: 'NRDC: Rivian reopened the shuttered Mitsubishi plant in Normal, IL', url: 'https://www.nrdc.org/stories/story-normal-car-factory-abandoned-gas-guzzlers-soon-be-buzzing-electric-vehicles' },
   r2Union: { label: 'Manufacturing.net: Rivian Normal plant is not unionized', url: 'https://www.manufacturing.net/home/news/21952936/sources-rivian-to-build-5b-electric-truck-plant-in-georgia' },
   boltLease: { label: 'AutoFinder (Oct 2026): Bolt LT $28,995 MSRP, $477/mo, $2,977 due, 36 mo, 12k mi/yr', url: 'https://autofinder.com/deals/lease/chevrolet/bolt/2027' },
-  boltRange: { label: 'InsideEVs: Bolt 255 mi (GM est.) vs Leaf', url: 'https://insideevs.com/reviews/775349/2027-chevrolet-bolt-vs-2026-nissan-leaf/' },
+  boltRange: { label: 'InsideEVs: 2027 Bolt vs 2026 Nissan Leaf (range and size)', url: 'https://insideevs.com/reviews/775349/2027-chevrolet-bolt-vs-2026-nissan-leaf/' },
+  boltEpa: { label: 'fueleconomy.gov: 2027 Bolt 120 MPGe, 28 kWh/100 mi, 262 mi EPA range', url: 'https://www.fueleconomy.gov/feg/PowerSearch.do?action=noform&path=1&year1=2027&year2=2027&make=Chevrolet&baseModel=Bolt&srchtyp=ymm&pageno=1&rowLimit=50' },
   boltEnd: { label: 'BGR: GM has decided to discontinue the Bolt (2027 model)', url: 'https://www.bgr.com/2087242/cheapest-ev-gm-chevy-bolt-end-production/' },
   evDep: { label: 'iSeeCars 2026: EVs lose 57.2% in 5 yrs vs 41.8% for all vehicles; Leaf 63.1%', url: 'https://evseekers.com/ev-depreciation-by-brand/' },
   fremont: { label: 'Automotive Logistics: Tesla bought the former GM/Toyota Fremont plant in 2010', url: 'https://www.automotivelogistics.media/ev-and-battery/electric-vehicle-firm-rivian-buys-former-mitsubishi-plant-in-illinois/189384' },
@@ -63,16 +64,18 @@ export const SRC: Record<string, { label: string; url: string }> = {
   rav4Lease: { label: 'Toyota SoCal: RAV4 LE hybrid lease $299/mo, $3,999 due, 36 mo, 10k mi/yr', url: 'https://www.toyota.com/socal/deals-incentives/series/rav4/' },
   camryPrice: { label: 'Toyota: Camry LE hybrid $29,300, 51 mpg combined', url: 'https://www.toyota.com/camry/camry-vs-sonata' },
   camryDest: { label: 'SlashGear: $1,195 destination fee on 2026 Camry', url: 'https://www.slashgear.com/2182491/2026-toyota-camry-hybrid-review/' },
+  camryMpg: { label: 'fueleconomy.gov: 2026 Camry Hybrid LE FWD 51 mpg combined', url: 'https://www.fueleconomy.gov/feg/PowerSearch.do?action=noform&path=1&year1=2026&year2=2026&make=Toyota&baseModel=Camry&srchtyp=ymm&pageno=1&rowLimit=50' },
+  camry2027: { label: 'AutoGuide (Oct 2026): 2027 Camry LE $29,700 before destination, arriving this fall', url: 'https://www.autoguide.com/auto/2027-toyota-camry-arrives-this-fall-with-up-to-51-mpg-44640241' },
   hybLease: { label: 'TrueCar (May 2026): Camry hybrid $345/mo, CR-V $372/mo, 36 mo, $2,000 due', url: 'https://truecar.com/deals/fuel-hybrid/' },
   crvHyb: { label: 'Edmunds listings: CR-V Sport Hybrid AWD $38,580 MSRP, 40/34 mpg (37 combined)', url: 'https://www.edmunds.com/new-honda-cr-v-for-sale-belgium-wi/' },
   crvGas: { label: 'Cars.com: 2026 CR-V LX $32,315 with destination', url: 'https://cars.com/articles/how-much-is-the-2026-honda-cr-v-510202/' },
   crvMpg: { label: 'Cars.com: CR-V gas 28/33/30 mpg FWD; hybrid 43/36/40 FWD, 40/34/37 AWD', url: 'https://www.cars.com/research/honda-cr-v-2026/' },
   hlPrice: { label: 'PIX11: 2026 Highlander XLE $46,270 gas (24 mpg est.), Hybrid XLE $48,020 (35 mpg EPA)', url: 'https://pix11.com/automotive/2026-toyota-highlander-vehicle-analysis-hybrid-wins/amp/' },
-  corolla: { label: 'Toyota dealer listing: 2026 Corolla LE $24,729 MSRP', url: 'https://www.toyotaoflakecity.com/new-Seattle-2026-Toyota-Camry-LE-4T1DAACK4TU24C806' },
-  corollaMpg: { label: 'NextCarReview (citing EPA): gas Corolla 35 mpg combined', url: 'https://nextcarreview.com/best-hybrid-sedans-2026/' },
+  corolla: { label: 'Carscoops (Aug 2026): 2027 Corolla LE $23,325 plus $1,295 destination', url: 'https://www.carscoops.com/2026/08/2027-toyota-corolla/' },
+  corollaMpg: { label: 'fueleconomy.gov: 2027 Corolla 2.0L CVT 35 mpg combined', url: 'https://www.fueleconomy.gov/feg/PowerSearch.do?action=noform&path=1&year1=2027&year2=2027&make=Toyota&baseModel=Corolla&srchtyp=ymm&pageno=1&rowLimit=50' },
   equinoxEv: { label: 'Electrek (Jun 2026): Equinox EV LT FWD $36,495 incl. destination, 319 mi; Ioniq 5 SE RWD $39,100, 318 mi, lease $269 x 24 mo', url: 'https://electrek.co/2026/06/12/chevy-equinox-ev-more-expensive-lease-bolt-cheaper/' },
   boltAssembly: { label: 'GM Authority: 2027 Bolt assembled at GM Fairfax, Kansas City, KS', url: 'https://gmauthority.com/blog/gm/chevrolet/bolt/' },
-  boltCut: { label: 'Auto123: GM cutting Bolt production ~75% to about 35,000 units', url: 'https://www.auto123.com/en/news/amp/2027-chevrolet-bolt-production-cut/74269/' }
+  boltCut: { label: 'Auto123: Bolt production cut to about 35,000 units, a figure from the UAW local, not GM', url: 'https://www.auto123.com/en/news/amp/2027-chevrolet-bolt-production-cut/74269/' }
 };
 
 export const DEFAULT_GLOBALS: Globals = {
@@ -304,19 +307,19 @@ export const CATALOG: VehicleDef[] = [
 
   def('ev', {
     id: 'bolt', name: 'Chevrolet Bolt LT (2027)', short: 'Chevy Bolt', kind: 'ev', owned: false,
-    price: 28995, mpg: 0, kwhPer100mi: 29, realWorldAdj: 1, maintPerMile: 0.1007, insurancePerYear: 1900,
+    price: 28995, mpg: 0, kwhPer100mi: 28, realWorldAdj: 1, maintPerMile: 0.1007, insurancePerYear: 1900,
     embodiedT: 7.5, depreciation5yr: 0.6, annualValueLoss: 0, usAssembled: true, zevRebate: 3500,
     loan: loanFor(28995), lease: { monthly: 477, dueAtSigning: 2977, termMonths: 36 }, materials: 3,
     ratings: { safety: 3, airq: 5, supply: 2, community: 3, labor: 3, fit: 3 }
   }, {
     price: { kind: 'sourced', src: ['boltLease'], note: 'LT trim; dealers may discount.' },
-    kwhPer100mi: { src: ['boltRange'], note: 'EPA label not found in my research; 29 kWh/100 mi is an estimate for a 65 kWh car with ~260 mi range.' },
+    kwhPer100mi: { kind: 'sourced', src: ['boltEpa'], note: 'EPA rating for the 2027 Bolt: 120 MPGe, 28 kWh/100 mi.' },
     maintPerMile: { kind: 'sourced', src: ['aaa'] },
     insurancePerYear: { src: ['aaaIns'], note: EST_INS },
     embodiedT: { src: ['lcaAutocar', 'lcaTc'], note: 'Scaled down from ~9 t for the smaller 65 kWh battery. My estimate.' },
     depreciation5yr: { src: ['evDep'], note: 'Cheap EVs depreciate faster (Nissan Leaf 63%); 60% assumed. GM is ending Bolt production, which could push this higher.' },
     apr: { note: 'One dealer listing advertised 0.9% for 36 months for well-qualified GM Financial buyers; try that here.' },
-    monthly: { src: ['boltLease'], note: 'Advertised offer ends Nov 4, 2026.' },
+    monthly: { src: ['boltLease'], note: 'Dated offer: advertised through Nov 4, 2026, as a national figure, not a California one. Check current terms with a dealer.' },
     dueAtSigning: { src: ['boltLease'] },
     leaseTerm: { src: ['boltLease'] },
     usAssembled: { kind: 'sourced', src: ['boltAssembly', 'irs'], note: 'Built at GM Fairfax, Kansas City, Kansas.' },
@@ -326,7 +329,7 @@ export const CATALOG: VehicleDef[] = [
     supply: 'GM scored 32/90 in Amnesty 2024.',
     community: 'Built by GM at Fairfax, Kansas City, KS.',
     labor: 'Neutral; not researched.',
-    fit: 'Smaller 5-seat hatch. GM is ending Bolt production (run cut to ~35,000), so parts and resale are uncertain.'
+    fit: 'Smaller 5-seat hatch. GM calls the 2027 Bolt a limited run of about 18 months; the ~35,000-unit figure comes from the UAW local, not GM. Parts and resale are uncertain.'
   }),
 
   def('ev', {
@@ -386,8 +389,8 @@ export const CATALOG: VehicleDef[] = [
     loan: loanFor(30495), lease: { monthly: 345, dueAtSigning: 2000, termMonths: 36 }, materials: 3,
     ratings: { ...neutral, safety: 4, airq: 3, fit: 3 }
   }, {
-    price: { kind: 'sourced', src: ['camryPrice', 'camryDest'], note: '$29,300 MSRP plus $1,195 destination.' },
-    mpg: { kind: 'sourced', src: ['camryPrice'], note: 'EPA 51 mpg combined for LE FWD.' },
+    price: { kind: 'sourced', src: ['camryPrice', 'camryDest', 'camry2027'], note: '2026 model: $29,300 MSRP plus $1,195 destination. The 2027 LE ($29,700 before destination) is arriving this fall.' },
+    mpg: { kind: 'sourced', src: ['camryMpg'], note: 'EPA 51 mpg combined for the 2026 LE FWD.' },
     maintPerMile: { kind: 'sourced', src: ['aaa'], note: 'AAA 2025 hybrid average: 9.75c/mi.' },
     insurancePerYear: { src: ['aaaIns'], note: EST_INS },
     embodiedT: { kind: 'sourced', src: ['lcaLowcvp'], note: 'LowCVP/Ricardo: hybrid production ~6.5 t CO2e.' },
@@ -434,12 +437,12 @@ export const CATALOG: VehicleDef[] = [
 
   def('gas', {
     id: 'corolla', name: 'Toyota Corolla LE (gas)', short: 'Toyota Corolla', kind: 'ice', owned: false,
-    price: 24729, mpg: 35, kwhPer100mi: 0, realWorldAdj: 1, maintPerMile: 0.1023, insurancePerYear: 1600,
+    price: 24620, mpg: 35, kwhPer100mi: 0, realWorldAdj: 1, maintPerMile: 0.1023, insurancePerYear: 1600,
     embodiedT: 6, depreciation5yr: 0.313, annualValueLoss: 0, usAssembled: false,
-    loan: loanFor(24729), materials: 3, ratings: { ...neutral, airq: 2, fit: 3 }
+    loan: loanFor(24620), materials: 3, ratings: { ...neutral, airq: 2, fit: 3 }
   }, {
-    price: { kind: 'sourced', src: ['corolla'], note: 'Listed MSRP; destination may not be included.' },
-    mpg: { kind: 'sourced', src: ['corollaMpg'], note: 'EPA combined for the gas Corolla, per a low-authority summary; verify at fueleconomy.gov.' },
+    price: { kind: 'sourced', src: ['corolla'], note: '2027 model: $23,325 MSRP plus $1,295 destination.' },
+    mpg: { kind: 'sourced', src: ['corollaMpg'], note: 'EPA 35 mpg combined (32 city, 41 highway).' },
     maintPerMile: { kind: 'sourced', src: ['aaa'], note: 'AAA 2025 small-sedan average: 10.23c/mi.' },
     insurancePerYear: { src: ['aaaIns'], note: EST_INS },
     embodiedT: { kind: 'sourced', src: ['lcaAutocar', 'lcaLowcvp'], note: 'Petrol car production is ~5.6-6 t CO2e.' },

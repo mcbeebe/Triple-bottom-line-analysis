@@ -1,34 +1,20 @@
-import type { Disposal } from '../../engine';
-import { CAR_PRESETS, SRC } from '../../data';
-import { esc, num, usd } from '../../app/format';
-import { carNow, hasCar, lx } from '../../app/options';
-import { state } from '../../app/state';
-import { analyst } from '../../app/analystSession';
-import { $ } from '../dom';
-import { chip } from '../components/chip';
+import type { State } from '../../app/state';
+import { stepCopy } from '../../app/steps';
+import { dsOption } from '../components/optionButton';
+import { dsStepFooter, dsStepHeader } from '../components/stepHeader';
 
-/** The three decision paths with their chip labels. */
-export const PATHS: { id: Disposal; label: string; sub: string }[] = [
-  { id: 'sell', label: 'Sell it, then buy', sub: 'private sale' },
-  { id: 'trade', label: 'Trade it in', sub: 'dealer offer' },
-  { id: 'none', label: 'Just buy', sub: 'no car to sell' }
-];
+/** Step 1 options (spec copy). The analyst option stays hidden until Phase 4 (decision P8). */
+export const DECISIONS = [
+  { id: 'sell', title: 'Sell my car, then buy', sub: 'Sell it yourself and put the money toward the next car' },
+  { id: 'trade', title: 'Trade my car in', sub: 'A dealer takes it off the price' },
+  { id: 'none', title: 'Just buy', sub: 'No car to sell, or I am keeping mine' }
+] as const;
 
-function pathBlurb(): string {
-  const d = state.g.disposal;
-  if (d === 'sell') return `You sell ${esc(carNow())} yourself (about ${usd(lx().price)}) and put that toward the new car. You can also compare with keeping it.`;
-  if (d === 'trade')
-    return `The dealer takes ${esc(carNow())} off the price. The offer is assumed ${num(state.g.tradeInDiscount * 100, 0)}% below its private-sale value (about ${usd(lx().price * (1 - state.g.tradeInDiscount))}); edit that under Key drivers. <a href="${SRC.caTradeIn.url}" target="_blank" rel="noopener">California charges sales tax on the full price</a>, so a trade-in saves no tax here. You can also compare with keeping it.`;
-  return 'You are buying without selling or trading a car in, so there is no keep-it option and no sale money. Cars are compared with each other and against a typical new car.';
-}
-
-/** Render the "Your decision" panel: path chips, the analyst shortcut and the current-car presets. */
-export function renderPath(): void {
-  const presetChips = CAR_PRESETS.map((p) => chip('carpreset', p.id, p.label, p.blurb, state.carPreset === p.id)).join('');
-  const nameBox = `<label class="fine" for="in-carname">Name of your current car</label> <input id="in-carname" class="vname" type="text" maxlength="40" value="${esc(lx().short)}" data-vname="lx" aria-label="Name of your current car">`;
-  $('path').innerHTML = `<h2>Your decision</h2>
-  <p class="fine">What are you doing with the car you have now? Then pick the cars in play below, or just describe it to the analyst above.</p>
-  <div class="chips" role="group" aria-label="What happens to your current car">${PATHS.map((p) => chip('path', p.id, p.label, p.sub, state.g.disposal === p.id)).join('')}${analyst.client ? '<button class="chip" data-act="askanalyst">Not sure<small>ask the analyst</small></button>' : ''}</div>
-  <p class="fine" id="path-blurb">${pathBlurb()}</p>
-  ${hasCar() ? `<div class="pgroup"><h3>The car you have now</h3><div class="chips" role="group" aria-label="Starting point for your current car">${presetChips}</div><p class="fine">Pick a starting point, then edit its value, mpg and costs under Cars in the assumptions. Only the Lexus values are sourced; the others are placeholders. ${nameBox}</p></div>` : ''}`;
+/** Step 1 screen: "What are you deciding?" Nothing is pressed until a path has been chosen. */
+export function decisionHtml(s: State): string {
+  const c = stepCopy('step-1', s.g.disposal);
+  const options = DECISIONS.map((d) => dsOption({ title: d.title, sub: d.sub, act: 'st-path', val: d.id, on: s.pathChosen && s.g.disposal === d.id })).join('');
+  return `<div class="ds-screen">${dsStepHeader({ step: 1, total: 3, title: c.heading, sub: c.sub, id: 'st-title' })}
+<div class="ds-options" role="group" aria-labelledby="st-title">${options}</div>
+${dsStepFooter({ step: 1, backAct: 'st-back', skipAct: 'st-skip' })}</div>`;
 }

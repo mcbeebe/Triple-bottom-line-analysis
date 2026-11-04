@@ -20,7 +20,8 @@ export function dsStepHeader(o: DsStepHeaderOpts): string {
   if (!Number.isInteger(o.step) || o.step < 1 || o.step > o.total) throw new RangeError(`step ${o.step} is outside 1..${o.total}`);
   const h = `h${o.level ?? 1}`;
   const segs = Array.from({ length: o.total }, (_, i) => `<i class="ds-seg${i < o.step ? ' ds-seg-on' : ''}"></i>`).join('');
-  return `<header class="ds-step"><p class="ds-step-count">Step ${o.step} of ${o.total}</p><div class="ds-progress" aria-hidden="true">${segs}</div><${h} id="${esc(o.id)}" class="ds-step-title" tabindex="-1">${esc(o.title)}</${h}>${o.sub ? `<p class="ds-step-sub">${esc(o.sub)}</p>` : ''}</header>`;
+  const id = esc(o.id);
+  return `<header class="ds-step"><p class="ds-step-count" id="${id}-count">Step ${o.step} of ${o.total}</p><div class="ds-progress" aria-hidden="true">${segs}</div><${h} id="${id}" class="ds-step-title" tabindex="-1" aria-describedby="${id}-count">${esc(o.title)}</${h}>${o.sub ? `<p class="ds-step-sub">${esc(o.sub)}</p>` : ''}</header>`;
 }
 
 /** Options for {@link dsStepFooter}. */
@@ -28,9 +29,12 @@ export interface DsStepFooterOpts {
   step: number;
   backAct: string;
   skipAct: string;
+  /** Disable Skip to answer (e.g. no cars chosen); pair with `describedBy` pointing at the visible reason. */
+  skipDisabled?: boolean;
+  describedBy?: string;
 }
 
 /** Back (disabled on step 1) and "Skip to answer", in a labeled nav. */
 export function dsStepFooter(o: DsStepFooterOpts): string {
-  return `<nav class="ds-step-nav" aria-label="Step navigation">${dsButton({ label: 'Back', act: o.backAct, variant: 'link', disabled: o.step <= 1 })}${dsButton({ label: 'Skip to answer', act: o.skipAct, variant: 'link' })}</nav>`;
+  return `<nav class="ds-step-nav" aria-label="Step navigation">${dsButton({ label: 'Back', act: o.backAct, variant: 'link', disabled: o.step <= 1 })}${dsButton({ label: 'Skip to answer', act: o.skipAct, variant: 'link', disabled: o.skipDisabled, describedBy: o.skipDisabled ? o.describedBy : undefined })}</nav>`;
 }
