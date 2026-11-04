@@ -6,9 +6,7 @@ import {
   scoreOptions,
   WEIGHT_PRESETS,
   type Aggregation,
-  type Criterion,
   type Disposal,
-  type Globals,
   type OptionSpec,
   type PillarWeights,
   type ScaleMode,
@@ -29,107 +27,23 @@ import {
 } from './analyst';
 import {
   CAR_PRESETS,
-  CATALOG,
   CRITERIA_NOTES,
   currentCarFromPreset,
   DEFAULT_CRITERIA,
   DEFAULT_GLOBALS,
-  DEFAULT_SELECTED,
-  DEFAULT_VEHICLES,
   GLOBAL_META,
   LIMITATIONS,
-  RATING_NOTES,
   SRC,
-  VEHICLE_META,
   makeCustomVehicle,
-  type ParamMeta,
-  type VehicleGroup
+  type ParamMeta
 } from './data';
+import { MAX_SELECTED, MODES, PRESET_LABELS, THEMES, clone, state, type Tab, type Theme, type View } from './app/state';
+import { safeStore } from './app/storage';
+import { $, esc, num, usd } from './ui/format';
 
-type Theme = 'ledger' | 'night' | 'field';
-type View = 'both' | 'loan' | 'lease';
-type Tab = 'planet' | 'people' | 'profit';
-
-interface State {
-  theme: Theme;
-  mode: ScoringMode;
-  aggregation: Aggregation;
-  scale: ScaleMode;
-  preset: string;
-  weights: PillarWeights;
-  carPreset: string;
-  view: View;
-  tab: Tab;
-  showAll: boolean;
-  resultsView: 'cards' | 'table';
-  sortKey: string;
-  sortDir: 1 | -1;
-  copyNote: string;
-  secOpen: Record<string, boolean>;
-  g: Globals;
-  vehicles: Vehicle[];
-  defaults: Vehicle[];
-  meta: Record<string, Record<string, ParamMeta>>;
-  ratingNotes: Record<string, Record<string, string>>;
-  groups: Record<string, VehicleGroup>;
-  selected: string[];
-  customCount: number;
-  criteria: Criterion[];
-  notice: string;
-}
-
-const MAX_SELECTED = 8;
-
-const THEMES: { id: Theme; label: string }[] = [
-  { id: 'ledger', label: 'Ledger' },
-  { id: 'night', label: 'Night desk' },
-  { id: 'field', label: 'Field guide' }
-];
-
-const MODES: { id: ScoringMode; label: string; blurb: string }[] = [
-  { id: 'hybrid', label: 'Hybrid', blurb: 'Planet (80%) and Profit come from numbers; People and materials come from 1-5 ratings.' },
-  { id: 'metrics', label: 'Numbers only', blurb: 'Planet = CO2e, Profit = net cost, People = only the externally rated criteria (crash safety, tailpipe air).' },
-  { id: 'ratings', label: '1-5 scorecard', blurb: 'Every pillar is turned into a 1-5 rating (numbers are banded) and averaged.' }
-];
-
-const PRESET_LABELS: Record<string, string> = { balanced: 'Balanced', planet: 'Planet-first', people: 'People-first', wallet: 'Wallet-first' };
-
-const clone = <T,>(x: T): T => JSON.parse(JSON.stringify(x)) as T;
-
-const state: State = {
-  theme: 'ledger',
-  mode: 'hybrid',
-  aggregation: 'average',
-  scale: 'benchmark',
-  preset: 'balanced',
-  weights: { ...WEIGHT_PRESETS.balanced },
-  carPreset: 'lexus',
-  view: 'both',
-  tab: 'profit',
-  showAll: false,
-  resultsView: 'cards',
-  sortKey: 'rank',
-  sortDir: 1,
-  copyNote: '',
-  secOpen: { confirm: true, drivers: true, cars: true, emissions: false, other: false },
-  g: clone(DEFAULT_GLOBALS),
-  vehicles: clone(DEFAULT_VEHICLES),
-  defaults: clone(DEFAULT_VEHICLES),
-  meta: clone(VEHICLE_META),
-  ratingNotes: clone(RATING_NOTES),
-  groups: Object.fromEntries(CATALOG.map((d) => [d.vehicle.id, d.group])),
-  selected: [...DEFAULT_SELECTED],
-  customCount: 0,
-  criteria: clone(DEFAULT_CRITERIA),
-  notice: ''
-};
 
 /* ----------------------------- helpers ----------------------------- */
 
-const esc = (s: string): string => s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
-const $ = (id: string): HTMLElement => document.getElementById(id) as HTMLElement;
-const usd = (n: number): string => (n < 0 ? '-' : '') + '$' + Math.round(Math.abs(n)).toLocaleString('en-US');
-const num = (n: number, d = 1): string => n.toLocaleString('en-US', { minimumFractionDigits: d, maximumFractionDigits: d });
 const lx = (): Vehicle => state.vehicles.find((v) => v.owned) as Vehicle;
 const vehicle = (id: string): Vehicle => state.vehicles.find((v) => v.id === id) as Vehicle;
 const hasCar = (): boolean => state.g.disposal !== 'none';
@@ -164,16 +78,6 @@ function optionName(o: OptionSpec): string {
 
 function tagFor(o: OptionSpec): string {
   return o.financing === 'none' ? 'Status quo' : o.financing === 'loan' ? 'Loan' : 'Lease';
-}
-
-function safeStore(key: string, value?: string): string | null {
-  try {
-    if (value === undefined) return window.localStorage.getItem(key);
-    window.localStorage.setItem(key, value);
-    return value;
-  } catch {
-    return null;
-  }
 }
 
 const scaleLabel = (): string => (state.scale === 'benchmark' ? 'vs. a typical new car' : state.scale === 'anchored' ? (hasCar() ? 'vs. keeping your car' : 'vs. a typical new car') : 'vs. the field');
