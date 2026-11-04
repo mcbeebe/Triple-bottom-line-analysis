@@ -20,7 +20,7 @@ Visual reference: the Option B screens in `docs/ux-options/ux-options.html` (B1 
   - **Sell my car, then buy**: "Sell it yourself and put the money toward the next car" (path `sell`)
   - **Trade my car in**: "A dealer takes it off the price" (path `trade`)
   - **Just buy**: "No car to sell, or I am keeping mine" (path `none`)
-  - **Not sure: describe it in a sentence**: opens the analyst sheet (hidden if AI is unavailable). Hidden until Phase 4 builds the sheet (decision P8).
+  - **Not sure: describe it in a sentence**: opens the analyst sheet (hidden if AI is unavailable). Shown since Phase 3a (owner reversed P8): it opens the current analyst in a sheet; Phase 4 rebuilds it.
 - Footer: "Back" (disabled) and "Skip to answer".
 - Public-site default: nothing preselected (a tap is required). Demo mode may preselect `sell`.
 

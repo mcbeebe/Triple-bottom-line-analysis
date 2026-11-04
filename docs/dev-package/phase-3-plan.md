@@ -106,7 +106,7 @@ Every action and input of the old page has a new home:
 7. Why this result rebuilt: pillar summaries, ratings and criteria weights editor, bars, sensitivity, sources, limitations.
 8. Fine-tune rebuilt in full: All assumptions (confirm box, key drivers, cars grid with edit marks, reset one or all, add lease, rename, emissions, other) and Scoring and appearance.
 9. Table rebuilt: sortable, copy as spreadsheet text, every option.
-10. Ask the analyst panel (restyled), Q5.
+10. Ask the analyst panel: its answer rebuilt in the new design (Q5). The sheet and its two entry points shipped in 3a (owner reversed P8).
 11. Old suites ported check for check into `qa-answer.cjs`; every row of the feature table exercised; then the old page, legacy panels and page-level CSS are deleted and `qa-visual.cjs` is retired.
 12. Size baseline (floating), docs, plan results.
 
@@ -141,3 +141,23 @@ About 7 to 8 days in two PRs (3a about 3 to 4, 3b about 4). `04-phases.md` says 
 - The Settings line in Share is in plain words, not setting ids.
 
 **To check on the real artifact page (owner):** open the preview, change a number in Fine-tune, open Share, copy the link and open it in a new tab. It should show the same answer. If the copied link does not work there but the page's own address does, the address is the way to share on claude.ai.
+
+## Phase 3a addendum: AI chat on the first page (owner request, Nov 4, 2026)
+"Looks good, but add option for AI chat in first page." This reverses P8 and pulls Q5 forward.
+
+| Check | Phase 3a | With the addendum |
+| --- | --- | --- |
+| Unit tests | 390 | 397 |
+| Browser checks | 485 | 563 (new `qa-ai.cjs`: 78) |
+| axe WCAG 2.1 AA violations on the new screens | 0 | 0 (Step 1, the sheet empty and with an answer, the answer screen; 390 and 1280 px, Ledger and Night) |
+| Controls under 44 px on the new screens | 0 | 0 |
+| Old page (`#details`) vs the Phase 0 baseline | byte-identical | byte-identical |
+| `dist/index.html` | 207,569 bytes | 211,600 bytes (+1.9%, under the 5% guard) |
+
+**What shipped**
+- Step 1: "Not sure? Describe it in a sentence" (dashed card after "or"), only when the AI is available.
+- Answer screen: "Ask the analyst" with the other buttons.
+- Both open the analyst in a bottom sheet. The same session (typed text, last answer, what was applied) follows it between the sheet and "All the details". Analyze comes before the long examples so it is in view on a phone. After Apply, focus moves to the next button instead of dropping out of the sheet.
+- Nothing changes without a tap; AI text is still rendered as text through `sanitizeAnswer` and `esc`.
+
+**Not changed:** the analyst prompt, `sanitizeAnswer` and the engine. On claude.ai the page must declare the `sample` capability for the AI to be available; without it the option stays hidden.
