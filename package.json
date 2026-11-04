@@ -8,7 +8,7 @@
     "typecheck": "tsc --noEmit",
     "build": "node scripts/build.mjs",
     "check": "npm run typecheck && npm test && npm run build",
-    "qa": "node scripts/qa.cjs && node scripts/qa-analyst.cjs && node scripts/qa-path.cjs",
+    "qa": "node scripts/qa.cjs && node scripts/qa-analyst.cjs && node scripts/qa-path.cjs && node scripts/qa-size.cjs && node scripts/qa-visual.cjs",
     "verify": "npm run check && npm run qa"
   },
   "keywords": [],
