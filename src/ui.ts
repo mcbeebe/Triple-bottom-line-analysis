@@ -16,128 +16,32 @@ import {
   hasContent,
   sanitizeAnswer,
   sensitivityRows,
-  type AnalystAnswer,
   type CarInfo,
   type FieldInfo,
   type ResultRow
 } from './analyst';
 import {
-  CAR_PRESETS,
   currentCarFromPreset,
   DEFAULT_CRITERIA,
   DEFAULT_GLOBALS,
-  SRC,
   makeCustomVehicle
 } from './data';
-import { MAX_SELECTED, MODES, PRESET_LABELS, THEMES, clone, state, type Tab, type Theme, type View } from './app/state';
+import { MAX_SELECTED, MODES, PRESET_LABELS, clone, state, type Tab, type Theme, type View } from './app/state';
 import { defaultOf, fieldRegistry, readField, writeField } from './app/fields';
 import { safeStore } from './app/storage';
 import { esc, num, usd } from './app/format';
-import { carNow, hasCar, incentiveTotal, keepOf, kindLabel, lx, optionName, scaleLabel, scoring, tagFor, vehicle, visibleOptions } from './app/options';
+import { hasCar, incentiveTotal, keepOf, kindLabel, lx, optionName, scaleLabel, scoring, tagFor, vehicle, visibleOptions } from './app/options';
 import { $ } from './ui/dom';
+import { analyst, type SampleApi } from './app/analystSession';
+import { renderControls } from './ui/controls';
+import { PATHS, renderPath } from './ui/steps/decision';
+import { renderPicker } from './ui/steps/cars';
 import { renderResults } from './ui/answer/answer';
 import { refreshEdited, renderAssumptions } from './ui/answer/fineTune';
 import { tableAsTsv } from './ui/answer/table';
 import { renderSources } from './ui/answer/why';
 
-/* ----------------------------- controls ----------------------------- */
-
-function chip(act: string, val: string, label: string, sub = '', on = false): string {
-  return `<button class="chip ${on ? 'on' : ''}" aria-pressed="${on}" data-act="${act}" data-val="${val}">${label}${sub ? `<small>${sub}</small>` : ''}</button>`;
-}
-
-function renderControls(): void {
-  const w = state.weights;
-  const pct = (x: number) => Math.round(x * 100);
-  const sum = w.planet + w.people + w.profit || 1;
-  $('designbar').innerHTML = `<div class="designrow"><h3>Design</h3><div class="chips">${THEMES.map((t) => chip('theme', t.id, t.label, '', state.theme === t.id)).join('')}</div></div>`;
-  const mode = MODES.find((m) => m.id === state.mode) as (typeof MODES)[number];
-  const presetLabel = PRESET_LABELS[state.preset] ?? 'Custom weights';
-  $('ctl-summary').textContent = `${mode.label} · ${scaleLabel()} · ${presetLabel} · ${state.aggregation === 'average' ? 'average' : 'weakest link'}`;
-  $('ctl-body').innerHTML = `
-  <div class="group"><h3>Scoring method</h3><div class="chips">${MODES.map((m) => chip('mode', m.id, m.label, '', state.mode === m.id)).join('')}</div></div>
-  <div class="group"><h3>Scale (what 50 means)</h3><div class="chips">${chip('scale', 'benchmark', 'Typical new car', 'AAA / EPA averages', state.scale === 'benchmark')}${chip('scale', 'anchored', 'Keeping your car', 'it always scores 50', state.scale === 'anchored')}${chip('scale', 'relative', 'The field', 'best = 100', state.scale === 'relative')}</div></div>
-  <div class="group"><h3>Combine pillars</h3><div class="chips">${chip('agg', 'average', 'Weighted average', '', state.aggregation === 'average')}${chip('agg', 'weakest', 'Weakest link', 'no pillar sacrificed', state.aggregation === 'weakest')}</div></div>
-  <div class="group"><h3>Pillar weighting</h3><div class="chips">${Object.keys(WEIGHT_PRESETS).map((p) => chip('preset', p, PRESET_LABELS[p], '', state.preset === p)).join('')}</div>
-    <div class="sliders">
-      ${(['planet', 'people', 'profit'] as const).map((k) => `<label>${k[0].toUpperCase() + k.slice(1)} <input type="range" min="0" max="100" step="5" value="${pct(w[k] / sum)}" data-wslider="${k}"><output id="wo-${k}">${pct(w[k] / sum)}%</output></label>`).join('')}
-    </div></div>
-  <div class="group"><h3>Financing shown</h3><div class="chips">${chip('view', 'both', 'Loan + lease', '', state.view === 'both')}${chip('view', 'loan', 'Loan only', '', state.view === 'loan')}${chip('view', 'lease', 'Lease only', '', state.view === 'lease')}</div></div>`;
-}
-
-/* ------------------------------ your decision (path) ------------------------------ */
-
-const PATHS: { id: Disposal; label: string; sub: string }[] = [
-  { id: 'sell', label: 'Sell it, then buy', sub: 'private sale' },
-  { id: 'trade', label: 'Trade it in', sub: 'dealer offer' },
-  { id: 'none', label: 'Just buy', sub: 'no car to sell' }
-];
-
-function pathBlurb(): string {
-  const d = state.g.disposal;
-  if (d === 'sell') return `You sell ${esc(carNow())} yourself (about ${usd(lx().price)}) and put that toward the new car. You can also compare with keeping it.`;
-  if (d === 'trade')
-    return `The dealer takes ${esc(carNow())} off the price. The offer is assumed ${num(state.g.tradeInDiscount * 100, 0)}% below its private-sale value (about ${usd(lx().price * (1 - state.g.tradeInDiscount))}); edit that under Key drivers. <a href="${SRC.caTradeIn.url}" target="_blank" rel="noopener">California charges sales tax on the full price</a>, so a trade-in saves no tax here. You can also compare with keeping it.`;
-  return 'You are buying without selling or trading a car in, so there is no keep-it option and no sale money. Cars are compared with each other and against a typical new car.';
-}
-
-function renderPath(): void {
-  const presetChips = CAR_PRESETS.map((p) => chip('carpreset', p.id, p.label, p.blurb, state.carPreset === p.id)).join('');
-  const nameBox = `<label class="fine" for="in-carname">Name of your current car</label> <input id="in-carname" class="vname" type="text" maxlength="40" value="${esc(lx().short)}" data-vname="lx" aria-label="Name of your current car">`;
-  $('path').innerHTML = `<h2>Your decision</h2>
-  <p class="fine">What are you doing with the car you have now? Then pick the cars in play below, or just describe it to the analyst above.</p>
-  <div class="chips" role="group" aria-label="What happens to your current car">${PATHS.map((p) => chip('path', p.id, p.label, p.sub, state.g.disposal === p.id)).join('')}${analyst.sample ? '<button class="chip" data-act="askanalyst">Not sure<small>ask the analyst</small></button>' : ''}</div>
-  <p class="fine" id="path-blurb">${pathBlurb()}</p>
-  ${hasCar() ? `<div class="pgroup"><h3>The car you have now</h3><div class="chips" role="group" aria-label="Starting point for your current car">${presetChips}</div><p class="fine">Pick a starting point, then edit its value, mpg and costs under Cars in the assumptions. Only the Lexus values are sourced; the others are placeholders. ${nameBox}</p></div>` : ''}`;
-}
-
-/* ------------------------------ car picker ------------------------------ */
-
-function pickChip(v: Vehicle, custom: boolean): string {
-  const on = state.selected.includes(v.id);
-  const lease = v.lease ? 'loan + lease' : 'loan only';
-  return `<span class="pwrap"><button class="chip ${on ? 'on' : ''}" aria-pressed="${on}" data-act="pick" data-val="${v.id}">${esc(v.short)}<small>${usd(v.price)} · ${lease}</small></button>${custom ? `<button class="x" data-act="rmcustom" data-val="${v.id}" aria-label="Remove ${esc(v.short)}" title="Remove">×</button>` : ''}</span>`;
-}
-
-function renderPicker(): void {
-  const groupOf = (g: string) => state.vehicles.filter((v) => !v.owned && state.groups[v.id] === g);
-  const section = (title: string, list: Vehicle[], custom = false) =>
-    list.length ? `<div class="pgroup"><h3>${title}</h3><div class="chips">${list.map((v) => pickChip(v, custom)).join('')}</div></div>` : '';
-  $('picker').innerHTML = `<h2>Cars to compare</h2>
-  <p class="fine">${hasCar() ? 'Keeping your current car is always the baseline.' : 'There is no keep option because you are just buying.'} Pick up to ${MAX_SELECTED} cars (${state.selected.length} selected). Every option gets a loan, and a lease where terms are known; add lease terms in the assumptions below.</p>
-  ${state.notice ? `<p class="notice" role="status">${esc(state.notice)}</p>` : ''}
-  <div class="pgrid">
-    ${section('Electric', groupOf('ev'))}
-    ${section('Hybrid', groupOf('hybrid'))}
-    ${section('Gas', groupOf('gas'))}
-    ${section('Your own', groupOf('custom'), true)}
-  </div>
-  <div class="padd"><span class="padd-label">Add your own car:</span>
-    <button class="btn ghost" data-act="addcustom" data-val="ice">+ Gas car</button>
-    <button class="btn ghost" data-act="addcustom" data-val="hybrid">+ Hybrid</button>
-    <button class="btn ghost" data-act="addcustom" data-val="ev">+ EV</button>
-    <button class="linkbtn" data-act="clearpicks">Clear selection</button></div>`;
-}
-
-/* --------------------------- assumptions --------------------------- */
-
 /* ------------------------------ AI analyst ------------------------------ */
-
-interface SampleApi {
-  json: (input: string, opts?: { signal?: AbortSignal; cache?: boolean }) => Promise<unknown>;
-}
-
-const analyst = {
-  sample: null as SampleApi | null,
-  text: '',
-  busy: false,
-  ctrl: null as AbortController | null,
-  answer: null as AnalystAnswer | null,
-  status: '',
-  statusErr: false,
-  applied: new Set<string>(),
-  history: [] as { user: string; summary: string }[]
-};
 
 const AN_EXAMPLES = [
   'I drive about 40 miles a day, mostly freeway, and I can charge at home on solar.',
