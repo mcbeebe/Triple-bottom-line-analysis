@@ -7,11 +7,12 @@
  * - 143,261  Phase 1: tokens plus ds- component styles (+8.2 KB of CSS)
  * - 154,641  Phase 1 final: + sheet behavior, style guide and #style-guide route (+11.4 KB)
  * - 166,427  Phase 2: data fixes, shared mutations, comma fields, slider, checkbox row, status labels (+11.8 KB)
+ * - 185,141  Phase 2: scenario and step logic, the three step screens, router, answer bar (+18.7 KB)
  */
 const fs = require('fs');
 const path = require('path');
 
-const BASELINE_BYTES = 166427;
+const BASELINE_BYTES = 185141;
 const TOLERANCE = 0.05;
 const file = path.resolve(__dirname, '../dist/index.html');
 const size = fs.statSync(file).size;
