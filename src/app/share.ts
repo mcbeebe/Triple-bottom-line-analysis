@@ -100,12 +100,20 @@ export function shareSummary(sc: Scenario, carName: (id: string) => string): { l
   const own = sc.customCars.length;
   const cars = [...sc.selected.map(carName), ...(own ? [`${own} car${own === 1 ? '' : 's'} of your own (name${own === 1 ? '' : 's'} left out)`] : [])];
   const st = sc.settings;
+  const settings = [
+    { hybrid: 'Hybrid scoring', metrics: 'Numbers only', ratings: '1 to 5 scorecard' }[st.mode],
+    { benchmark: '50 = a typical new car', anchored: '50 = keeping your car', relative: 'cars scored against each other' }[st.scale],
+    st.preset === 'custom' ? 'your own pillar weights' : `${{ balanced: 'balanced', planet: 'planet-first', people: 'people-first', wallet: 'wallet-first' }[st.preset] ?? st.preset} weighting`,
+    ...(st.aggregation === 'weakest' ? ['the weakest pillar decides'] : []),
+    { both: 'loans and leases shown', loan: 'loans only', lease: 'leases only' }[st.view],
+    ...(st.embodied === 'full' ? ['all factory carbon counted'] : [])
+  ].join(', ');
   return [
     { label: 'What you are deciding', value: PATH_WORDS[sc.path] },
     { label: 'Car you have now', value: sc.path === 'none' ? 'None (just buying)' : PRESET_WORDS[sc.carPreset] },
     { label: 'Numbers you changed', value: changed === 0 ? 'None yet. Only numbers that differ from the defaults go in.' : `${changed} number${changed === 1 ? '' : 's'}` },
     { label: 'Cars compared', value: cars.length ? cars.join(', ') : 'None' },
     { label: 'Miles per year', value: sc.miles.toLocaleString('en-US') },
-    { label: 'Settings', value: `${st.mode} scoring, ${st.scale} scale, ${st.preset} weighting, ${st.aggregation} of pillars, ${st.view} financing shown` }
+    { label: 'Settings', value: settings }
   ];
 }

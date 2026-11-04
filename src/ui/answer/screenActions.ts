@@ -1,6 +1,7 @@
 import { state } from '../../app/state';
 import { renderResults } from './answer';
-import { navigate, renderAnswer } from '../steps/router';
+import { clearShareHash, navigate, renderAnswer, setShareHash } from '../steps/router';
+import { SHARE_SHEET, renderShareSheet, shareLink } from './shareSheet';
 import { hideSheet, openSheetId, showSheet } from '../components/sheet';
 import type { DsNumberDetail } from '../components/field';
 import { FT_SHEET, applyFineTune, refreshFineTuneStatus, renderFineTuneSheet } from './fineTuneSheet';
@@ -18,6 +19,7 @@ function toDetails(targetId: string, before?: () => void): void {
 
 /** After a Fine-tune edit: refresh the labels, re-render the answer behind the sheet and announce the new verdict. */
 function afterEdit(): void {
+  clearShareHash();
   refreshFineTuneStatus(state);
   renderAnswer();
   const live = document.getElementById('ft-live');
@@ -57,6 +59,34 @@ export function bindAnswerActions(): void {
       case 'ans-sources':
         toDetails('sources');
         return;
+      case 'ans-share': {
+        const link = shareLink(state);
+        setShareHash(link.split('#')[1]);
+        renderShareSheet(state, link);
+        showSheet(SHARE_SHEET, el);
+        return;
+      }
+      case 'ans-copylink': {
+        const input = document.getElementById('share-link') as HTMLInputElement | null;
+        const status = document.getElementById('share-status');
+        const done = (msg: string) => {
+          if (status) status.textContent = msg;
+        };
+        if (!input) return;
+        try {
+          void navigator.clipboard.writeText(input.value).then(
+            () => done('Copied. Paste it into a message.'),
+            () => {
+              input.select();
+              done('Copying was blocked here. The link is selected; copy it yourself.');
+            }
+          );
+        } catch {
+          input.select();
+          done('Copying was blocked here. The link is selected; copy it yourself.');
+        }
+        return;
+      }
     }
   });
   document.addEventListener('ds:number', (e) => {

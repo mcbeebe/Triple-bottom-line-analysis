@@ -10,6 +10,13 @@ import { dsOptionCard } from '../components/optionCard';
 /** Footer dates (decision Q7) and audience (Q4). */
 export const DATA_NOTE = 'Estimates for comparison, not financial or tax advice. California rules and prices. Prices and rates as of Nov 1, 2026; default cars checked Nov 4, 2026.';
 
+let notice = '';
+
+/** A one-line notice shown under the basis line (e.g. a share link that could not be read in full); '' hides it. */
+export function setAnswerNotice(text: string): void {
+  notice = text;
+}
+
 const PATH_WORDS: Record<string, string> = { sell: 'Sell, then buy', trade: 'Trade in, then buy', none: 'Just buy' };
 
 /** The scored options as the verdict sees them, best first, plus the scored list itself. */
@@ -53,14 +60,15 @@ export function answerScreenHtml(s: State): string {
     })
     .join('');
   const change = changeLines(s, scored);
-  const assumed = s.pathChosen ? '' : '<p class="ds-answer-note">We assumed you sell your car yourself.</p>';
+  const assumed = (s.pathChosen ? '' : '<p class="ds-answer-note">We assumed you sell your car yourself.</p>') + (notice ? `<p class="ds-answer-note" role="status">${esc(notice)}</p>` : '');
   const changeBox = change.length
     ? `<section class="ds-change" aria-labelledby="ans-change-h"><h2 class="ds-change-h" id="ans-change-h">What would change this</h2>${change.map((l) => `<p>${esc(l)}</p>`).join('')}</section>`
     : '';
   const actions = [
     dsButton({ label: 'Why this result', act: 'ans-why', variant: 'secondary', id: 'ans-why' }),
     dsButton({ label: 'Fine-tune', act: 'ans-finetune', variant: 'secondary', id: 'ans-finetune' }),
-    dsButton({ label: 'Table', act: 'ans-table', variant: 'secondary', id: 'ans-table' })
+    dsButton({ label: 'Table', act: 'ans-table', variant: 'secondary', id: 'ans-table' }),
+    dsButton({ label: 'Share', act: 'ans-share', variant: 'secondary', id: 'ans-share' })
   ].join('');
   return `<div class="ds-answer">
 <div class="ds-answer-main">

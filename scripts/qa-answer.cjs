@@ -129,6 +129,58 @@ const read = (page) => page.evaluate(() => ({
     await ctx.close();
   }
 
+  // ---------- Share links (Q2) ----------
+  {
+    const { ctx, page, errors } = await open(browser, { hash: '' });
+    await ctx.grantPermissions(['clipboard-read', 'clipboard-write']);
+    await page.click('[data-act="st-path"][data-val="trade"]');
+    await page.click('[data-act="st-preset"][data-val="suv"]');
+    await page.click('[data-act="st-next"]');
+    await page.click('label[for="st-pick-tesla"]');
+    await page.click('[data-act="st-answer"]');
+    await page.click('#ans-finetune');
+    await page.fill('#ft-gas', '7.25');
+    await page.locator('#ft-gas').blur();
+    await page.keyboard.press('Escape');
+    await page.click('#ans-share');
+    const link = await page.inputValue('#share-link');
+    const here = await read(page);
+    check('Share puts a plain #name in the address (letters, digits, hyphens)', /^#s1-[a-z2-7]+$/.test(await page.evaluate(() => location.hash)) && /#s1-[a-z2-7]+$/.test(link));
+    const rows = await page.evaluate(() => [...document.querySelectorAll('.ds-kv dd')].map((d) => d.textContent));
+    check('Share lists exactly what the link holds, in plain words', rows[0] === 'Trade my car in' && rows[1] === 'The "Older gas SUV" preset' && rows[2] === '1 number' && rows[3].includes('Tesla Model Y') && rows[5].startsWith('Hybrid scoring'), JSON.stringify(rows));
+    check('Share says nothing is sent and typed names are left out', (await page.locator('[data-sheet="share"] .ds-note').innerText()).startsWith('Nothing is sent anywhere.'));
+    await audit(page, '[data-sheet="share"]', 'Share sheet');
+    await page.click('#share-copy');
+    await page.waitForFunction(() => document.getElementById('share-status').textContent.length > 0);
+    check('Copy link copies the link and says so', (await page.evaluate(() => navigator.clipboard.readText())) === link && (await page.textContent('#share-status')) === 'Copied. Paste it into a message.');
+    await page.keyboard.press('Escape');
+    check('closing Share returns focus to its button', (await page.evaluate(() => document.activeElement.id)) === 'ans-share');
+    const other = await browser.newContext({ viewport: { width: 390, height: 844 } });
+    const q = await other.newPage();
+    const qErrors = [];
+    q.on('pageerror', (e) => qErrors.push(e.message));
+    await q.goto(link, { waitUntil: 'load' });
+    const there = await read(q);
+    check('opening the link in a new browser shows the same answer', there.title === here.title && there.basis === here.basis && JSON.stringify(there.cards) === JSON.stringify(here.cards), JSON.stringify({ here: here.title, there: there.title }));
+    await q.click('#ans-finetune');
+    check('...including the edited gas price', (await q.inputValue('#ft-gas')) === '7.25');
+    await q.keyboard.press('Escape');
+    await q.click('#ans-edit');
+    check('Edit from a shared answer goes to Step 2 (the link says what is being decided)', (await q.evaluate(() => document.getElementById('st-title').textContent)) === 'Your car and your driving');
+    check('shared link: no console errors', qErrors.length === 0, qErrors.join(' | '));
+    await other.close();
+    await page.click('#ans-finetune');
+    await page.fill('#ft-gas', '8');
+    await page.locator('#ft-gas').blur();
+    check('an edit after sharing takes the out-of-date share name out of the address', (await page.evaluate(() => location.hash)) === '#answer');
+    const bad = await (await browser.newContext()).newPage();
+    await bad.goto(link.slice(0, -6) + 'zzzzzz', { waitUntil: 'load' });
+    check('a tampered link shows the standard example with a notice', (await bad.evaluate(() => document.querySelector('#answer-screen .ds-answer-note[role="status"]')?.textContent)) === 'That link could not be read, so this shows the standard example.');
+    await bad.context().close();
+    check('share: no console errors', errors.length === 0, errors.join(' | '));
+    await ctx.close();
+  }
+
   // ---------- links to "All the details" until Phase 3b ----------
   {
     const { ctx, page, errors } = await open(browser);

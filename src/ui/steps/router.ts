@@ -7,7 +7,9 @@ import { hideSheet } from '../components/sheet';
 import { carsHtml, newAddCarForm, type AddCarForm } from './cars';
 import { decisionHtml } from './decision';
 import { drivingHtml } from './driving';
-import { answerScreenHtml } from '../answer/screen';
+import { answerScreenHtml, setAnswerNotice } from '../answer/screen';
+import { applyScenario } from '../../app/scenario';
+import { decodeShare, isShareHash } from '../../app/share';
 
 let current: Route = 'step-1';
 let rendered = '';
@@ -61,6 +63,7 @@ function show(route: Route, focus: boolean): void {
   if (route !== 'style-guide') hideSheet();
   if (leavingGuide) applyTheme();
   document.title = titleFor(route, state.g.disposal);
+  if (route !== 'answer') setAnswerNotice('');
   if (isStep) {
     if (route !== 'step-3') addCarForm.value = newAddCarForm();
     renderStep();
@@ -101,8 +104,38 @@ export function goBack(): void {
   else if (a.kind === 'replace') navigate(a.route, { replace: true });
 }
 
+/**
+ * Open a shared answer: apply the scenario from the #s1- name and show the answer. The path counts as chosen
+ * (the link says what is being decided). A link that cannot be read shows the defaults with a notice.
+ */
+function openShare(hash: string, focus: boolean): void {
+  const d = decodeShare(hash);
+  if (d.ok && d.scenario) {
+    applyScenario(state, d.scenario);
+    state.pathChosen = true;
+    setAnswerNotice(d.problems.length ? 'That link could not be read in full; some values were left out.' : '');
+  } else setAnswerNotice('That link could not be read, so this shows the standard example.');
+  history.replaceState({ tbl: true, prev: null } satisfies HistoryTag, '', hash);
+  show('answer', focus);
+  rendered = hash;
+}
+
+/** Put a share name in the address without navigating, so the page's own address reopens this answer. */
+export function setShareHash(hash: string): void {
+  history.replaceState(history.state, '', `#${hash}`);
+  rendered = `#${hash}`;
+}
+
+/** After an edit, a share name in the address is out of date: go back to plain #answer (without navigating). */
+export function clearShareHash(): void {
+  if (!isShareHash(location.hash)) return;
+  history.replaceState(history.state, '', hashFor('answer'));
+  rendered = hashFor('answer');
+}
+
 function onLocationChange(): void {
   if (location.hash === rendered || (location.hash === '' && rendered === '#step-1')) return;
+  if (isShareHash(location.hash)) return openShare(location.hash, true);
   const g = guardRoute(parseRoute(location.hash), state);
   if (g.replace) history.replaceState({ tbl: true, prev: null } satisfies HistoryTag, '', hashFor(g.route));
   show(g.route, true);
@@ -110,11 +143,12 @@ function onLocationChange(): void {
 
 /** Show the screen named by the address on first load (without moving focus) and follow Back, Forward and typed hashes. */
 export function startRouter(): void {
+  window.addEventListener('popstate', onLocationChange);
+  window.addEventListener('hashchange', onLocationChange);
+  if (isShareHash(location.hash)) return openShare(location.hash, false);
   const g = guardRoute(parseRoute(location.hash), state);
   const keepUrl = location.hash === '' && g.route === 'step-1';
   history.replaceState({ tbl: true, prev: null } satisfies HistoryTag, '', keepUrl ? location.href : hashFor(g.route));
   show(g.route, false);
   rendered = keepUrl ? '#step-1' : hashFor(g.route);
-  window.addEventListener('popstate', onLocationChange);
-  window.addEventListener('hashchange', onLocationChange);
 }

@@ -83,5 +83,7 @@ describe('shareSummary', () => {
     expect(rows[2].value).toBe('6 numbers');
     expect(rows[3].value).toBe('Tesla Model Y, Toyota Camry Hybrid, 1 car of your own (name left out)');
     expect(rows[4].value).toBe('12,000');
+    expect(rows[5].value).toBe('Numbers only, 50 = keeping your car, your own pillar weights, the weakest pillar decides, loans only, all factory carbon counted');
+    expect(shareSummary(PUBLIC_DEFAULTS, (id) => id)[5].value).toBe('Hybrid scoring, 50 = a typical new car, balanced weighting, loans and leases shown');
   });
 });
