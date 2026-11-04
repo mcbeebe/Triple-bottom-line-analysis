@@ -93,3 +93,11 @@ export function sensitivityGrid(): { preset: string; cells: { mode: ScoringMode;
     })
   }));
 }
+
+/** Stable color slot per vehicle: the original four keep their colors; others rotate. */
+export function colorKey(id: string): string {
+  const fixed: Record<string, string> = { lx: 'lx', tesla: 'tesla', rivian: 'rivian', bolt: 'bolt' };
+  if (fixed[id]) return fixed[id];
+  const i = state.vehicles.findIndex((v) => v.id === id);
+  return `x${i % 6}`;
+}
