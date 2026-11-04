@@ -52,9 +52,11 @@ function removeBaseline(dir) {
 
 async function shoot(browser, file, width) {
   const ctx = await browser.newContext({ viewport: { width, height: width === 390 ? 844 : 800 }, deviceScaleFactor: 1, reducedMotion: 'reduce' });
+  // Both builds get the legacy hook and #answer; the Phase 0 baseline ignores both.
+  await ctx.addInitScript(() => { window.__TBL_QA__ = { scenario: 'legacy' }; });
   const page = await ctx.newPage();
   await page.route('**/*', (route) => (/fonts\.(googleapis|gstatic)\.com/.test(route.request().url()) ? route.abort() : route.continue()));
-  await page.goto('file://' + file, { waitUntil: 'load' });
+  await page.goto('file://' + file + '#answer', { waitUntil: 'load' });
   await page.waitForTimeout(400);
   // The car limit changed from 8 to 4 in Phase 2 (owner decision P3); that one line of text is masked.
   const png = await page.screenshot({ fullPage: true, mask: [page.locator('#picker > p.fine')] });

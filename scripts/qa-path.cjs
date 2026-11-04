@@ -1,6 +1,7 @@
 const { chromium } = require('playwright');
 const path = require('path');
-const url = 'file://' + path.resolve(__dirname, '../dist/index.html');
+// Phase 2: the old page is the answer screen (#answer); QA loads it with the original Lexus test case via a boot hook.
+const url = 'file://' + path.resolve(__dirname, '../dist/index.html') + '#answer';
 let failures = 0;
 const check = (n, ok, x = '') => { console.log(`${ok ? 'PASS' : 'FAIL'}  ${n}${x ? '  ' + x : ''}`); if (!ok) failures++; };
 
@@ -17,6 +18,7 @@ const MOCK = `window.__prompts=[];window.claude={use:async()=>({json:async(p)=>{
 (async () => {
   const browser = await chromium.launch();
   const ctx = await browser.newContext({ viewport: { width: 1280, height: 900 } });
+  await ctx.addInitScript(() => { window.__TBL_QA__ = { scenario: 'legacy' }; });
   const page = await ctx.newPage();
   const errors = [];
   page.on('pageerror', (e) => errors.push(String(e)));
@@ -123,6 +125,7 @@ const MOCK = `window.__prompts=[];window.claude={use:async()=>({json:async(p)=>{
 
   // mobile layout
   const m = await browser.newContext({ viewport: { width: 390, height: 900 } });
+  await m.addInitScript(() => { window.__TBL_QA__ = { scenario: 'legacy' }; });
   const mp = await m.newPage();
   await mp.addInitScript(MOCK);
   await mp.goto(url);
@@ -135,6 +138,7 @@ const MOCK = `window.__prompts=[];window.claude={use:async()=>({json:async(p)=>{
 
   // no analyst available: path still works, no "Not sure" chip
   const n = await browser.newContext({ viewport: { width: 1280, height: 900 } });
+  await n.addInitScript(() => { window.__TBL_QA__ = { scenario: 'legacy' }; });
   const np = await n.newPage();
   await np.goto(url);
   await np.waitForTimeout(300);

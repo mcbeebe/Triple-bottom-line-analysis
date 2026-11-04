@@ -203,6 +203,8 @@ const active = (page) => page.evaluate(() => {
     await page.goto(url, { waitUntil: 'load' });
     const start = await page.evaluate(() => ({ guide: document.getElementById('style-guide').hidden, main: document.querySelector('main').hidden }));
     check('route: scorecard by default, guide hidden', start.guide && !start.main);
+    const defaults = await page.evaluate(() => ({ selected: window.__tbl.snapshot().selected, keep: [...document.querySelectorAll('#res-main .card h3')].map((h) => h.textContent).find((t) => t.startsWith('Keep')) }));
+    check('without the QA hook, the public defaults apply (sedan; Bolt, Camry Hybrid, Corolla)', defaults.selected.join(',') === 'bolt,camryh,corolla' && defaults.keep === 'Keep My gas sedan', JSON.stringify(defaults));
     await page.evaluate(() => { location.hash = 'style-guide'; });
     await page.waitForFunction(() => !document.getElementById('style-guide').hidden);
     await page.click('[data-act="sg-theme"][data-val="night"]');

@@ -1,7 +1,8 @@
 const { chromium } = require('playwright');
 const path = require('path');
 const fs = require('fs');
-const url = 'file://' + path.resolve(__dirname, '../dist/index.html');
+// Phase 2: the old page is the answer screen (#answer); QA loads it with the original Lexus test case via a boot hook.
+const url = 'file://' + path.resolve(__dirname, '../dist/index.html') + '#answer';
 const shots = path.resolve(__dirname, '../qa-shots');
 fs.mkdirSync(shots, { recursive: true });
 let failures = 0;
@@ -10,6 +11,7 @@ const check = (name, ok, extra = '') => { console.log(`${ok ? 'PASS' : 'FAIL'}  
 (async () => {
   const browser = await chromium.launch();
   const ctx = await browser.newContext({ viewport: { width: 390, height: 844 }, deviceScaleFactor: 2 });
+  await ctx.addInitScript(() => { window.__TBL_QA__ = { scenario: 'legacy' }; });
   const page = await ctx.newPage();
   const errors = [];
   page.on('pageerror', (e) => errors.push('pageerror: ' + e.message));
@@ -242,6 +244,7 @@ const check = (name, ok, extra = '') => { console.log(`${ok ? 'PASS' : 'FAIL'}  
 
   // desktop
   const d = await browser.newContext({ viewport: { width: 1280, height: 900 } });
+  await d.addInitScript(() => { window.__TBL_QA__ = { scenario: 'legacy' }; });
   const dp = await d.newPage();
   await dp.goto(url, { waitUntil: 'load' });
   check('desktop: scoring options start open', (await dp.evaluate(() => document.getElementById('controls').open)) === true);

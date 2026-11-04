@@ -1,5 +1,6 @@
 import { computeOption, scoreOptions } from '../engine';
 import { state } from '../app/state';
+import { LEGACY_SCENARIO, PUBLIC_DEFAULTS, applyScenario, readQaScenario } from '../app/scenario';
 import { safeStore } from '../app/storage';
 import { lx, scoring, visibleOptions } from '../app/options';
 import { initAnalyst } from './analyst/sheet';
@@ -31,6 +32,8 @@ function route(): void {
 
 /** Boot the page: theme, panels, results, event handlers, analyst, and the read-only `window.__tbl` hook used by QA. */
 export function init(): void {
+  // Public defaults (decisions 7, 8, P1); QA runs may ask for the original Lexus test case instead.
+  applyScenario(state, readQaScenario(window) === 'legacy' ? LEGACY_SCENARIO : PUBLIC_DEFAULTS);
   const saved = safeStore('tbl-theme');
   if (saved === 'ledger' || saved === 'night' || saved === 'field') state.theme = saved;
   applyTheme();

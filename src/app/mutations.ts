@@ -68,9 +68,12 @@ export interface CustomCarSpec {
   efficiency?: number;
 }
 
-/** Build, register and select a custom car. Returns its id, or null (with the limit notice) when the limit is reached. */
-export function addCustomCar(s: State, spec: CustomCarSpec): string | null {
-  if (!canAddCar(s)) {
+/**
+ * Build, register and (unless `select` is false) select a custom car. Returns its id, or null with the limit
+ * notice when it should be selected but the limit is reached.
+ */
+export function addCustomCar(s: State, spec: CustomCarSpec, select = true): string | null {
+  if (select && !canAddCar(s)) {
     s.notice = limitMessage();
     return null;
   }
@@ -94,7 +97,7 @@ export function addCustomCar(s: State, spec: CustomCarSpec): string | null {
   s.meta[v.id] = d.meta;
   s.ratingNotes[v.id] = {};
   s.groups[v.id] = 'custom';
-  s.selected.push(v.id);
+  if (select) s.selected.push(v.id);
   s.notice = '';
   return v.id;
 }
@@ -106,4 +109,6 @@ export function removeCustomCar(s: State, id: string): void {
   s.defaults = s.defaults.filter((v) => v.id !== id);
   s.selected = s.selected.filter((x) => x !== id);
   delete s.meta[id];
+  delete s.groups[id];
+  delete s.ratingNotes[id];
 }
