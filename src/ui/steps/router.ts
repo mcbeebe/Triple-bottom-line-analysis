@@ -7,6 +7,7 @@ import { hideSheet } from '../components/sheet';
 import { carsHtml, newAddCarForm, type AddCarForm } from './cars';
 import { decisionHtml } from './decision';
 import { drivingHtml } from './driving';
+import { answerScreenHtml } from '../answer/screen';
 
 let current: Route = 'step-1';
 let rendered = '';
@@ -18,7 +19,7 @@ export const addCarForm: { value: AddCarForm } = { value: newAddCarForm() };
 export const currentRoute = (): Route => current;
 
 const el = (id: string): HTMLElement | null => document.getElementById(id);
-const oldMain = (): HTMLElement | null => document.querySelector('main:not(#steps)');
+const oldMain = (): HTMLElement | null => document.querySelector('main:not(#steps):not(#answer-screen)');
 
 /** Re-render the step on show, then put focus back on the control that matches `focusSelector` (if any). */
 export function renderStep(focusSelector?: string): void {
@@ -28,11 +29,17 @@ export function renderStep(focusSelector?: string): void {
   if (focusSelector) document.querySelector<HTMLElement>(focusSelector)?.focus();
 }
 
-function answerBar(): void {
+/** Bar under "All the details" (the old page): back to the answer, or change the step answers. */
+function detailsBar(): void {
   const bar = el('answer-bar');
   if (!bar) return;
-  const assumed = state.pathChosen ? '' : '<p class="ds-app-bar-note">We assumed you sell your car yourself.</p>';
-  bar.innerHTML = `<div class="ds-app-bar-inner">${assumed}<button type="button" class="ds-btn ds-btn-secondary" data-act="st-edit" id="st-edit">${esc('Change my answers')}</button></div>`;
+  bar.innerHTML = `<div class="ds-app-bar-inner"><button type="button" class="ds-btn ds-btn-primary" data-act="st-toanswer" id="st-toanswer">${esc('Back to my answer')}</button><button type="button" class="ds-btn ds-btn-secondary" data-act="st-edit" id="st-edit">${esc('Change my answers')}</button></div>`;
+}
+
+/** Re-render the answer screen in place (after a Fine-tune edit), keeping focus where it is. */
+export function renderAnswer(): void {
+  const host = el('answer-screen');
+  if (host && !host.hidden) host.innerHTML = answerScreenHtml(state);
 }
 
 function show(route: Route, focus: boolean): void {
@@ -44,11 +51,13 @@ function show(route: Route, focus: boolean): void {
   const main = oldMain();
   const guide = el('style-guide');
   const bar = el('answer-bar');
+  const ans = el('answer-screen');
   if (steps) steps.hidden = !isStep;
-  if (main) main.hidden = route !== 'answer';
+  if (ans) ans.hidden = route !== 'answer';
+  if (main) main.hidden = route !== 'details';
   if (guide) guide.hidden = route !== 'style-guide';
-  if (bar) bar.hidden = route !== 'answer';
-  document.body.classList.toggle('has-answer-bar', route === 'answer');
+  if (bar) bar.hidden = route !== 'details';
+  document.body.classList.toggle('has-answer-bar', route === 'details');
   if (route !== 'style-guide') hideSheet();
   if (leavingGuide) applyTheme();
   document.title = titleFor(route, state.g.disposal);
@@ -60,8 +69,14 @@ function show(route: Route, focus: boolean): void {
       el('st-title')?.focus();
     }
   } else if (route === 'answer') {
+    if (ans) ans.innerHTML = answerScreenHtml(state);
+    if (focus) {
+      window.scrollTo(0, 0);
+      el('ans-title')?.focus();
+    }
+  } else if (route === 'details') {
     refreshAll();
-    answerBar();
+    detailsBar();
     if (focus) {
       const h = el('answer-title');
       h?.focus({ preventScroll: true });

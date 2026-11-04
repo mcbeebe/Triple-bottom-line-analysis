@@ -31,7 +31,7 @@ const info = (page) => page.evaluate(() => ({
   hash: location.hash,
   title: document.title,
   steps: !document.getElementById('steps').hidden,
-  answer: !document.querySelector('main:not(#steps)').hidden,
+  answer: !document.getElementById('answer-screen').hidden,
   heading: document.querySelector('#steps:not([hidden]) #st-title')?.textContent ?? '',
   active: document.activeElement?.id || document.activeElement?.tagName
 }));
@@ -76,11 +76,11 @@ const statusText = (page, slot) => page.evaluate((id) => document.getElementById
     await page.click('[data-act="st-answer"]');
     s = await info(page);
     const snap = await page.evaluate(() => window.__tbl.snapshot());
-    const keep = await page.evaluate(() => [...document.querySelectorAll('#res-main .card h3')].map((h) => h.textContent));
-    check('tap 3 (Show my answer) shows the answer and focuses its heading', s.answer && !s.steps && s.active === 'answer-title' && s.title.startsWith('Your answer'), JSON.stringify(s));
+    const keep = await page.evaluate(() => [...document.querySelectorAll('#answer-screen .ds-card-name')].map((h) => h.textContent));
+    check('tap 3 (Show my answer) shows the answer and focuses its heading', s.answer && !s.steps && s.active === 'ans-title' && s.title.startsWith('Your answer'), JSON.stringify(s));
     check('the default answer: Keep My gas sedan plus Bolt, Camry Hybrid and Corolla', keep.includes('Keep My gas sedan') && ['bolt-loan', 'bolt-lease', 'camryh-loan', 'camryh-lease', 'corolla-loan', 'keep'].every((id) => snap.ranks.some((r) => r.id === id)) && snap.ranks.length === 6, keep.join(','));
-    check('the answer heading is scrolled into view', await page.evaluate(() => { const r = document.getElementById('answer-title').getBoundingClientRect(); return r.top >= 0 && r.top < window.innerHeight; }));
-    check('"Change my answers" is shown, with no assumption line once a path is chosen', (await page.locator('#answer-bar [data-act="st-edit"]').isVisible()) && (await page.locator('#answer-bar .ds-app-bar-note').count()) === 0);
+    check('the answer heading is scrolled into view', await page.evaluate(() => { const r = document.getElementById('ans-title').getBoundingClientRect(); return r.top >= 0 && r.top < window.innerHeight; }));
+    check('the basis line offers Edit, and no assumption line once a path is chosen', (await page.locator('#ans-edit').isVisible()) && (await page.locator('#answer-screen .ds-answer-note').count()) === 0);
     await page.goBack();
     s = await info(page);
     check('browser Back returns to Step 3 with focus on its heading', s.hash === '#step-3' && s.steps && s.active === 'st-title', JSON.stringify(s));
@@ -102,17 +102,18 @@ const statusText = (page, slot) => page.evaluate((id) => document.getElementById
     const { ctx, page, errors } = await open(browser);
     await page.click('#steps [data-act="st-skip"]');
     let s = await info(page);
-    check('Skip from Step 1 (no path chosen) shows the answer with the sell assumption stated', s.answer && (await page.locator('#answer-bar .ds-app-bar-note').innerText()) === 'We assumed you sell your car yourself.');
-    check('...and the old page shows Sell selected', (await page.locator('#path [data-act="path"][data-val="sell"].on').count()) === 1);
-    await page.click('#answer-bar [data-act="st-edit"]');
+    check('Skip from Step 1 (no path chosen) shows the answer with the sell assumption stated', s.answer && (await page.locator('#answer-screen .ds-answer-note').innerText()) === 'We assumed you sell your car yourself.');
+    check('...and the basis line says Sell, then buy', (await page.locator('#answer-screen .ds-basis').innerText()).startsWith('Sell, then buy'));
+    await page.click('#ans-edit');
     s = await info(page);
-    check('"Change my answers" with no path chosen goes to Step 1', s.steps && s.heading === 'What are you deciding?' && s.active === 'st-title', JSON.stringify(s));
+    check('Edit with no path chosen goes to Step 1', s.steps && s.heading === 'What are you deciding?' && s.active === 'st-title', JSON.stringify(s));
     await page.click('[data-act="st-path"][data-val="trade"]');
     await page.click('#steps [data-act="st-skip"]');
     check('Skip from Step 2 shows the answer', (await info(page)).answer);
-    await page.click('#answer-bar [data-act="st-edit"]');
+    await page.click('#ans-edit');
     s = await info(page);
-    check('"Change my answers" after choosing a path goes to Step 3', s.heading === 'Which cars should we compare?', JSON.stringify(s));
+    check('Edit after choosing a path goes to Step 2', s.heading === 'Your car and your driving', JSON.stringify(s));
+    await page.click('[data-act="st-next"]');
     await page.click('#steps [data-act="st-skip"]');
     check('Skip from Step 3 shows the answer', (await info(page)).answer);
     check('skip: no console errors', errors.length === 0, errors.join(' | '));
@@ -147,8 +148,10 @@ const statusText = (page, slot) => page.evaluate((id) => document.getElementById
     check('a moved slider is marked Your number', (await statusText(page, 'st-miles-status')) === 'Your number');
     await page.click('[data-act="st-next"]');
     await page.click('[data-act="st-answer"]');
-    const ans = await page.evaluate(() => ({ keep: [...document.querySelectorAll('#res-main .card h3')].map((h) => h.textContent).find((t) => t.startsWith('Keep')), miles: document.querySelector('input[data-field="g..milesPerYear"]').value, mpg: document.querySelector('input[data-field="lx..mpg"]').value }));
-    check('step answers reach the answer screen (name, mpg, miles)', ans.keep === 'Keep Old Civic' && ans.mpg === '31' && ans.miles === '8000', JSON.stringify(ans));
+    const ans = await page.evaluate(() => ({ keep: [...document.querySelectorAll('#answer-screen .ds-card-name')].map((h) => h.textContent).find((t) => t.startsWith('Keep')), basis: document.querySelector('#answer-screen .ds-basis').textContent }));
+    await page.click('#ans-why');
+    const mpg = await page.inputValue('input[data-field="lx..mpg"]');
+    check('step answers reach the answer screen (name, mpg, miles)', ans.keep === 'Keep Old Civic' && ans.basis.includes('8,000 miles a year') && mpg === '31', JSON.stringify({ ...ans, mpg }));
     check('step 2: no console errors', errors.length === 0, errors.join(' | '));
     await ctx.close();
   }
@@ -221,7 +224,7 @@ const statusText = (page, slot) => page.evaluate((id) => document.getElementById
     check('keyboard: checkboxes are reachable and show a focus ring', ok && (await ringOk()));
     ok = await tabTo(() => document.activeElement?.id === 'st-show');
     await page.keyboard.press('Enter');
-    check('keyboard only completes the flow to the answer', ok && (await info(page)).answer && (await info(page)).active === 'answer-title');
+    check('keyboard only completes the flow to the answer', ok && (await info(page)).answer && (await info(page)).active === 'ans-title');
     check('keyboard: no console errors', errors.length === 0, errors.join(' | '));
     await ctx.close();
     // Deep links need a fresh page: a hash change on the same page keeps the path already chosen.

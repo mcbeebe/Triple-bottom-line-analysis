@@ -14,6 +14,7 @@ import { renderSources } from './answer/why';
 import { applyTheme, bindEvents, refreshAll } from './events';
 import { bindStyleGuide } from './styleGuide';
 import { bindStepActions } from './steps/actions';
+import { bindAnswerActions } from './answer/screenActions';
 import { startRouter } from './steps/router';
 import { bindSheets } from './components/sheet';
 import { bindNumberFields } from './components/field';
@@ -41,6 +42,7 @@ export function init(): void {
   bindSliders();
   bindStyleGuide();
   bindStepActions();
+  bindAnswerActions();
   startRouter();
   // Expose a tiny read-only hook so automated QA can verify state without scraping.
   (window as unknown as { __tbl: unknown }).__tbl = {

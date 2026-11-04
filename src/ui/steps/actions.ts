@@ -94,6 +94,9 @@ function onClick(el: HTMLElement): void {
     case 'st-answer':
       if (canShowAnswer(state)) navigate('answer');
       return;
+    case 'st-toanswer':
+      navigate('answer');
+      return;
     case 'st-edit':
       navigate(state.pathChosen ? 'step-3' : 'step-1');
       return;

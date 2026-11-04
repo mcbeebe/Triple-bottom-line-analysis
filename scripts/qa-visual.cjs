@@ -56,15 +56,15 @@ async function shoot(browser, file, width) {
   await ctx.addInitScript(() => { window.__TBL_QA__ = { scenario: 'legacy' }; });
   const page = await ctx.newPage();
   await page.route('**/*', (route) => (/fonts\.(googleapis|gstatic)\.com/.test(route.request().url()) ? route.abort() : route.continue()));
-  await page.goto('file://' + file + '#answer', { waitUntil: 'load' });
+  await page.goto('file://' + file + '#details', { waitUntil: 'load' });
   await page.waitForTimeout(400);
   // The car limit changed from 8 to 4 in Phase 2 (owner decision P3); that one line of text is masked.
   // Phase 2: screenshot the old page itself (<main>), not the whole document, so the hidden step screens
   // cannot shift the comparison. The fixed answer bar (absent in the baseline) is hidden rather than masked,
   // because a mask paints over the page and would differ from the baseline wherever the bar sits.
   await page.addStyleTag({ content: '#answer-bar{display:none!important}' });
-  const png = await page.locator('main:not(#steps)').screenshot({ mask: [page.locator('#picker > p.fine')] });
-  const height = await page.evaluate(() => Math.round(document.querySelector('main:not(#steps)').getBoundingClientRect().height));
+  const png = await page.locator('main:not(#steps):not(#answer-screen)').screenshot({ mask: [page.locator('#picker > p.fine')] });
+  const height = await page.evaluate(() => Math.round(document.querySelector('main:not(#steps):not(#answer-screen)').getBoundingClientRect().height));
   await ctx.close();
   return { png, height };
 }
