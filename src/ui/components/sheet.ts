@@ -58,7 +58,9 @@ export function hideSheet(): void {
   document.documentElement.classList.remove('ds-scroll-lock');
   const r = closeSheet(current);
   current = r.state;
-  r.focus?.focus();
+  // The opener may have been re-rendered while the sheet was open (live updates); find it again by id.
+  const target = r.focus && !r.focus.isConnected && r.focus.id ? document.getElementById(r.focus.id) : r.focus;
+  target?.focus();
 }
 
 /**

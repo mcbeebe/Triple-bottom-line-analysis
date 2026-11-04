@@ -9,6 +9,7 @@ describe('routes', () => {
     expect(parseRoute('#step-3')).toBe('step-3');
     expect(parseRoute('#answer')).toBe('answer');
     expect(parseRoute('#style-guide')).toBe('style-guide');
+    expect(parseRoute('#details')).toBe('details');
     expect(parseRoute('')).toBe('step-1');
     expect(parseRoute('#')).toBe('step-1');
     expect(parseRoute('#/step-2')).toBe('step-1');
@@ -16,7 +17,7 @@ describe('routes', () => {
   });
 
   it('formats a route back into its hash', () => {
-    for (const r of ['step-1', 'step-2', 'step-3', 'answer', 'style-guide'] as Route[]) expect(parseRoute(hashFor(r))).toBe(r);
+    for (const r of ['step-1', 'step-2', 'step-3', 'answer', 'details', 'style-guide'] as Route[]) expect(parseRoute(hashFor(r))).toBe(r);
   });
 
   it('orders the flow Step 1 -> 2 -> 3 -> answer', () => {
@@ -42,7 +43,7 @@ describe('guardRoute (deep links and reloads)', () => {
 
   it('lets Step 1, the answer and the style guide through', () => {
     const s = freshState();
-    for (const r of ['step-1', 'answer', 'style-guide'] as Route[]) expect(guardRoute(r, s)).toEqual({ route: r, replace: false });
+    for (const r of ['step-1', 'answer', 'details', 'style-guide'] as Route[]) expect(guardRoute(r, s)).toEqual({ route: r, replace: false });
   });
 });
 
@@ -89,5 +90,6 @@ describe('copy and titles', () => {
     expect(titleFor('step-2', 'none')).toBe('Step 2 of 3: Your driving · TBL Decision Scorecard');
     expect(titleFor('answer', 'sell')).toBe('Your answer · TBL Decision Scorecard');
     expect(titleFor('style-guide', 'sell')).toBe('Style guide · TBL Decision Scorecard');
+    expect(titleFor('details', 'sell')).toBe('All the details · TBL Decision Scorecard');
   });
 });

@@ -14,7 +14,9 @@ import { renderSources } from './answer/why';
 import { applyTheme, bindEvents, refreshAll } from './events';
 import { bindStyleGuide } from './styleGuide';
 import { bindStepActions } from './steps/actions';
-import { startRouter } from './steps/router';
+import { bindAnswerActions } from './answer/screenActions';
+import { rerenderScreen, startRouter } from './steps/router';
+import { bindAiActions } from './analyst/aiSheet';
 import { bindSheets } from './components/sheet';
 import { bindNumberFields } from './components/field';
 import { bindSliders } from './components/slider';
@@ -34,13 +36,15 @@ export function init(): void {
   renderSources();
   renderResults();
   bindEvents();
-  registerRenderers({ all: refreshAll, controls: renderControls, picker: renderPicker });
+  registerRenderers({ all: refreshAll, controls: renderControls, picker: renderPicker, screen: rerenderScreen });
   void initAnalyst();
   bindSheets();
   bindNumberFields();
   bindSliders();
   bindStyleGuide();
   bindStepActions();
+  bindAnswerActions();
+  bindAiActions();
   startRouter();
   // Expose a tiny read-only hook so automated QA can verify state without scraping.
   (window as unknown as { __tbl: unknown }).__tbl = {

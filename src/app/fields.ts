@@ -1,5 +1,5 @@
 import type { Vehicle } from '../engine';
-import { DEFAULT_GLOBALS, type ParamMeta } from '../data';
+import { DEFAULT_GLOBALS, GLOBAL_META, type ParamMeta } from '../data';
 import { state, type State } from './state';
 
 /** An editable input: a global (`scope` "g") or a vehicle field (`scope` = vehicle id), optionally under loan or lease. */
@@ -64,4 +64,31 @@ export const writeField = (f: Field, value: number): void => writeFieldIn(state,
 /** True when the current value differs from the default. */
 export function isEdited(f: Field): boolean {
   return Math.abs(readField(f) - defaultOf(f)) > 1e-9;
+}
+
+/** Vehicle meta keys that live under the loan or lease (and the lease term's real key). Others are on the vehicle itself. */
+export const SUB_OF: Record<string, { sub: '' | 'loan' | 'lease'; key: string }> = {
+  apr: { sub: 'loan', key: 'apr' },
+  termMonths: { sub: 'loan', key: 'termMonths' },
+  down: { sub: 'loan', key: 'down' },
+  monthly: { sub: 'lease', key: 'monthly' },
+  dueAtSigning: { sub: 'lease', key: 'dueAtSigning' },
+  leaseTerm: { sub: 'lease', key: 'termMonths' }
+};
+
+/**
+ * Every editable number in state `s`, whether or not it is on screen: each global in GLOBAL_META and each
+ * vehicle meta key (lease fields only when the car has a lease).
+ */
+export function allFields(s: State): Field[] {
+  const out: Field[] = Object.entries(GLOBAL_META).map(([key, meta]) => ({ scope: 'g', sub: '' as const, key, meta }));
+  for (const v of s.vehicles) {
+    for (const [mk, meta] of Object.entries(s.meta[v.id] ?? {})) {
+      const map = SUB_OF[mk] ?? { sub: '' as const, key: mk };
+      if (map.sub === 'lease' && !v.lease) continue;
+      if (map.sub === 'loan' && !v.loan) continue;
+      out.push({ scope: v.id, sub: map.sub, key: map.key, meta });
+    }
+  }
+  return out;
 }

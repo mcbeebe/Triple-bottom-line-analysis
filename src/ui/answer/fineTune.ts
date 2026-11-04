@@ -1,7 +1,7 @@
 import { scoreOptions, type Vehicle } from '../../engine';
 import { GLOBAL_META, SRC, type ParamMeta } from '../../data';
 import { esc, num } from '../../app/format';
-import { defaultOf, fieldId, fieldRegistry, isEdited, readField, type Field } from '../../app/fields';
+import { SUB_OF, defaultOf, fieldId, fieldRegistry, isEdited, readField, type Field } from '../../app/fields';
 import { activeVehicles, colorKey, hasCar, kindLabel, scoring, visibleOptions } from '../../app/options';
 import { state } from '../../app/state';
 import { $ } from '../dom';
@@ -76,14 +76,6 @@ const MATRIX_ROWS: { key: string; section: string }[] = [
   { key: 'leaseTerm', section: '' }
 ];
 
-const SUB_OF: Record<string, { sub: '' | 'loan' | 'lease'; key: string }> = {
-  apr: { sub: 'loan', key: 'apr' },
-  termMonths: { sub: 'loan', key: 'termMonths' },
-  down: { sub: 'loan', key: 'down' },
-  monthly: { sub: 'lease', key: 'monthly' },
-  dueAtSigning: { sub: 'lease', key: 'dueAtSigning' },
-  leaseTerm: { sub: 'lease', key: 'termMonths' }
-};
 
 function matrixCell(v: Vehicle, rowKey: string): string {
   const meta = state.meta[v.id]?.[rowKey];

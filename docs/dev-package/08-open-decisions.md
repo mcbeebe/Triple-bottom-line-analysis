@@ -18,4 +18,10 @@
 ## Phase 2 decisions (owner approved Nov 4, 2026, "go with your recommendations, add commas"; then "Approved" for P1 to P11)
 Details and trade-offs: `phase-2-plan.md`.
 - Commas: number fields show thousands separators (text inputs with strict parsing).
-- P1 default cars Bolt, Camry Hybrid, Corolla. P2 fix their data first. P3 limit 4 everywhere. P4 trade path asks for the trade-in offer. P5 miles is one slider, 1,000 to 25,000. P6 Skip before a path assumes sell and says so. P7 no cars: Show my answer and Skip disabled with the reason. P8 analyst option hidden until Phase 4. P9 just-buy Step 2 copy. P10 old page top lines follow the current car. P11 tests written right after approval.
+- P1 default cars Bolt, Camry Hybrid, Corolla. P2 fix their data first. P3 limit 4 everywhere. P4 trade path asks for the trade-in offer. P5 miles is one slider, 1,000 to 25,000. P6 Skip before a path assumes sell and says so. P7 no cars: Show my answer and Skip disabled with the reason. P8 analyst option hidden until Phase 4 (**reversed by the owner Nov 4, 2026**, "add option for AI chat in first page": see Phase 3a addendum below). P9 just-buy Step 2 copy. P10 old page top lines follow the current car. P11 tests written right after approval.
+
+## Phase 3a addendum (owner, Nov 4, 2026): AI chat on the first page
+- **P8 reversed.** Step 1 shows a fourth choice, "Not sure? Describe it in a sentence", after the three paths and outside their group, only when the AI is available. It appears once the AI check finishes, without moving focus.
+- It opens today's analyst in a bottom sheet ("Ask the analyst"). Suggestions still apply only on a tap; the screen behind updates; "See my answer" goes to the answer.
+- **Q5 pulled forward:** the answer screen has an "Ask the analyst" button that opens the same sheet ("Back to my answer" closes it).
+- Phase 4 still rebuilds the analyst (filling the steps from one sentence, the new design for its answer).
