@@ -173,3 +173,6 @@ body.has-answer-bar{padding-bottom:88px}
 .ds-notice p{margin:0}
 .ds-notice .ds-btn-link{padding-left:0}
 @media(min-width:1024px){.ds-answer{grid-template-columns:minmax(0,1.6fr) minmax(0,1fr);column-gap:var(--space-7)}.ds-actions{grid-template-columns:minmax(0,1fr)}}
+.ds-ft-group legend.ds-label-row{display:flex;width:100%}
+.ds-ft-more{display:grid;gap:var(--space-2);margin-top:var(--space-3)}
+.ds-sheet .ds-slider,.ds-sheet .ds-field{margin-bottom:var(--space-3)}
