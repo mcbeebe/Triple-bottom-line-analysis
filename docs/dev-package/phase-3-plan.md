@@ -121,3 +121,23 @@ Every action and input of the old page has a new home:
 
 ## Estimate
 About 7 to 8 days in two PRs (3a about 3 to 4, 3b about 4). `04-phases.md` says 1.5. The difference: rebuilding every table and control (Q1), four panels, share links, and porting about 165 old-page checks so that no feature is lost.
+
+## Phase 3a results (Nov 4, 2026)
+
+| Check | Phase 2 | Phase 3a |
+| --- | --- | --- |
+| Unit tests | 350 | 390 |
+| Browser checks | 415 | 485 (new `qa-answer.cjs`: 70) |
+| axe WCAG 2.1 A/AA on the answer screen, Fine-tune and Share (390 and 1280 px, Ledger and Night) | n/a | 0 violations |
+| Controls under 44 px on the new screens | n/a | 0 |
+| Old page (now `#details`) vs the Phase 0 baseline | identical | still byte-identical |
+| `dist/index.html` | 185,141 bytes | 207,569 bytes (+21.9 KB; the old page is still in the bundle) |
+
+**What shipped in 3a:** the answer screen (verdict with natural names, basis line with Edit, cards with tags in words, real break-even and what-if lines, footer with California and both dates), Fine-tune top drivers with live updates and announcements, Share with `#s1-` links, and "All the details" (`#details`, the old page) for everything 3b still has to rebuild.
+
+**Deviations from the plan**
+- The old page moved to its own route, `#details` ("All the details"), instead of living inside the panels. Why, Table, All assumptions, Scoring and appearance, and Sources open the matching part of it until 3b.
+- On the answer screen, Edit replaces "Change my answers" (it goes to Step 2 once a path is chosen, Step 1 otherwise).
+- The Settings line in Share is in plain words, not setting ids.
+
+**To check on the real artifact page (owner):** open the preview, change a number in Fine-tune, open Share, copy the link and open it in a new tab. It should show the same answer. If the copied link does not work there but the page's own address does, the address is the way to share on claude.ai.
