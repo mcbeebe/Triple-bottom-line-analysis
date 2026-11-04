@@ -35,6 +35,7 @@ import {
   type ParamMeta
 } from './data';
 import { MAX_SELECTED, MODES, PRESET_LABELS, THEMES, clone, state, type Tab, type Theme, type View } from './app/state';
+import { defaultOf, fieldId, fieldRegistry, isEdited, readField, writeField, type Field } from './app/fields';
 import { safeStore } from './app/storage';
 import { esc, num, usd } from './app/format';
 import { activeVehicles, carNow, gasBreakEven, hasCar, incentiveTotal, keepOf, kindLabel, lx, optionName, paybackText, scaleBlurb, scaleLabel, scoring, sensitivityGrid, tagFor, vehicle, visibleOptions } from './app/options';
@@ -438,53 +439,6 @@ function renderPicker(): void {
 }
 
 /* --------------------------- assumptions --------------------------- */
-
-interface Field {
-  sec?: string;
-  scope: string;
-  sub: '' | 'loan' | 'lease';
-  key: string;
-  meta: ParamMeta;
-}
-
-const fieldRegistry = new Map<string, Field>();
-const fieldId = (f: Field): string => `${f.scope}.${f.sub}.${f.key}`;
-
-function holderOf(f: Field, vehicles: Vehicle[]): Record<string, unknown> | undefined {
-  if (f.scope === 'g') return undefined;
-  const v = vehicles.find((x) => x.id === f.scope);
-  if (!v) return undefined;
-  return (f.sub === '' ? v : f.sub === 'loan' ? v.loan : v.lease) as unknown as Record<string, unknown> | undefined;
-}
-
-function readField(f: Field): number {
-  const raw = f.scope === 'g' ? (state.g as unknown as Record<string, unknown>)[f.key] : holderOf(f, state.vehicles)?.[f.key];
-  return typeof raw === 'boolean' ? (raw ? 1 : 0) : Number(raw ?? 0);
-}
-
-function defaultOf(f: Field): number {
-  const raw = f.scope === 'g' ? (DEFAULT_GLOBALS as unknown as Record<string, unknown>)[f.key] : holderOf(f, state.defaults)?.[f.key];
-  return typeof raw === 'boolean' ? (raw ? 1 : 0) : Number(raw ?? 0);
-}
-
-function writeField(f: Field, value: number): void {
-  if (f.meta.bool) {
-    const b = value >= 0.5;
-    if (f.scope === 'g') (state.g as unknown as Record<string, unknown>)[f.key] = b;
-    else (holderOf(f, state.vehicles) as Record<string, unknown>)[f.key] = b;
-    return;
-  }
-  const clamped = Math.min(f.meta.max, Math.max(f.meta.min, value));
-  if (f.scope === 'g') (state.g as unknown as Record<string, unknown>)[f.key] = clamped;
-  else {
-    const h = holderOf(f, state.vehicles);
-    if (h) h[f.key] = clamped;
-  }
-}
-
-function isEdited(f: Field): boolean {
-  return Math.abs(readField(f) - defaultOf(f)) > 1e-9;
-}
 
 function badge(meta: ParamMeta): string {
   return `<span class="badge ${meta.kind}">${meta.kind === 'sourced' ? 'Sourced' : 'My assumption'}</span>`;
