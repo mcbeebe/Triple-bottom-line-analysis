@@ -17,7 +17,7 @@ Read `docs/dev-package/README.md` first. The plan is in `docs/dev-package/04-pha
 ## Stack and commands
 - TypeScript only. ESM. esbuild bundles to a single file: `dist/index.html`.
 - `npm run check`: typecheck, unit tests (vitest), build.
-- `npm run qa`: three headless-browser suites (needs `npm i -D playwright tsx && npx playwright install chromium` once).
+- `npm run qa`: three headless-browser suites, a bundle-size guard (5% over the Phase 0 baseline) and a pixel compare against tag `phase-0-baseline` (needs `npm i -D playwright tsx && npx playwright install chromium` once; without the tag it compares against baseline commit 89402fa).
 - `npm run verify`: `check` then `qa`. Run before every commit.
 - `npx tsx scripts/dump.ts`: print default results (useful for sample numbers).
 
@@ -33,7 +33,10 @@ Read `docs/dev-package/README.md` first. The plan is in `docs/dev-package/04-pha
 
 ## Layout
 - `src/engine.ts`, `src/data.ts`, `src/analyst.ts` (+ tests): pure logic.
-- `src/ui.ts`, `src/style.css`, `src/template.html`: interface (being split into modules in Phase 0).
+- `src/app/`: state, field registry, option selectors, formatters, analyst session, prompt bridge and `AnalystClient`. No DOM; imports only core and app.
+- `src/ui/`: rendering and events. `answer/` (verdict, cards, why, table, fineTune), `steps/` (decision, cars), `analyst/sheet.ts`, `controls.ts`, `events.ts`, `init.ts`, and `refresh.ts` (renderer hub that keeps the import graph acyclic).
+- `src/ui.ts`: one-line re-export of `init` for `main.ts`. `src/style.css`, `src/template.html`: unchanged until Phase 1.
+- Imports only go downward (ui -> app -> core); `src/modules.test.ts` fails on cycles, upward imports or exports without JSDoc.
 - `scripts/`: build, QA suites, dump.
 - `docs/ux-options/`: mockup generator and the approved design page.
 - `docs/dev-package/`: this plan.
