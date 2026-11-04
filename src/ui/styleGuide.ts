@@ -47,7 +47,7 @@ export function renderStyleGuide(): void {
   document.body.setAttribute('data-theme', theme);
   const swatches = `<ul class="ds-swatches">${SWATCHES.map((s) => `<li class="ds-swatch"><i style="background:var(--color-${s})"></i><code>--color-${s}</code></li>`).join('')}</ul>`;
   host.innerHTML = `<div class="ds-guide-inner">
-<header><h1 class="ds-guide-title">Style guide</h1><p class="ds-guide-lead">Building blocks for the guided-steps redesign. This page is not linked from the scorecard. <a href="#">Back to the scorecard</a></p></header>
+<header><h1 class="ds-guide-title">Style guide</h1><p class="ds-guide-lead">Building blocks for the guided-steps redesign. This page is not linked from the scorecard.</p><a class="ds-btn ds-btn-link" href="#">Back to the scorecard</a></header>
 ${section('theme', 'Theme', `<div class="ds-chips" role="group" aria-label="Theme">${dsChip({ label: 'Ledger', sub: 'light', act: 'sg-theme', val: 'ledger', on: theme === 'ledger' })}${dsChip({ label: 'Night', sub: 'dark', act: 'sg-theme', val: 'night', on: theme === 'night' })}</div>`)}
 ${section('colors', 'Colors', swatches, 'Text pairs meet 4.5:1 and control borders 3:1 in both themes (checked by tokens.test.ts and axe).')}
 ${section('buttons', 'Buttons', `<div class="ds-guide-row">${dsButton({ label: 'Continue to cars', act: 'sg-noop' })}${dsButton({ label: 'Edit', act: 'sg-noop', variant: 'secondary' })}${dsButton({ label: 'Skip to answer', act: 'sg-noop', variant: 'link' })}</div>
