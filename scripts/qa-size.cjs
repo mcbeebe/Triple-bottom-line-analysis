@@ -10,11 +10,12 @@
  * - 185,141  Phase 2: scenario and step logic, the three step screens, router, answer bar (+18.7 KB)
  * - 195,981  Phase 3a: verdict, share links, scenario edits/settings, new answer screen; old page still in (+10.8 KB). Phase 3b deletes the old page.
  * - 207,569  Phase 3a final: + Fine-tune top drivers and the Share sheet (+11.3 KB). Phase 3b deletes the old page.
+ * - 230,128  Phase 3b step 2: Why this result sheet and table styles (+16.7 KB with the 3b logic); temporary while the old page is still in. Step 7 deletes it and resets this.
  */
 const fs = require('fs');
 const path = require('path');
 
-const BASELINE_BYTES = 207569;
+const BASELINE_BYTES = 230128;
 const TOLERANCE = 0.05;
 const file = path.resolve(__dirname, '../dist/index.html');
 const size = fs.statSync(file).size;
