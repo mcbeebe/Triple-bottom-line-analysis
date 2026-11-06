@@ -5,7 +5,7 @@ import { fieldRegistry, readField, writeField } from '../../app/fields';
 import { MODES, PRESET_LABELS, state } from '../../app/state';
 import { analyst } from '../../app/analystSession';
 import { AN_EXAMPLES, addableCars, analystFields, analystPrompt, fmtField, fromShown, toShown } from '../../app/analystBridge';
-import { ArtifactSampleClient, type AnalystClient } from '../../app/analystClient';
+import { ArtifactSampleClient, describeAnalystError, type AnalystClient } from '../../app/analystClient';
 import { PATHS } from '../legacy/pathPanel';
 import { renderResults } from '../answer/answer';
 import { refreshEdited } from '../answer/fineTune';
@@ -32,10 +32,10 @@ async function runAnalyst(task: 'guide' | 'explain'): Promise<void> {
   }
   analyst.busy = true;
   analyst.ctrl = new AbortController();
-  setAnStatus('Thinking…');
+  setAnStatus('Thinking… This can take up to a minute.');
   syncAnButtons();
   try {
-    const raw = await analyst.client.ask(analystPrompt(task), analyst.ctrl.signal);
+    const raw = await analyst.client.ask(analystPrompt(task), analyst.ctrl.signal, () => setAnStatus('Writing the answer…'));
     const ans = sanitizeAnswer(raw, { fields: analystFields(), addableCarIds: new Set(addableCars().map((v) => v.id)), removableCarIds: new Set(state.selected) });
     if (!hasContent(ans)) {
       analyst.answer = null;
@@ -47,16 +47,17 @@ async function runAnalyst(task: 'guide' | 'explain'): Promise<void> {
       setAnStatus('');
     }
   } catch (e) {
-    const err = e as { name?: string; code?: string; message?: string };
-    if (err?.name === 'AbortError' || err?.code === 'aborted') setAnStatus('Stopped.');
-    else if (err?.code === 'rate_limited') setAnStatus('You have hit a usage limit for now. Try again in a little while.', true);
-    else if (err?.code === 'not_granted') {
+    const v = describeAnalystError(e);
+    // The code is shown so a failure on the live site can be diagnosed; it never includes what was typed.
+    const text = v.isError ? `${v.message} (code: ${v.code})` : v.message;
+    if (v.hide) {
       analyst.client = null;
-      setAnStatus('', false);
+      setAnStatus(text, true);
       renderAnalyst();
       refresh.screen();
       return;
-    } else setAnStatus('The analyst could not answer just now. Your inputs are unchanged; try again.', true);
+    }
+    setAnStatus(text, v.isError);
   } finally {
     analyst.busy = false;
     analyst.ctrl = null;
@@ -104,7 +105,7 @@ export function renderAnalyst(): void {
   if (!host) return;
   if (!analyst.client) {
     if (hostId === 'analyst') host.hidden = true;
-    else host.innerHTML = '<p class="ds-note">The analyst is not available here.</p>';
+    else host.innerHTML = `<p class="ds-note" role="status">${esc(analyst.status || 'The analyst is not available here.')}</p>`;
     return;
   }
   host.hidden = false;
