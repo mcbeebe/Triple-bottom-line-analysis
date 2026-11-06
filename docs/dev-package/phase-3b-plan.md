@@ -1,6 +1,6 @@
 # Phase 3b plan: rebuild the rest, then delete the old page
 
-Status: **draft for owner approval** (Nov 6, 2026). Builds on `phase-3-plan.md` (decisions Q1 to Q9, approved Nov 4) and the approved Phase 3 mockups. New mockups for the one open design question: `phase-3b-mockups.html`.
+Status: **D1 and D2 decided by the owner Nov 6, 2026 (both recommendations); waiting for approval of the plan as a whole.** Builds on `phase-3-plan.md` (decisions Q1 to Q9, approved Nov 4) and the approved Phase 3 mockups. New mockups for the one open design question: `phase-3b-mockups.html`.
 
 ## Goal
 Finish Phase 3 in `04-phases.md`: "old layout removed; no feature lost". After 3b:
@@ -19,7 +19,7 @@ Finish Phase 3 in `04-phases.md`: "old layout removed; no feature lost". After 3
 | Analyst answer | old styles (`an-*` in `style.css`) | moved to `ds-` styles so `style.css` can go; Phase 4 still rebuilds it |
 | Desktop | sheets open as a bottom panel | at 1024 px and up, panels open beside the answer (mockup D; was in the approved Phase 3 plan) |
 
-## Decisions for the owner
+## Decisions (owner, Nov 6, 2026: D1 = A, D2 = beside the answer)
 | # | Question | Options | Recommendation |
 | --- | --- | --- | --- |
 | D1 | How each car's numbers (old grid: up to 17 inputs × 5 cars) appear in Fine-tune | **A** one car at a time (pick a car, then full-size fields); **B** keep the grid in a sideways-scrolling box; **C** one input at a time with every car under it | **A**: full-size 44 px fields with their Source labels and ranges, no sideways scrolling, one renderer for phone and desktop. Comparing cars stays in Table. |
