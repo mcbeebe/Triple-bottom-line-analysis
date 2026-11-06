@@ -57,7 +57,7 @@ const read = (page) => page.evaluate(() => ({
     const a = await read(page);
     check('verdict sentence (near-tie rule, natural names)', a.title === 'It is close. Keeping your gas sedan and the Chevy Bolt (loan) are within 2 points.', a.title);
     check('basis line', a.basis === "Sell, then buy · 7,500 miles a year · 8 years, in today's dollars", a.basis);
-    check('three cards: keep, Bolt (loan), Camry Hybrid (loan)', a.cards.map((c) => c.name).join('|') === 'Keep My gas sedan|Chevy Bolt (loan)|Toyota Camry Hybrid (loan)', a.cards.map((c) => c.name).join('|'));
+    check('three cards: keep, Bolt (loan), Camry Hybrid (loan)', a.cards.map((c) => c.name).join('|') === 'Keep your gas sedan|Chevy Bolt (loan)|Toyota Camry Hybrid (loan)', a.cards.map((c) => c.name).join('|'));
     check('tags in words, given to the options that earn them', a.cards[0].tag === 'Highest overall score · Lowest cost' && a.cards[1].tag === 'Lowest carbon' && a.cards[2].tag === '', JSON.stringify(a.cards.map((c) => c.tag)));
     check('cards show cost over 8 years', a.cards[0].cost === '$20,984' && a.cards[1].cost === '$39,480');
     check('what would change this: real break-even and today\'s gas price', a.change[0] === 'Gas above $15.29 a gallon makes the Chevy Bolt (loan) cost less than keeping your gas sedan. Today the tool assumes $5.50.', a.change[0]);

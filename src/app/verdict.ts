@@ -28,6 +28,11 @@ export function carPhrase(short: string): string {
   return /^my\s/i.test(t) ? `your ${t.slice(3).trim()}` : `your ${t}`;
 }
 
+/** Name on an answer card: "Keep your gas sedan" for the keep option (same wording as the verdict), else the option name. */
+export function cardName(o: VerdictOption, carShort: string | null): string {
+  return o.isKeep ? `Keep ${carPhrase(carShort ?? '')}` : o.name;
+}
+
 const cap = (s: string): string => s.charAt(0).toUpperCase() + s.slice(1);
 
 /** How an option reads mid-sentence: "keeping your gas sedan" or "the Chevy Bolt (loan)". */

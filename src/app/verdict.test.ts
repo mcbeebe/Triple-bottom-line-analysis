@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { answerCards, breakEvenLine, cardTags, carPhrase, flipLine, pickFlip, verdictSentence, type VerdictOption } from './verdict';
+import { answerCards, breakEvenLine, cardName, cardTags, carPhrase, flipLine, pickFlip, verdictSentence, type VerdictOption } from './verdict';
 
 const opt = (id: string, name: string, overall: number, cost: number, carbon: number, isKeep = false): VerdictOption => ({ id, name, overall, cost, carbon, isKeep });
 const KEEP = (overall: number, cost = 20000, carbon = 25) => opt('keep', 'Keep My gas sedan', overall, cost, carbon, true);
@@ -112,5 +112,16 @@ describe('pickFlip', () => {
       { change: 'Something new', winner: 'x', winnerChanged: true }
     ];
     expect(pickFlip(rows)?.change).toBe('Old car stops emitting after you part with it (0% continues, e.g. scrapped)');
+  });
+});
+
+describe('cardName (the keep card says "your", like the verdict)', () => {
+  const keep: VerdictOption = { id: 'lx-none', name: 'Keep My gas sedan', overall: 62, cost: 1, carbon: 1, isKeep: true };
+  const bolt: VerdictOption = { id: 'bolt-loan', name: 'Chevy Bolt (loan)', overall: 60, cost: 2, carbon: 1, isKeep: false };
+  it('keep reads "Keep your gas sedan"; a named car keeps its name; other options are unchanged', () => {
+    expect(cardName(keep, 'My gas sedan')).toBe('Keep your gas sedan');
+    expect(cardName(keep, 'Lexus LX 470')).toBe('Keep your Lexus LX 470');
+    expect(cardName(keep, null)).toBe('Keep your car');
+    expect(cardName(bolt, 'My gas sedan')).toBe('Chevy Bolt (loan)');
   });
 });

@@ -78,7 +78,7 @@ const statusText = (page, slot) => page.evaluate((id) => document.getElementById
     const snap = await page.evaluate(() => window.__tbl.snapshot());
     const keep = await page.evaluate(() => [...document.querySelectorAll('#answer-screen .ds-card-name')].map((h) => h.textContent));
     check('tap 3 (Show my answer) shows the answer and focuses its heading', s.answer && !s.steps && s.active === 'ans-title' && s.title.startsWith('Your answer'), JSON.stringify(s));
-    check('the default answer: Keep My gas sedan plus Bolt, Camry Hybrid and Corolla', keep.includes('Keep My gas sedan') && ['bolt-loan', 'bolt-lease', 'camryh-loan', 'camryh-lease', 'corolla-loan', 'keep'].every((id) => snap.ranks.some((r) => r.id === id)) && snap.ranks.length === 6, keep.join(','));
+    check('the default answer: Keep your gas sedan plus Bolt, Camry Hybrid and Corolla', keep.includes('Keep your gas sedan') && ['bolt-loan', 'bolt-lease', 'camryh-loan', 'camryh-lease', 'corolla-loan', 'keep'].every((id) => snap.ranks.some((r) => r.id === id)) && snap.ranks.length === 6, keep.join(','));
     check('the answer heading is scrolled into view', await page.evaluate(() => { const r = document.getElementById('ans-title').getBoundingClientRect(); return r.top >= 0 && r.top < window.innerHeight; }));
     check('the basis line offers Edit, and no assumption line once a path is chosen', (await page.locator('#ans-edit').isVisible()) && (await page.locator('#answer-screen .ds-answer-note').count()) === 0);
     await page.goBack();
@@ -151,7 +151,7 @@ const statusText = (page, slot) => page.evaluate((id) => document.getElementById
     const ans = await page.evaluate(() => ({ keep: [...document.querySelectorAll('#answer-screen .ds-card-name')].map((h) => h.textContent).find((t) => t.startsWith('Keep')), basis: document.querySelector('#answer-screen .ds-basis').textContent }));
     await page.click('#ans-why');
     const mpg = await page.inputValue('input[data-field="lx..mpg"]');
-    check('step answers reach the answer screen (name, mpg, miles)', ans.keep === 'Keep Old Civic' && ans.basis.includes('8,000 miles a year') && mpg === '31', JSON.stringify({ ...ans, mpg }));
+    check('step answers reach the answer screen (name, mpg, miles)', ans.keep === 'Keep your Old Civic' && ans.basis.includes('8,000 miles a year') && mpg === '31', JSON.stringify({ ...ans, mpg }));
     check('step 2: no console errors', errors.length === 0, errors.join(' | '));
     await ctx.close();
   }
