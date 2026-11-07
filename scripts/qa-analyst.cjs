@@ -48,11 +48,11 @@ async function open(browser, w, mock) {
   check('example fills textarea', (await page.inputValue('#an-text')).includes('40 miles'));
   await page.click('[data-act="an-analyze"]');
   check('shows thinking + disables buttons', (await page.textContent('#an-status')).includes('Thinking') && await page.locator('[data-act="an-analyze"]').isDisabled());
-  await page.waitForSelector('.an-summary');
+  await page.waitForSelector('.ds-an-summary');
   const call = await page.evaluate(() => window.__prompts[0]);
   check('call used cache:false', call.o.cache === false);
   check('prompt has scenario, field ids, results', call.p.includes('40 miles') && call.p.includes('g..gasPrice') && call.p.includes('CURRENT RESULTS') && call.p.includes('Gas price 50% higher'));
-  check('summary rendered as text, not HTML', (await page.locator('.an-summary b').innerText()).includes('<b>EVs</b>'));
+  check('summary rendered as text, not HTML', (await page.locator('.ds-an-summary b').innerText()).includes('<b>EVs</b>'));
   const sugs = await page.locator('#an-out [data-act="an-apply"]').count();
   check('only 2 valid input suggestions (unknown dropped)', sugs === 2, `got ${sugs}`);
   check('lx owned car not offered', (await page.locator('[data-act="an-addcar"]').count()) === 1);
@@ -64,7 +64,7 @@ async function open(browser, w, mock) {
   check('edited marker set', await page.locator('[data-wrap="g..gasPrice"].is-edited').count() === 1);
   const after = await page.evaluate(() => window.__tbl.snapshot());
   check('results changed after apply', JSON.stringify(before.ranks) !== JSON.stringify(after.ranks));
-  check('Apply replaced by Applied', (await page.locator('.an-done', { hasText: 'Applied' }).count()) >= 1);
+  check('Apply replaced by Applied', (await page.locator('.ds-an-done', { hasText: 'Applied' }).count()) >= 1);
   // question set
   await page.fill('#an-q-0', '14000');
   await page.click('[data-act="an-qset"][data-val="0"]');
@@ -77,7 +77,7 @@ async function open(browser, w, mock) {
   await page.click('[data-act="an-addcar"]');
   const selAfter = (await page.evaluate(() => window.__tbl.snapshot())).selected;
   check('add car selects rav4h', !selBefore.includes('rav4h') && selAfter.includes('rav4h'));
-  check('answer persists after refreshAll', await page.locator('.an-summary').count() === 1);
+  check('answer persists after refreshAll', await page.locator('.ds-an-summary').count() === 1);
   // settings
   await page.click('[data-act="an-settings"]');
   const snap = await page.evaluate(() => window.__tbl.snapshot());
@@ -98,7 +98,7 @@ async function open(browser, w, mock) {
   ({ ctx, page, errors } = await open(browser, 390, okMock));
   await page.click('[data-act="an-example"][data-val="1"]');
   await page.click('[data-act="an-analyze"]');
-  await page.waitForSelector('.an-summary');
+  await page.waitForSelector('.ds-an-summary');
   const over = await page.evaluate(() => document.documentElement.scrollWidth - window.innerWidth);
   check('mobile: no horizontal overflow', over <= 1, `overflow=${over}`);
   check('mobile: no console errors', errors.length === 0, errors.join('|'));

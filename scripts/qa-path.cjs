@@ -86,7 +86,7 @@ const MOCK = `window.__prompts=[];window.claude={use:async()=>({json:async(p)=>{
   // analyst: applies path, name, suggestions, new/remove cars
   await page.fill('#an-text', 'I drive a 2014 Subaru Outback worth $9,000 at 26 mpg and want to trade it for a Mazda CX-50 hybrid at $38,000.');
   await page.click('[data-act="an-analyze"]');
-  await page.waitForSelector('.an-summary');
+  await page.waitForSelector('.ds-an-summary');
   const prompt = await page.evaluate(() => window.__prompts[0]);
   check('prompt carries path, current car, selected cars', prompt.includes('"path":"sell"') && prompt.includes('THE CAR THEY HAVE NOW: {"name":"Lexus LX 470"') && prompt.includes('Tesla Model Y'));
   check('prompt lists current-car input ids', prompt.includes('lx..price') && prompt.includes('lx..mpg'));

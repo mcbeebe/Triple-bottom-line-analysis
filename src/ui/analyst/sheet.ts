@@ -18,7 +18,7 @@ function setAnStatus(msg: string, err = false): void {
   const el = document.getElementById('an-status');
   if (el) {
     el.textContent = msg;
-    el.classList.toggle('err', err);
+    el.classList.toggle('ds-an-err', err);
   }
 }
 
@@ -75,14 +75,10 @@ function syncAnButtons(): void {
 /** Where the analyst renders: the old page's panel, or the body of the "Ask the analyst" sheet. */
 export type AnalystHost = 'analyst' | 'ai-host';
 
-/** Class names per host: the old page's styles, or design-system buttons (44 px targets) in the sheet. */
-const SKINS = {
-  analyst: { btn: 'btn', ghost: 'btn ghost', small: 'btn small', chip: 'chip', label: 'fine' },
-  'ai-host': { btn: 'ds-btn ds-btn-primary', ghost: 'ds-btn ds-btn-secondary', small: 'ds-btn ds-btn-secondary', chip: 'ds-chip', label: 'ds-label' }
-} as const;
+/** Class names for the analyst's controls: design-system buttons and chips (44 px targets). */
+const K = { btn: 'ds-btn ds-btn-primary', ghost: 'ds-btn ds-btn-secondary', small: 'ds-btn ds-btn-secondary', chip: 'ds-chip', label: 'ds-label' } as const;
 
 let hostId: AnalystHost = 'analyst';
-let K: (typeof SKINS)[AnalystHost] = SKINS.analyst;
 
 /** The host the analyst renders into now. */
 export const analystHost = (): AnalystHost => hostId;
@@ -95,7 +91,6 @@ export function setAnalystHost(id: AnalystHost): void {
   const other = document.getElementById(id === 'analyst' ? 'ai-host' : 'analyst');
   if (other && hostId !== id) other.innerHTML = '';
   hostId = id;
-  K = SKINS[id];
   renderAnalyst();
 }
 
@@ -110,19 +105,19 @@ export function renderAnalyst(): void {
   }
   host.hidden = false;
   // In the sheet the Analyze button comes before the long examples, so it is in view on a phone.
-  const examples = `<div class="an-examples" aria-label="Examples">${AN_EXAMPLES.map((t, i) => `<button type="button" class="${K.chip}" data-act="an-example" data-val="${i}">${esc(t)}</button>`).join('')}</div>`;
+  const examples = `<div class="ds-an-examples" aria-label="Examples">${AN_EXAMPLES.map((t, i) => `<button type="button" class="${K.chip}" data-act="an-example" data-val="${i}">${esc(t)}</button>`).join('')}</div>`;
   const intro =
     hostId === 'analyst'
       ? `<h2>Ask the analyst</h2>
-  <p class="fine">Describe your situation in your own words. The analyst suggests which inputs to set (and to what), can add cars worth comparing, and explains what would change the result. It only reads the numbers on this page, and nothing changes until you tap Apply. Uses your Claude usage.</p>`
+  <p class="ds-small">Describe your situation in your own words. The analyst suggests which inputs to set (and to what), can add cars worth comparing, and explains what would change the result. It only reads the numbers on this page, and nothing changes until you tap Apply. Uses your Claude usage.</p>`
       : `<p class="ds-guide-note">Say it in your own words. The analyst suggests answers and cars to compare; nothing changes until you tap Apply. Uses your Claude usage.</p>`;
   host.innerHTML = `${intro}
   <label class="${K.label}" for="an-text">Your situation</label>
   <textarea id="an-text" maxlength="1500" placeholder="e.g. I commute 40 miles a day, have solar panels, and my current car needs a $3,000 repair soon. Is it time to switch?"></textarea>
   ${hostId === 'analyst' ? examples : ''}
-  <div class="an-actions"><button type="button" class="${K.btn}" data-act="an-analyze">Analyze my situation</button><button type="button" class="${K.ghost}" data-act="an-explain">Explain these results</button><button type="button" class="${K.ghost}" data-act="an-stop" hidden>Stop</button><span id="an-status" role="status" aria-live="polite"></span></div>
+  <div class="ds-an-actions"><button type="button" class="${K.btn}" data-act="an-analyze">Analyze my situation</button><button type="button" class="${K.ghost}" data-act="an-explain">Explain these results</button><button type="button" class="${K.ghost}" data-act="an-stop" hidden>Stop</button><span id="an-status" class="ds-an-status" role="status" aria-live="polite"></span></div>
   ${hostId === 'analyst' ? '' : `<h3 class="ds-group-h">Or start from an example</h3>${examples}`}
-  <div id="an-out" class="an-out"></div>`;
+  <div id="an-out" class="ds-an-out"></div>`;
   (document.getElementById('an-text') as HTMLTextAreaElement).value = analyst.text;
   setAnStatus(analyst.status, analyst.statusErr);
   renderAnalystOut();
@@ -142,10 +137,10 @@ export function renderAnalystOut(): void {
     return;
   }
   const fields = analystFields();
-  const block = (title: string, inner: string) => (inner ? `<div class="an-block"><h3>${title}</h3>${inner}</div>` : '');
+  const block = (title: string, inner: string) => (inner ? `<div class="ds-an-block"><h3>${title}</h3>${inner}</div>` : '');
   const ul = (items: string[]) => (items.length ? `<ul>${items.map((i) => `<li>${esc(i)}</li>`).join('')}</ul>` : '');
 
-  const head = a.summary || a.interpretation ? `<div class="an-block"><p class="an-summary"><b>${esc(a.summary)}</b></p>${a.interpretation ? `<p>${esc(a.interpretation)}</p>` : ''}</div>` : '';
+  const head = a.summary || a.interpretation ? `<div class="ds-an-block"><p class="ds-an-summary"><b>${esc(a.summary)}</b></p>${a.interpretation ? `<p>${esc(a.interpretation)}</p>` : ''}</div>` : '';
 
   const qs = a.questions
     .map((q, i) => {
@@ -155,12 +150,12 @@ export function renderAnalystOut(): void {
         const start = q.value ?? f.value;
         ctl =
           f.kind === 'yesno'
-            ? `<select id="an-q-${i}" aria-label="${esc(f.label)}"><option value="1" ${start ? 'selected' : ''}>Yes</option><option value="0" ${start ? '' : 'selected'}>No</option></select>`
-            : `<input id="an-q-${i}" type="number" inputmode="decimal" value="${toShown(f, start)}" aria-label="${esc(f.label)}"><em class="fine">${esc(f.kind === 'fraction' ? '%' : f.unit)}</em>`;
+            ? `<select class="ds-select ds-an-input" id="an-q-${i}" aria-label="${esc(f.label)}"><option value="1" ${start ? 'selected' : ''}>Yes</option><option value="0" ${start ? '' : 'selected'}>No</option></select>`
+            : `<input class="ds-an-input" id="an-q-${i}" type="number" inputmode="decimal" value="${toShown(f, start)}" aria-label="${esc(f.label)}"><em class="ds-small">${esc(f.kind === 'fraction' ? '%' : f.unit)}</em>`;
         const done = analyst.applied.has('f:' + f.id);
-        ctl += done ? ' <span class="an-done">Set</span>' : ` <button class="${K.small}" data-act="an-qset" data-val="${i}">Set</button>`;
+        ctl += done ? ' <span class="ds-an-done">Set</span>' : ` <button type="button" class="${K.small}" data-act="an-qset" data-val="${i}">Set</button>`;
       }
-      return `<div class="an-q"><b>${esc(q.question)}</b>${q.why ? `<span class="an-why">${esc(q.why)}</span>` : ''}${f ? `<div class="an-row"><span class="fine">${esc(f.label)} (now ${esc(fmtField(f, f.value))}):</span>${ctl}</div>` : ''}</div>`;
+      return `<div class="ds-an-q"><b>${esc(q.question)}</b>${q.why ? `<span class="ds-an-why">${esc(q.why)}</span>` : ''}${f ? `<div class="ds-an-row"><span class="ds-small">${esc(f.label)} (now ${esc(fmtField(f, f.value))}):</span>${ctl}</div>` : ''}</div>`;
     })
     .join('');
 
@@ -169,17 +164,17 @@ export function renderAnalystOut(): void {
     .map((s, i) => {
       const f = fields.get(s.field) as FieldInfo;
       const done = analyst.applied.has('f:' + s.field);
-      return `<div class="an-s"><b>${esc(f.label)}</b><span class="an-arrow">${esc(fmtField(f, f.value))} → <b>${esc(fmtField(f, s.value))}</b></span>${s.reason ? `<span class="an-why">${esc(s.reason)}</span>` : ''}<div class="an-row">${done ? '<span class="an-done">Applied</span>' : `<button class="${K.small}" data-act="an-apply" data-val="${i}">Apply</button>`}</div></div>`;
+      return `<div class="ds-an-s"><b>${esc(f.label)}</b><span class="ds-an-arrow">${esc(fmtField(f, f.value))} → <b>${esc(fmtField(f, s.value))}</b></span>${s.reason ? `<span class="ds-an-why">${esc(s.reason)}</span>` : ''}<div class="ds-an-row">${done ? '<span class="ds-an-done">Applied</span>' : `<button type="button" class="${K.small}" data-act="an-apply" data-val="${i}">Apply</button>`}</div></div>`;
     })
     .join('');
-  const applyAll = pending.length > 1 ? `<div class="an-row"><button class="${K.small}" data-act="an-applyall">Apply all ${pending.length}</button></div>` : '';
+  const applyAll = pending.length > 1 ? `<div class="ds-an-row"><button type="button" class="${K.small}" data-act="an-applyall">Apply all ${pending.length}</button></div>` : '';
 
   const cars = a.addCars
     .map((c) => {
       const v = state.vehicles.find((x) => x.id === c.id);
       if (!v) return '';
       const on = state.selected.includes(c.id);
-      return `<div class="an-s"><b>${esc(v.short)}</b><span class="an-why">${esc(c.reason)}</span><div class="an-row">${on ? '<span class="an-done">Added</span>' : `<button class="${K.small}" data-act="an-addcar" data-val="${c.id}">Add to comparison</button>`}</div></div>`;
+      return `<div class="ds-an-s"><b>${esc(v.short)}</b><span class="ds-an-why">${esc(c.reason)}</span><div class="ds-an-row">${on ? '<span class="ds-an-done">Added</span>' : `<button type="button" class="${K.small}" data-act="an-addcar" data-val="${c.id}">Add to comparison</button>`}</div></div>`;
     })
     .join('');
 
@@ -187,7 +182,7 @@ export function renderAnalystOut(): void {
     .map((c, i) => {
       const done = analyst.applied.has('newcar:' + i);
       const eff = c.kind === 'ev' ? `${num(c.efficiency, 0)} kWh/100 mi` : `${num(c.efficiency, 0)} mpg`;
-      return `<div class="an-s"><b>${esc(c.name)}</b><span class="an-arrow">${esc(c.kind === 'ev' ? 'EV' : c.kind === 'hybrid' ? 'Hybrid' : 'Gas')} · ${usd(c.price)} · ${esc(eff)}</span>${c.reason ? `<span class="an-why">${esc(c.reason)}</span>` : ''}<div class="an-row">${done ? '<span class="an-done">Added</span>' : `<button class="${K.small}" data-act="an-newcar" data-val="${i}">Add this car</button>`}</div></div>`;
+      return `<div class="ds-an-s"><b>${esc(c.name)}</b><span class="ds-an-arrow">${esc(c.kind === 'ev' ? 'EV' : c.kind === 'hybrid' ? 'Hybrid' : 'Gas')} · ${usd(c.price)} · ${esc(eff)}</span>${c.reason ? `<span class="ds-an-why">${esc(c.reason)}</span>` : ''}<div class="ds-an-row">${done ? '<span class="ds-an-done">Added</span>' : `<button type="button" class="${K.small}" data-act="an-newcar" data-val="${i}">Add this car</button>`}</div></div>`;
     })
     .join('');
   const removes = a.removeCars
@@ -195,18 +190,28 @@ export function renderAnalystOut(): void {
       const v = state.vehicles.find((x) => x.id === c.id);
       if (!v) return '';
       const gone = !state.selected.includes(c.id);
-      return `<div class="an-s"><b>Drop ${esc(v.short)}</b><span class="an-why">${esc(c.reason)}</span><div class="an-row">${gone ? '<span class="an-done">Removed</span>' : `<button class="${K.small}" data-act="an-removecar" data-val="${c.id}">Remove from comparison</button>`}</div></div>`;
+      return `<div class="ds-an-s"><b>Drop ${esc(v.short)}</b><span class="ds-an-why">${esc(c.reason)}</span><div class="ds-an-row">${gone ? '<span class="ds-an-done">Removed</span>' : `<button type="button" class="${K.small}" data-act="an-removecar" data-val="${c.id}">Remove from comparison</button>`}</div></div>`;
     })
     .join('');
   const carName = a.currentCarName
-    ? `<div class="an-s"><b>${esc(a.currentCarName)}</b><span class="an-why">Name for the car you have now. Its value, mpg and costs come from the input suggestions above.</span><div class="an-row">${analyst.applied.has('name') ? '<span class="an-done">Applied</span>' : `<button type="button" class="${K.small}" data-act="an-carname">Use this name</button>`}</div></div>`
+    ? `<div class="ds-an-s"><b>${esc(a.currentCarName)}</b><span class="ds-an-why">Name for the car you have now. Its value, mpg and costs come from the input suggestions above.</span><div class="ds-an-row">${analyst.applied.has('name') ? '<span class="ds-an-done">Applied</span>' : `<button type="button" class="${K.small}" data-act="an-carname">Use this name</button>`}</div></div>`
     : '';
 
   let settings = '';
   if (a.settings) {
     const st = a.settings;
-    const parts = [st.path && `path: ${PATHS.find((p) => p.id === st.path)?.label}`, st.mode && `scoring: ${MODES.find((m) => m.id === st.mode)?.label}`, st.scale && `scale: ${st.scale}`, st.preset && `weighting: ${PRESET_LABELS[st.preset]}`, st.view && `financing: ${st.view}`].filter(Boolean).join(' · ');
-    settings = `<div class="an-s"><b>${esc(parts)}</b>${st.reason ? `<span class="an-why">${esc(st.reason)}</span>` : ''}<div class="an-row">${analyst.applied.has('settings') ? '<span class="an-done">Applied</span>' : `<button type="button" class="${K.small}" data-act="an-settings">Apply settings</button>`}</div></div>`;
+    const SCALE: Record<string, string> = { benchmark: 'a typical new car', anchored: 'keeping your car', relative: 'best and worst here' };
+    const VIEW: Record<string, string> = { both: 'loans and leases', loan: 'loans only', lease: 'leases only' };
+    const parts = [
+      st.path && `Deciding: ${PATHS.find((p) => p.id === st.path)?.label}`,
+      st.mode && `Scores: ${MODES.find((m) => m.id === st.mode)?.label}`,
+      st.scale && `50 means ${SCALE[st.scale] ?? st.scale}`,
+      st.preset && `Weighting: ${PRESET_LABELS[st.preset]}`,
+      st.view && `Showing ${VIEW[st.view] ?? st.view}`
+    ]
+      .filter(Boolean)
+      .join(' · ');
+    settings = `<div class="ds-an-s"><b>${esc(parts)}</b>${st.reason ? `<span class="ds-an-why">${esc(st.reason)}</span>` : ''}<div class="ds-an-row">${analyst.applied.has('settings') ? '<span class="ds-an-done">Applied</span>' : `<button type="button" class="${K.small}" data-act="an-settings">Apply settings</button>`}</div></div>`;
   }
 
   const flips = a.flipFactors.length ? `<ul>${a.flipFactors.map((f) => `<li><b>${esc(f.factor)}:</b> ${esc(f.effect)}</li>`).join('')}</ul>` : '';

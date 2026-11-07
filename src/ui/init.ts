@@ -55,6 +55,8 @@ export function init(): void {
       return {
         theme: state.theme,
         mode: state.mode,
+        preset: state.preset,
+        g: { gasPrice: state.g.gasPrice, milesPerYear: state.g.milesPerYear, elecPrice: state.g.elecPrice },
         selected: [...state.selected],
         ranks: scoreOptions(state.g, state.vehicles, visibleOptions(), scoring()).map((s) => ({ id: s.spec.id, rank: s.rank, overall: s.overall, planet: s.pillars.planet, profit: s.pillars.profit, npv: s.result.netCostNPV })),
         keepNPV: keep.netCostNPV

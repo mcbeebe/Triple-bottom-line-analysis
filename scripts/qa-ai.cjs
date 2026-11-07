@@ -31,8 +31,9 @@ const ANSWER = {
 const AI_MOCK = `window.__prompts=[];window.claude={use:async(n)=>n==='sample'?{json:async(p,o)=>{window.__prompts.push(p);await new Promise(r=>setTimeout(r,120));return ${JSON.stringify(ANSWER)}}}:null};`;
 const SLOW_AI_MOCK = `window.claude={use:(n)=>new Promise(r=>setTimeout(()=>r(n==='sample'?{json:async()=>(${JSON.stringify(ANSWER)})}:null),400))};`;
 
-async function open(browser, { width = 390, theme = null, hash = '', mock = AI_MOCK } = {}) {
+async function open(browser, { width = 390, theme = null, hash = '', mock = AI_MOCK, legacy = false } = {}) {
   const ctx = await browser.newContext({ viewport: { width, height: 844 }, deviceScaleFactor: 1 });
+  if (legacy) await ctx.addInitScript(() => { window.__TBL_QA__ = { scenario: 'legacy' }; });
   if (theme) await ctx.addInitScript((t) => { try { localStorage.setItem('tbl-theme', t); } catch {} }, theme);
   if (mock) await ctx.addInitScript(mock);
   const page = await ctx.newPage();
@@ -126,9 +127,9 @@ const offerCount = (page) => page.locator('[data-act="ai-open"]').count();
 
     await page.click('#ai [data-act="an-analyze"]');
     check('Stop shows while thinking', await page.locator('#ai [data-act="an-stop"]').isVisible());
-    await page.waitForSelector('#ai .an-summary');
+    await page.waitForSelector('#ai .ds-an-summary');
     check('one AI call, carrying the typed text', await page.evaluate(() => window.__prompts.length === 1 && window.__prompts[0].includes('40 miles')));
-    check('AI text is shown as text, not HTML', (await page.locator('#ai .an-summary b').innerText()).includes('<b>hybrid</b>'));
+    check('AI text is shown as text, not HTML', (await page.locator('#ai .ds-an-summary b').innerText()).includes('<b>hybrid</b>'));
     check('nothing changed before a tap', await page.evaluate(() => window.__tbl.snapshot().selected.join() === 'bolt,camryh,corolla'));
     await audit(page, '#ai', 'analyst sheet with an answer (390, Ledger)');
 
@@ -137,7 +138,7 @@ const offerCount = (page) => page.locator('[data-act="ai-open"]').count();
     check('applying the suggested path updates Step 1 behind the sheet', pressed === 'trade', `pressed=${pressed}`);
     await page.click('#ai [data-act="an-apply"][data-val="0"]');
     await page.click('#ai [data-act="an-addcar"][data-val="rav4h"]');
-    check('applied items show as done', (await page.locator('#ai .an-done').count()) === 3);
+    check('applied items show as done', (await page.locator('#ai .ds-an-done').count()) === 3);
     check('the sheet stays open and focus stays in it after Apply', await page.locator('#ai').isVisible() && (await page.evaluate(() => !!document.activeElement?.closest('#ai'))));
     await page.click('#ai-answer');
     check('"See my answer" goes to the answer', await page.evaluate(() => location.hash === '#answer' && !document.getElementById('answer-screen').hidden));
@@ -149,7 +150,7 @@ const offerCount = (page) => page.locator('[data-act="ai-open"]').count();
     // ---------- the answer screen's "Ask the analyst" ----------
     check('answer screen offers "Ask the analyst"', (await page.locator('#ans-ai').count()) === 1);
     await page.click('#ans-ai');
-    check('reopened from the answer: the last answer and its applied marks are kept', (await page.locator('#ai .an-done').count()) === 3);
+    check('reopened from the answer: the last answer and its applied marks are kept', (await page.locator('#ai .ds-an-done').count()) === 3);
     check('reopened from the answer: the way out reads "Back to my answer"', (await page.textContent('#ai-answer')) === 'Back to my answer');
     await page.click('#ai [data-act="an-apply"][data-val="1"]');
     const after = await page.evaluate(() => document.querySelector('#answer-screen .ds-change')?.textContent ?? '');
@@ -162,7 +163,7 @@ const offerCount = (page) => page.locator('[data-act="ai-open"]').count();
     await page.evaluate(() => { location.hash = '#details'; });
     await page.waitForFunction(() => !document.querySelector('main:not(#steps):not(#answer-screen)').hidden);
     check('"All the details": the analyst moves back to the old panel', await page.evaluate(() => !!document.querySelector('#analyst #an-text') && document.querySelectorAll('#an-text').length === 1));
-    check('"All the details": the last answer is still shown', (await page.locator('#analyst .an-summary').count()) === 1);
+    check('"All the details": the last answer is still shown', (await page.locator('#analyst .ds-an-summary').count()) === 1);
     check('flow: no console errors', errors.length === 0, errors.join(' | '));
     await ctx.close();
   }
@@ -205,8 +206,113 @@ const offerCount = (page) => page.locator('[data-act="ai-open"]').count();
     check('progress: "Thinking" first, saying it can take a minute', (await page.textContent('#an-status')).includes('up to a minute'));
     await page.waitForFunction(() => document.getElementById('an-status').textContent.includes('Writing'));
     check('progress: "Writing the answer" once text starts', true);
-    await page.waitForSelector('#ai .an-summary');
+    await page.waitForSelector('#ai .ds-an-summary');
     check('progress: status clears when the answer is shown', (await page.textContent('#an-status')) === '');
+    await ctx.close();
+  }
+
+  // ---------- the analyst's answer, ported from the old page's suite (qa-analyst.cjs) on the same Lexus test case ----------
+  {
+    const OLD_ANSWER = {
+      summary: 'Keeping the Lexus is cheapest at your mileage, but <b>EVs</b> win on carbon.',
+      interpretation: 'Solar at home makes charging cheaper.',
+      questions: [{ question: 'How many miles do you drive?', why: 'Drives fuel savings', field: 'g..milesPerYear', value: 14000 }, { question: 'Anything else?', why: 'x', field: 'bogus', value: 1 }],
+      suggestions: [{ field: 'g..gasPrice', value: 99, reason: 'Out of range on purpose' }, { field: 'g..elecPrice', value: 0.12, reason: 'Solar at home' }, { field: 'evil..x', value: 1, reason: 'unknown field' }],
+      addCars: [{ id: 'rav4h', reason: 'Hybrid fits towing' }, { id: 'lx', reason: 'owned' }],
+      settings: { mode: 'metrics', preset: 'planet', reason: 'You said planet matters most' },
+      explanation: ['Keep costs less.'],
+      flipFactors: [{ factor: 'Gas at $8', effect: 'EV wins' }],
+      caveats: ['Confirm tax eligibility']
+    };
+    const mock = `window.__prompts=[];window.claude={use:async(n)=>n==='sample'?{json:async(p,o)=>{window.__prompts.push({p,o});await new Promise(r=>setTimeout(r,150));return ${JSON.stringify(OLD_ANSWER)}}}:null};`;
+    const { ctx, page, errors } = await open(browser, { hash: '#answer', mock, legacy: true });
+    const snap = () => page.evaluate(() => window.__tbl.snapshot());
+    await page.waitForSelector('#ans-ai');
+    await page.click('#ans-ai');
+    await page.click('#ai [data-act="an-analyze"]');
+    check('analyst: Analyze with an empty box asks for a description and calls nothing', (await page.textContent('#an-status')).includes('Describe') && (await page.evaluate(() => window.__prompts.length)) === 0);
+    await page.click('#ai [data-act="an-example"][data-val="0"]');
+    check('analyst: an example fills the text box', (await page.inputValue('#an-text')).includes('40 miles'));
+    await page.click('#ai [data-act="an-analyze"]');
+    check('analyst: shows Thinking and disables the buttons while it works', (await page.textContent('#an-status')).includes('Thinking') && await page.locator('#ai [data-act="an-analyze"]').isDisabled());
+    await page.waitForSelector('#ai .ds-an-summary');
+    const call = await page.evaluate(() => window.__prompts[0]);
+    check('analyst: every call asks afresh (cache off)', call.o.cache === false);
+    check('analyst: the prompt carries the situation, the field ids and the results', call.p.includes('40 miles') && call.p.includes('g..gasPrice') && call.p.includes('CURRENT RESULTS'));
+    check('analyst: only valid suggestions are offered (2; the unknown field is dropped)', (await page.locator('#ai [data-act="an-apply"]').count()) === 2);
+    check('analyst: your own car is never offered as a car to add', (await page.locator('#ai [data-act="an-addcar"]').count()) === 1);
+    const before = await snap();
+    await page.click('#ai [data-act="an-apply"][data-val="0"]');
+    const gas = (await snap()).g.gasPrice;
+    check('analyst: an out-of-range suggestion is clamped when applied', gas <= 10 && gas > 5.5, `gas=${gas}`);
+    const after = await snap();
+    check('analyst: applying changes the results', JSON.stringify(before.ranks) !== JSON.stringify(after.ranks));
+    check('analyst: Apply turns into "Applied"', (await page.locator('#ai .ds-an-done', { hasText: 'Applied' }).count()) >= 1);
+    await page.fill('#an-q-0', '14000');
+    await page.click('#ai [data-act="an-qset"][data-val="0"]');
+    check("analyst: a question's Set updates the value (miles)", (await snap()).g.milesPerYear === 14000);
+    await page.click('#ai [data-act="an-apply"]');
+    check('analyst: the other suggestion applies too (charging price)', (await snap()).g.elecPrice === 0.12);
+    const selBefore = (await snap()).selected;
+    await page.click('#ai [data-act="an-addcar"]');
+    const selAfter = (await snap()).selected;
+    check('analyst: adding a suggested car puts it in the comparison', !selBefore.includes('rav4h') && selAfter.includes('rav4h'));
+    check('analyst: the answer stays after the screen behind is redrawn', (await page.locator('#ai .ds-an-summary').count()) === 1);
+    await page.click('#ai [data-act="an-settings"]');
+    const st = await snap();
+    check('analyst: suggested scoring settings apply (Numbers only)', st.mode === 'metrics');
+    check('analyst: ...and the Planet-first weighting', st.preset === 'planet');
+    await page.fill('#an-text', 'What if gas hits $8?');
+    await page.click('#ai [data-act="an-explain"]');
+    await page.waitForFunction(() => window.__prompts.length === 2);
+    const p2 = await page.evaluate(() => window.__prompts[1].p);
+    check('analyst: a second question carries the first and the explain task', p2.includes('Earlier question 1') && p2.includes('Explain these results'));
+    await page.click('#ai-answer');
+    await page.click('#ans-finetune');
+    check('analyst: an applied value is marked "Your number" in Fine-tune', (await page.textContent('#ft-gas-status')).includes('Your number'));
+    check('analyst: no console errors', errors.length === 0, errors.join(' | '));
+    await ctx.close();
+  }
+  // failures and Stop (old page's suite)
+  for (const [code, expect] of [['rate_limited', 'usage limit'], ['boom', 'could not answer']]) {
+    const { ctx, page } = await open(browser, { mock: `window.claude={use:async()=>({json:async()=>{const e=new Error('x');e.code='${code}';throw e}})};` });
+    await page.waitForSelector('#st-ai');
+    await page.click('#st-ai');
+    await page.fill('#an-text', 'test');
+    await page.click('#ai [data-act="an-analyze"]');
+    await page.waitForFunction(() => document.getElementById('an-status').textContent.includes('code:'));
+    check(`analyst ${code}: friendly message`, (await page.textContent('#an-status')).includes(expect));
+    check(`analyst ${code}: buttons re-enabled`, !(await page.locator('#ai [data-act="an-analyze"]').isDisabled()));
+    await ctx.close();
+  }
+  {
+    const { ctx, page } = await open(browser, { mock: `window.claude={use:async()=>({json:async()=>({junk:true})})};` });
+    await page.waitForSelector('#st-ai');
+    await page.click('#st-ai');
+    await page.fill('#an-text', 'test');
+    await page.click('#ai [data-act="an-analyze"]');
+    await page.waitForFunction(() => document.getElementById('an-status').textContent.length > 12 && !document.getElementById('an-status').textContent.startsWith('Thinking'));
+    check('analyst: an answer with nothing usable says so', (await page.textContent('#an-status')).includes('did not return anything usable'));
+    await ctx.close();
+  }
+  {
+    const { ctx, page } = await open(browser, { mock: `window.claude={use:async()=>({json:(p,o)=>new Promise((_,rej)=>o.signal.addEventListener('abort',()=>rej({code:'cancelled',message:'x'})))})};` });
+    await page.waitForSelector('#st-ai');
+    await page.click('#st-ai');
+    await page.fill('#an-text', 'test');
+    await page.click('#ai [data-act="an-analyze"]');
+    await page.click('#ai [data-act="an-stop"]');
+    await page.waitForFunction(() => document.getElementById('an-status').textContent.includes('Stopped'));
+    check('analyst: Stop ends the call cleanly and frees the buttons', !(await page.locator('#ai [data-act="an-analyze"]').isDisabled()) && !(await page.locator('#ai [data-act="an-stop"]').isVisible()));
+    await ctx.close();
+  }
+  {
+    const { ctx, page, errors } = await open(browser, { mock: 'window.claude={use:async()=>null};' });
+    await page.waitForTimeout(300);
+    const steps = await offerCount(page);
+    await page.click('[data-act="st-skip"]');
+    check('sample unavailable: no analyst option anywhere, and the answer still works', steps === 0 && (await offerCount(page)) === 0 && (await page.textContent('#ans-title')).length > 10);
+    check('sample unavailable: no console errors', errors.length === 0, errors.join(' | '));
     await ctx.close();
   }
 
@@ -219,7 +325,7 @@ const offerCount = (page) => page.locator('[data-act="ai-open"]').count();
     await page.click('#st-ai');
     await page.click('#ai [data-act="an-example"][data-val="0"]');
     await page.click('#ai [data-act="an-analyze"]');
-    await page.waitForSelector('#ai .an-summary');
+    await page.waitForSelector('#ai .ds-an-summary');
     await audit(page, '#ai', `analyst sheet with an answer ${tag}`);
     await page.keyboard.press('Escape');
     await page.click('[data-act="st-skip"]');

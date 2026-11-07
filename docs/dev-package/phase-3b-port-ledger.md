@@ -131,36 +131,36 @@ Every check in the three old-page suites (`qa.cjs` 79, `qa-path.cjs` 43, `qa-ana
 | 120 | qa-path.cjs | mobile: no horizontal overflow | pending | |
 | 121 | qa-path.cjs | mobile: no overflow in just-buy mode | pending | |
 | 122 | qa-path.cjs | without analyst: path chips work | pending | |
-| 123 | qa-analyst.cjs | panel visible when sample available | pending | |
-| 124 | qa-analyst.cjs | panel is above the design bar | pending | |
-| 125 | qa-analyst.cjs | empty analyze asks for input, no call | pending | |
-| 126 | qa-analyst.cjs | example fills textarea | pending | |
-| 127 | qa-analyst.cjs | shows thinking + disables buttons | pending | |
-| 128 | qa-analyst.cjs | call used cache:false | pending | |
-| 129 | qa-analyst.cjs | prompt has scenario, field ids, results | pending | |
-| 130 | qa-analyst.cjs | summary rendered as text, not HTML | pending | |
-| 131 | qa-analyst.cjs | only 2 valid input suggestions (unknown dropped) | pending | |
-| 132 | qa-analyst.cjs | lx owned car not offered | pending | |
-| 133 | qa-analyst.cjs | out-of-range value clamped on apply | pending | |
-| 134 | qa-analyst.cjs | edited marker set | pending | |
-| 135 | qa-analyst.cjs | results changed after apply | pending | |
-| 136 | qa-analyst.cjs | Apply replaced by Applied | pending | |
-| 137 | qa-analyst.cjs | question Set updates miles | pending | |
-| 138 | qa-analyst.cjs | elec price applied | pending | |
-| 139 | qa-analyst.cjs | add car selects rav4h | pending | |
-| 140 | qa-analyst.cjs | answer persists after refreshAll | pending | |
-| 141 | qa-analyst.cjs | settings applied (mode metrics) | pending | |
-| 142 | qa-analyst.cjs | preset planet applied | pending | |
-| 143 | qa-analyst.cjs | second prompt carries history + explain task | pending | |
-| 144 | qa-analyst.cjs | textarea text preserved across renders | pending | |
-| 145 | qa-analyst.cjs | no console errors (normal flow) | pending | |
-| 146 | qa-analyst.cjs | mobile: no horizontal overflow | pending | |
-| 147 | qa-analyst.cjs | mobile: no console errors | pending | |
-| 148 | qa-analyst.cjs | ${code}: friendly message | pending | |
-| 149 | qa-analyst.cjs | ${code}: buttons re-enabled | pending | |
-| 150 | qa-analyst.cjs | not_granted hides panel | pending | |
-| 151 | qa-analyst.cjs | garbage answer -> unusable message | pending | |
-| 152 | qa-analyst.cjs | Stop button visible while busy | pending | |
-| 153 | qa-analyst.cjs | Stop aborts cleanly | pending | |
-| 154 | qa-analyst.cjs | sample null hides panel | pending | |
-| 155 | qa-analyst.cjs | no window.claude hides panel, rest of page works | pending | |
+| 123 | qa-analyst.cjs | panel visible when sample available | ported | qa-ai.cjs: answer screen offers "Ask the analyst" |
+| 124 | qa-analyst.cjs | panel is above the design bar | retired | Order of the old single page. The analyst now opens in its own panel from Step 1 and the answer (owner reversed P8; covered by 'Step 1: the option sits after the three choices, outside their group'). |
+| 125 | qa-analyst.cjs | empty analyze asks for input, no call | ported | qa-ai.cjs: analyst: Analyze with an empty box asks for a description and calls nothing |
+| 126 | qa-analyst.cjs | example fills textarea | ported | qa-ai.cjs: analyst: an example fills the text box |
+| 127 | qa-analyst.cjs | shows thinking + disables buttons | ported | qa-ai.cjs: analyst: shows Thinking and disables the buttons while it works |
+| 128 | qa-analyst.cjs | call used cache:false | ported | qa-ai.cjs: analyst: every call asks afresh (cache off) |
+| 129 | qa-analyst.cjs | prompt has scenario, field ids, results | ported | qa-ai.cjs: analyst: the prompt carries the situation, the field ids and the results |
+| 130 | qa-analyst.cjs | summary rendered as text, not HTML | ported | qa-ai.cjs: AI text is shown as text, not HTML |
+| 131 | qa-analyst.cjs | only 2 valid input suggestions (unknown dropped) | ported | qa-ai.cjs: analyst: only valid suggestions are offered (2; the unknown field is dropped) |
+| 132 | qa-analyst.cjs | lx owned car not offered | ported | qa-ai.cjs: analyst: your own car is never offered as a car to add |
+| 133 | qa-analyst.cjs | out-of-range value clamped on apply | ported | qa-ai.cjs: analyst: an out-of-range suggestion is clamped when applied |
+| 134 | qa-analyst.cjs | edited marker set | ported | qa-ai.cjs: analyst: an applied value is marked "Your number" in Fine-tune |
+| 135 | qa-analyst.cjs | results changed after apply | ported | qa-ai.cjs: analyst: applying changes the results |
+| 136 | qa-analyst.cjs | Apply replaced by Applied | ported | qa-ai.cjs: analyst: Apply turns into "Applied" |
+| 137 | qa-analyst.cjs | question Set updates miles | ported | qa-ai.cjs: analyst: a question's Set updates the value (miles) |
+| 138 | qa-analyst.cjs | elec price applied | ported | qa-ai.cjs: analyst: the other suggestion applies too (charging price) |
+| 139 | qa-analyst.cjs | add car selects rav4h | ported | qa-ai.cjs: analyst: adding a suggested car puts it in the comparison |
+| 140 | qa-analyst.cjs | answer persists after refreshAll | ported | qa-ai.cjs: analyst: the answer stays after the screen behind is redrawn |
+| 141 | qa-analyst.cjs | settings applied (mode metrics) | ported | qa-ai.cjs: analyst: suggested scoring settings apply (Numbers only) |
+| 142 | qa-analyst.cjs | preset planet applied | ported | qa-ai.cjs: analyst: ...and the Planet-first weighting |
+| 143 | qa-analyst.cjs | second prompt carries history + explain task | ported | qa-ai.cjs: analyst: a second question carries the first and the explain task |
+| 144 | qa-analyst.cjs | textarea text preserved across renders | ported | qa-ai.cjs: typed text is kept after closing and reopening |
+| 145 | qa-analyst.cjs | no console errors (normal flow) | ported | qa-ai.cjs: analyst: no console errors |
+| 146 | qa-analyst.cjs | mobile: no horizontal overflow | ported | qa-ai.cjs: ${label}: no horizontal overflow |
+| 147 | qa-analyst.cjs | mobile: no console errors | ported | qa-ai.cjs: ${tag}: no console errors |
+| 148 | qa-analyst.cjs | ${code}: friendly message | ported | qa-ai.cjs: analyst ${code}: friendly message |
+| 149 | qa-analyst.cjs | ${code}: buttons re-enabled | ported | qa-ai.cjs: analyst ${code}: buttons re-enabled |
+| 150 | qa-analyst.cjs | not_granted hides panel | ported | qa-ai.cjs: not_granted: Step 1 drops the analyst option |
+| 151 | qa-analyst.cjs | garbage answer -> unusable message | ported | qa-ai.cjs: analyst: an answer with nothing usable says so |
+| 152 | qa-analyst.cjs | Stop button visible while busy | ported | qa-ai.cjs: Stop shows while thinking |
+| 153 | qa-analyst.cjs | Stop aborts cleanly | ported | qa-ai.cjs: analyst: Stop ends the call cleanly and frees the buttons |
+| 154 | qa-analyst.cjs | sample null hides panel | ported | qa-ai.cjs: sample unavailable: no analyst option anywhere, and the answer still works |
+| 155 | qa-analyst.cjs | no window.claude hides panel, rest of page works | ported | qa-ai.cjs: no AI: the answer screen has no "Ask the analyst" |
