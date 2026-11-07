@@ -244,3 +244,11 @@ body.has-answer-bar{padding-bottom:88px}
 .ds-ft-group{margin:0 0 var(--space-3)}
 .ds-ft-group legend.ds-label-row{display:flex;width:100%}
 .ds-ft-group .ds-hint{flex-basis:100%;margin:0}
+
+/* Table (Phase 3b, mockup 4) */
+.ds-table-sort thead th{padding:0;min-width:104px}
+.ds-sort{appearance:none;display:flex;align-items:flex-end;justify-content:space-between;gap:var(--space-1);width:100%;min-height:var(--tap);min-width:var(--tap);padding:var(--space-2) var(--space-3);border:0;background:transparent;color:var(--color-ink);font:600 var(--text-sm)/1.25 var(--font-body);text-align:left;cursor:pointer}
+.ds-sort-on{color:var(--color-accent);text-decoration:underline;text-underline-offset:3px}
+.ds-sort-ico{flex:none;font-size:var(--text-xs);color:var(--color-muted)}
+.ds-sort-on .ds-sort-ico{color:var(--color-accent)}
+.ds-copy{display:grid;gap:var(--space-1)}

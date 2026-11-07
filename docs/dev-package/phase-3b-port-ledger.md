@@ -17,8 +17,8 @@ Every check in the three old-page suites (`qa.cjs` 79, `qa-path.cjs` 43, `qa-ana
 | 6 | qa.cjs | live scoreboard is present inside the assumptions panel | ported | qa-answer.cjs: fine-tune: the answer behind updates and the change is announced |
 | 7 | qa.cjs | car matrix has one column per active car (Lexus + 3 selected) | ported | qa-answer.cjs: fine-tune: one car chip per car you can edit (yours and the 3 compared) |
 | 8 | qa.cjs | matrix cell exists for Tesla loan APR | ported | qa-answer.cjs: fine-tune: a compared car shows its loan APR (Tesla) |
-| 9 | qa.cjs | page renders 7 option cards by default | pending | |
-| 10 | qa.cjs | ranks are 1..7 and unique | pending | |
+| 9 | qa.cjs | page renders 7 option cards by default | ported | qa-answer.cjs: table: lists every option (7 on the Lexus test case) |
+| 10 | qa.cjs | ranks are 1..7 and unique | ported | qa-answer.cjs: table: ranks are 1 to 7, each once |
 | 11 | qa.cjs | repro: Lexus net cost goes negative with a high resale value | ported | qa-answer.cjs: fine-tune: a high sale value makes keeping cost less than zero |
 | 12 | qa.cjs | profit scores still differ across options when the Lexus NPV is negative | ported | qa-answer.cjs: fine-tune: profit scores still differ when keeping costs less than zero |
 | 13 | qa.cjs | ...and the Lexus profit score falls when gas gets expensive | ported | qa-answer.cjs: fine-tune: ...and keeping's profit score falls when gas gets expensive |
@@ -39,17 +39,17 @@ Every check in the three old-page suites (`qa.cjs` 79, `qa-path.cjs` 43, `qa-ana
 | 28 | qa.cjs | default scale is "typical new car" | ported | qa-answer.cjs: fine-tune: the default scale is "a typical new car" |
 | 29 | qa.cjs | Lexus Profit score RISES when its running costs fall | ported | qa-answer.cjs: fine-tune: keeping's Profit score rises when its running costs fall |
 | 30 | qa.cjs | Lexus Planet score RISES when its fuel economy improves | ported | qa-answer.cjs: fine-tune: keeping's Planet score rises when its fuel economy improves |
-| 31 | qa.cjs | the verdict panel has a one-tap shortcut to the table | pending | |
-| 32 | qa.cjs | results default to cards | pending | |
-| 33 | qa.cjs | table view replaces the cards | pending | |
-| 34 | qa.cjs | table has one row per option | pending | |
-| 35 | qa.cjs | table has the key columns | pending | |
-| 36 | qa.cjs | sorting by net cost puts the cheapest option first | pending | |
-| 37 | qa.cjs | clicking again reverses the sort | pending | |
-| 38 | qa.cjs | sorting by overall score descending is monotone | pending | |
-| 39 | qa.cjs | copy button gives feedback (copied, or a clear message if the browser blocks it) | pending | |
-| 40 | qa.cjs | table view causes no page-level horizontal overflow | pending | |
-| 41 | qa.cjs | switching back restores the cards | pending | |
+| 31 | qa.cjs | the verdict panel has a one-tap shortcut to the table | ported | qa-answer.cjs: table: one tap on "Table" opens it from the answer |
+| 32 | qa.cjs | results default to cards | retired | The old page switched between cards and a table. The answer screen always shows its cards (spec: top 3 plus keep); the table is its own panel. |
+| 33 | qa.cjs | table view replaces the cards | retired | Same: there is no cards/table switch any more. The Table panel opens over the answer (covered by 'table: one tap on "Table" opens it from the answer'). |
+| 34 | qa.cjs | table has one row per option | ported | qa-answer.cjs: table: one row per option |
+| 35 | qa.cjs | table has the key columns | ported | qa-answer.cjs: table: has the key columns in plain words |
+| 36 | qa.cjs | sorting by net cost puts the cheapest option first | ported | qa-answer.cjs: table: sorting by cost puts the cheapest option first |
+| 37 | qa.cjs | clicking again reverses the sort | ported | qa-answer.cjs: table: choosing the column again reverses the sort |
+| 38 | qa.cjs | sorting by overall score descending is monotone | ported | qa-answer.cjs: table: sorting by overall score runs highest first |
+| 39 | qa.cjs | copy button gives feedback (copied, or a clear message if the browser blocks it) | ported | qa-answer.cjs: table: Copy gives feedback (copied, or a clear message if the browser blocks it) |
+| 40 | qa.cjs | table view causes no page-level horizontal overflow | ported | qa-answer.cjs: table: no horizontal page overflow |
+| 41 | qa.cjs | switching back restores the cards | retired | No cards/table switch any more; closing the Table panel returns to the answer (covered by 'table: Escape closes it and focus returns to "Table"'). |
 | 42 | qa.cjs | picker lists electric, hybrid and gas groups | pending | |
 | 43 | qa.cjs | selecting a hybrid and a gas car adds their options (rav4h loan+lease, corolla loan) | pending | |
 | 44 | qa.cjs | the matrix gained columns for the new cars | pending | |
@@ -57,8 +57,8 @@ Every check in the three old-page suites (`qa.cjs` 79, `qa-path.cjs` 43, `qa-ana
 | 46 | qa.cjs | deselecting a car removes its options | pending | |
 | 47 | qa.cjs | selection is capped at 4 cars | pending | |
 | 48 | qa.cjs | a notice explains the cap | pending | |
-| 49 | qa.cjs | card list collapses to top 8 with a Show-all button | pending | |
-| 50 | qa.cjs | Show all reveals every option | pending | |
+| 49 | qa.cjs | card list collapses to top 8 with a Show-all button | retired | The answer shows the top 3 plus keep by design (spec); every option is in the Table panel (covered by 'table: lists every option (7 on the Lexus test case)'). |
+| 50 | qa.cjs | Show all reveals every option | ported | qa-answer.cjs: table: lists every option (7 on the Lexus test case) |
 | 51 | qa.cjs | clear selection leaves only the Lexus | pending | |
 | 52 | qa.cjs | adding a custom hybrid selects it and offers a loan option | pending | |
 | 53 | qa.cjs | custom car can be renamed | ported | qa-answer.cjs: fine-tune: your car can be renamed and the cards use the name |

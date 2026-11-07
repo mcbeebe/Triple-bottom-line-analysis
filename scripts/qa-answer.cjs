@@ -454,19 +454,63 @@ const read = (page) => page.evaluate(() => ({
     }
   }
 
-  // ---------- links to "All the details" until Phase 3b steps 3 and 4 ----------
+  // ---------- Table (Phase 3b, mockup 4); ported from the old page's suite on the same Lexus test case ----------
   {
-    const { ctx, page, errors } = await open(browser);
-    for (const [btn, target, name] of [['#ans-table', 'res-main', 'Table']]) {
-      await page.click(btn);
-      const r = await page.evaluate((id) => ({ hash: location.hash, details: !document.querySelector('main:not(#steps):not(#answer-screen)').hidden, inView: document.getElementById(id).getBoundingClientRect().top < window.innerHeight }), target);
-      check(`${name} opens "All the details" at the right part`, r.hash === '#details' && r.details && r.inView, JSON.stringify(r));
-      await page.click('#st-toanswer');
-      check(`"Back to my answer" from ${name} returns to the answer`, (await page.evaluate(() => location.hash + ' ' + document.activeElement.id)) === '#answer ans-title');
-    }
-    check('Table link opens the table view', await page.evaluate(() => { document.getElementById('ans-table').click(); return !!document.querySelector('table.results'); }));
-    check('links: no console errors', errors.length === 0, errors.join(' | '));
+    const { ctx, page, errors } = await open(browser, { legacy: true });
+    const snap = () => page.evaluate(() => window.__tbl.snapshot());
+    await page.click('#ans-table');
+    const t = await page.evaluate(() => ({ visible: !document.querySelector('[data-sheet="table"]').hidden, title: document.getElementById('table-title')?.textContent, focusIn: !!document.activeElement.closest('#table'), rows: document.querySelectorAll('#tb-wrap tbody tr').length }));
+    check('table: one tap on "Table" opens it from the answer', t.visible && t.title === 'All options' && t.focusIn, JSON.stringify(t));
+    const s0 = await snap();
+    check('table: lists every option (7 on the Lexus test case)', t.rows === 7 && s0.ranks.length === 7, `${t.rows}`);
+    check('table: one row per option', t.rows === s0.ranks.length);
+    const ranks = await page.evaluate(() => [...document.querySelectorAll('#tb-wrap tbody tr')].map((r) => Number(r.children[1].textContent)));
+    check('table: ranks are 1 to 7, each once', JSON.stringify([...ranks].sort()) === JSON.stringify([1, 2, 3, 4, 5, 6, 7]), ranks.join(','));
+    const heads = (await page.locator('#tb-wrap thead th').allTextContents()).join('|');
+    check('table: has the key columns in plain words', ['Overall score', 'Planet', 'People', 'Profit', 'Cost over 8 years', 'Carbon over 8 years', 'Rebates and tax savings', 'Pays back vs keeping'].every((h) => heads.includes(h)), heads);
+    const firstName = () => page.evaluate(() => document.querySelector('#tb-wrap tbody tr th').textContent.trim());
+    await page.click('#tb-sort-npv');
+    check('table: sorting by cost puts the cheapest option first', (await firstName()) === 'Keep your Lexus LX 470', await firstName());
+    check('table: the sorted column says so (aria-sort) and keeps focus', await page.evaluate(() => document.activeElement.id === 'tb-sort-npv' && document.activeElement.closest('th').getAttribute('aria-sort') === 'ascending'));
+    await page.click('#tb-sort-npv');
+    check('table: choosing the column again reverses the sort', (await firstName()) !== 'Keep your Lexus LX 470' && (await page.evaluate(() => document.getElementById('tb-sort-npv').closest('th').getAttribute('aria-sort'))) === 'descending');
+    await page.click('#tb-sort-overall');
+    const overalls = await page.evaluate(() => [...document.querySelectorAll('#tb-wrap tbody tr')].map((r) => Number(r.children[2].textContent)));
+    check('table: sorting by overall score runs highest first', overalls.every((v, i, a) => i === 0 || a[i - 1] >= v), overalls.join(','));
+    await page.click('#tb-copy');
+    await page.waitForFunction(() => /Copied|blocked/.test(document.getElementById('tb-status').textContent), null, { timeout: 5000 }).catch(() => {});
+    check('table: Copy gives feedback (copied, or a clear message if the browser blocks it)', /Copied|blocked/.test(await page.textContent('#tb-status')), await page.textContent('#tb-status'));
+    check('table: no horizontal page overflow', await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth));
+    check('table: wide columns scroll inside a focusable, labelled region', await page.evaluate(() => !!document.querySelector('#table .ds-table-wrap[role="region"][tabindex="0"]')));
+    await page.keyboard.press('Escape');
+    check('table: Escape closes it and focus returns to "Table"', await page.evaluate(() => document.querySelector('[data-sheet="table"]').hidden && document.activeElement.id === 'ans-table'));
+    await page.click('#ans-table');
+    check('table: the sort is kept when it is opened again', await page.evaluate(() => document.getElementById('tb-sort-overall').closest('th').getAttribute('aria-sort') === 'descending'));
+    check('table: no console errors', errors.length === 0, errors.join(' | '));
     await ctx.close();
+  }
+  {
+    const ctx = await browser.newContext({ viewport: { width: 390, height: 844 }, permissions: ['clipboard-read', 'clipboard-write'] });
+    await ctx.addInitScript(() => { window.__TBL_QA__ = { scenario: 'legacy' }; });
+    const page = await ctx.newPage();
+    await page.route('**/*', (r) => (/fonts\.(googleapis|gstatic)\.com/.test(r.request().url()) ? r.abort() : r.continue()));
+    await page.goto(url + '#answer', { waitUntil: 'load' });
+    await page.click('#ans-table');
+    await page.click('#tb-copy');
+    await page.waitForFunction(() => /Copied/.test(document.getElementById('tb-status').textContent), null, { timeout: 5000 }).catch(() => {});
+    const text = await page.evaluate(() => navigator.clipboard.readText()).catch(() => '');
+    const lines = text.split('\n');
+    check('table: the copied text is a header plus one tab-separated row per option, in table order', lines.length === 8 && lines.every((l) => l.split('\t').length === lines[0].split('\t').length) && lines[1].split('\t')[1] === '1' && /^Option\tRank\t/.test(lines[0]) && !/&amp;|&lt;/.test(text), `${lines.length} lines`);
+    await ctx.close();
+  }
+  for (const width of [390, 1280]) {
+    for (const theme of ['ledger', 'night']) {
+      const { ctx, page, errors } = await open(browser, { width, theme });
+      await page.click('#ans-table');
+      await audit(page, '#table', `${width}px ${theme} table`);
+      check(`${width}px ${theme} table: no console errors`, errors.length === 0, errors.join(' | '));
+      await ctx.close();
+    }
   }
 
   // ---------- answer screen: axe, 44 px, overflow in both themes and widths ----------

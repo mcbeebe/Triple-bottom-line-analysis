@@ -1,24 +1,16 @@
 import { state } from '../../app/state';
-import { renderResults } from './answer';
 import { clearShareHash, navigate, renderAnswer, setShareHash } from '../steps/router';
 import { SHARE_SHEET, renderShareSheet, shareLink } from './shareSheet';
-import { hideSheet, openSheetId, showSheet } from '../components/sheet';
+import { openSheetId, showSheet } from '../components/sheet';
 import type { DsNumberDetail } from '../components/field';
 import { FT_SHEET, applyFineTune, renderFineTuneSheet } from './fineTuneSheet';
 import { afterFineTuneEdit, fineTuneCar } from './fineTuneActions';
+import { TABLE_SHEET, renderTableSheet, tableHtml } from './tableSheet';
+import { nextSort, tableTsv } from '../../app/table';
+import { keepOf, scoring, visibleOptions } from '../../app/options';
+import { scoreOptions } from '../../engine';
 import { WHY_SHEET, WHY_TABS, raters, refreshWhy, renderWhySheet, whyPanel } from './whySheet';
 import type { Tab } from '../../app/state';
-
-/** Show "All the details" (the old page) and bring one of its parts into view. Phase 3b replaces these with panels. */
-function toDetails(targetId: string, before?: () => void): void {
-  hideSheet();
-  before?.();
-  navigate('details');
-  if (before) renderResults();
-  const el = document.getElementById(targetId);
-  if (el instanceof HTMLDetailsElement) el.open = true;
-  el?.scrollIntoView({ block: 'start' });
-}
 
 /** The car whose People ratings are being edited in Why (screen-local; the first rated car when empty). */
 let rateCar = '';
@@ -76,7 +68,8 @@ export function bindAnswerActions(): void {
         showSheet(WHY_SHEET, el);
         return;
       case 'ans-table':
-        toDetails('res-main', () => (state.resultsView = 'table'));
+        renderTableSheet(state);
+        showSheet(TABLE_SHEET, el);
         return;
       case 'ans-finetune':
         renderFineTuneSheet(state, fineTuneCar());
@@ -128,6 +121,33 @@ export function bindAnswerActions(): void {
       if (!c) return;
       c.weight = Math.max(0, Math.min(100, d.value));
       afterWhyEdit();
+    }
+  });
+  document.addEventListener('click', (e) => {
+    const el = (e.target as HTMLElement).closest<HTMLElement>('[data-act="tb-sort"],[data-act="tb-copy"]');
+    if (!el || openSheetId() !== TABLE_SHEET) return;
+    if (el.dataset.act === 'tb-sort') {
+      const n = nextSort(state.sortKey, state.sortDir, el.dataset.val ?? 'rank');
+      state.sortKey = n.key;
+      state.sortDir = n.dir;
+      const wrap = document.getElementById('tb-wrap');
+      if (wrap) wrap.innerHTML = tableHtml(state);
+      document.getElementById(`tb-sort-${n.key}`)?.focus();
+      return;
+    }
+    const status = document.getElementById('tb-status');
+    const say = (msg: string) => {
+      if (status) status.textContent = msg;
+    };
+    const scored = scoreOptions(state.g, state.vehicles, visibleOptions(), scoring());
+    const tsv = tableTsv(scored, keepOf(scored), state.sortKey, state.sortDir);
+    try {
+      void navigator.clipboard.writeText(tsv).then(
+        () => say('Copied. Paste it into Sheets or Excel.'),
+        () => say('Copying was blocked here. Select the table and copy it yourself.')
+      );
+    } catch {
+      say('Copying was blocked here. Select the table and copy it yourself.');
     }
   });
   document.addEventListener('click', (e) => {
