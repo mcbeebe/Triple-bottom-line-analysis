@@ -513,6 +513,46 @@ const read = (page) => page.evaluate(() => ({
     }
   }
 
+  // ---------- desktop: panels open beside the answer (decision D2) ----------
+  {
+    const { ctx, page, errors } = await open(browser, { width: 1280 });
+    const geom = (id) => page.evaluate((x) => {
+      const sh = document.getElementById(x).getBoundingClientRect();
+      const card = document.querySelector('#answer-screen .ds-card').getBoundingClientRect();
+      return { left: Math.round(sh.left), right: Math.round(sh.right), top: Math.round(sh.top), height: Math.round(sh.height), width: Math.round(sh.width), cardRight: Math.round(card.right), vw: window.innerWidth, vh: window.innerHeight };
+    }, id);
+    for (const [btn, id, name] of [['#ans-why', 'why', 'Why this result'], ['#ans-finetune', 'ft', 'Fine-tune'], ['#ans-table', 'table', 'Table'], ['#ans-share', 'share', 'Share']]) {
+      await page.click(btn);
+      const g = await geom(id);
+      check(`desktop: ${name} opens beside the answer (right edge, full height, 440 px wide)`, g.right === g.vw && g.top === 0 && g.height === g.vh && g.width === 440, JSON.stringify(g));
+      check(`desktop: ${name}: the answer's cards stay fully visible to its left`, g.cardRight <= g.left, JSON.stringify(g));
+      check(`desktop: ${name}: focus is inside it`, await page.evaluate((x) => !!document.activeElement.closest(`#${x}`), id));
+      await page.keyboard.press('Escape');
+    }
+    await page.click('#ans-finetune');
+    await page.fill('#ft-gas', '9');
+    const seen = await page.evaluate(() => document.querySelector('#answer-screen .ds-change')?.textContent ?? '');
+    check('desktop: an edit in Fine-tune shows in the answer beside it', seen.includes('Today the tool assumes $9.00'), seen.slice(0, 120));
+    await page.mouse.click(200, 400);
+    check('desktop: clicking the answer beside the panel closes the panel', await page.evaluate(() => document.querySelector('[data-sheet="ft"]').hidden));
+    check('desktop panels: no console errors', errors.length === 0, errors.join(' | '));
+    await ctx.close();
+  }
+  for (const width of [1024, 1100]) {
+    const { ctx, page } = await open(browser, { width });
+    await page.click('#ans-finetune');
+    const g = await page.evaluate(() => ({ left: document.getElementById('ft').getBoundingClientRect().left, card: document.querySelector('#answer-screen .ds-card').getBoundingClientRect().right }));
+    check(`desktop ${width}px: the panel does not cover the cards (it narrows to 40% of the screen)`, g.card <= g.left, JSON.stringify(g));
+    await ctx.close();
+  }
+  {
+    const { ctx, page } = await open(browser, { width: 390 });
+    await page.click('#ans-finetune');
+    const g = await page.evaluate(() => { const r = document.getElementById('ft').getBoundingClientRect(); return { bottom: Math.round(r.bottom), width: Math.round(r.width), vh: window.innerHeight, vw: window.innerWidth }; });
+    check('phone: panels still open from the bottom, full width', g.bottom === g.vh && g.width === g.vw, JSON.stringify(g));
+    await ctx.close();
+  }
+
   // ---------- answer screen: axe, 44 px, overflow in both themes and widths ----------
   for (const width of [390, 1280]) {
     for (const theme of ['ledger', 'night']) {

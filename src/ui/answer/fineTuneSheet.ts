@@ -24,7 +24,7 @@ const evChosen = (s: State): boolean => s.vehicles.some((v) => v.kind === 'ev' &
 export function fineTuneBody(s: State, carId = ''): string {
   const m = GLOBAL_META;
   const parts: string[] = [
-    '<p class="ds-guide-note">Your answer updates as you change these. Close to see it.</p>',
+    '<p class="ds-guide-note">Your answer updates as you change these.</p>',
     '<h3 class="ds-group-h">Top drivers</h3>',
     dsSlider({ id: 'ft-miles', label: 'Miles per year', value: s.g.milesPerYear, min: m.milesPerYear.min, max: m.milesPerYear.max, step: m.milesPerYear.step, name: 'ft.miles', unitText: 'miles a year', statusHtml: slot('ft-miles-status', dsStatusLabel(globalStatus(s, 'milesPerYear', m.milesPerYear))) }),
     dsField({ id: 'ft-gas', label: 'Gas price', name: 'ft.gas', money: true, unit: 'a gallon', value: s.g.gasPrice, min: m.gasPrice.min, max: m.gasPrice.max, step: 0.01, statusHtml: slot('ft-gas-status', dsStatusLabel(globalStatus(s, 'gasPrice', m.gasPrice))) })

@@ -252,3 +252,9 @@ body.has-answer-bar{padding-bottom:88px}
 .ds-sort-ico{flex:none;font-size:var(--text-xs);color:var(--color-muted)}
 .ds-sort-on .ds-sort-ico{color:var(--color-accent)}
 .ds-copy{display:grid;gap:var(--space-1)}
+
+/* Decision D2: on wide screens a panel opens beside the answer, which stays readable (but not clickable) on the left */
+@media(min-width:1024px){
+  .ds-backdrop{align-items:stretch;justify-content:flex-end;background:var(--backdrop-side)}
+  .ds-sheet{width:min(440px,40vw);height:100%;max-height:none;border-radius:0;box-shadow:var(--shadow-side);padding:var(--space-5) var(--space-5) var(--space-7)}
+}
