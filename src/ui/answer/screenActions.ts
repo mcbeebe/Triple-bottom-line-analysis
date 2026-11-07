@@ -5,6 +5,8 @@ import { SHARE_SHEET, renderShareSheet, shareLink } from './shareSheet';
 import { hideSheet, openSheetId, showSheet } from '../components/sheet';
 import type { DsNumberDetail } from '../components/field';
 import { FT_SHEET, applyFineTune, refreshFineTuneStatus, renderFineTuneSheet } from './fineTuneSheet';
+import { WHY_SHEET, WHY_TABS, raters, refreshWhy, renderWhySheet, whyPanel } from './whySheet';
+import type { Tab } from '../../app/state';
 
 /** Show "All the details" (the old page) and bring one of its parts into view. Phase 3b replaces these with panels. */
 function toDetails(targetId: string, before?: () => void): void {
@@ -17,14 +19,50 @@ function toDetails(targetId: string, before?: () => void): void {
   el?.scrollIntoView({ block: 'start' });
 }
 
+/** The car whose People ratings are being edited in Why (screen-local; the first rated car when empty). */
+let rateCar = '';
+
+/** Announce the new verdict in the open sheet's live region. */
+function announce(liveId: string): void {
+  const live = document.getElementById(liveId);
+  const verdict = document.getElementById('ans-title')?.textContent ?? '';
+  if (live) live.textContent = `Answer updated. ${verdict}`;
+}
+
 /** After a Fine-tune edit: refresh the labels, re-render the answer behind the sheet and announce the new verdict. */
 function afterEdit(): void {
   clearShareHash();
   refreshFineTuneStatus(state);
   renderAnswer();
-  const live = document.getElementById('ft-live');
-  const verdict = document.getElementById('ans-title')?.textContent ?? '';
-  if (live) live.textContent = `Answer updated. ${verdict}`;
+  announce('ft-live');
+}
+
+/** After an edit in Why (ratings or weights): refresh its tables and the answer behind, then announce. */
+function afterWhyEdit(): void {
+  clearShareHash();
+  renderAnswer();
+  refreshWhy(state);
+  announce('why-live');
+}
+
+/** Select a Why tab: update the tab list and panel, and keep focus on the chosen tab. */
+function selectTab(t: Tab, focus: boolean): void {
+  state.tab = t;
+  for (const x of WHY_TABS) {
+    const b = document.getElementById(`why-tab-${x}`);
+    if (!b) continue;
+    const on = x === t;
+    b.classList.toggle('ds-tab-on', on);
+    b.setAttribute('aria-selected', String(on));
+    if (on) b.removeAttribute('tabindex');
+    else b.setAttribute('tabindex', '-1');
+  }
+  const panel = document.getElementById('why-panel');
+  if (panel) {
+    panel.setAttribute('aria-labelledby', `why-tab-${t}`);
+    panel.innerHTML = whyPanel(state, t, rateCar);
+  }
+  if (focus) document.getElementById(`why-tab-${t}`)?.focus();
 }
 
 let bound = false;
@@ -41,7 +79,8 @@ export function bindAnswerActions(): void {
         navigate(state.pathChosen ? 'step-2' : 'step-1');
         return;
       case 'ans-why':
-        toDetails('res-main', () => (state.resultsView = 'cards'));
+        renderWhySheet(state, rateCar);
+        showSheet(WHY_SHEET, el);
         return;
       case 'ans-table':
         toDetails('res-main', () => (state.resultsView = 'table'));
@@ -56,9 +95,14 @@ export function bindAnswerActions(): void {
       case 'ans-scoring':
         toDetails('controls');
         return;
-      case 'ans-sources':
-        toDetails('sources');
+      case 'ans-sources': {
+        renderWhySheet(state, rateCar, true);
+        showSheet(WHY_SHEET, el);
+        const h = document.getElementById('why-src-h');
+        h?.scrollIntoView({ block: 'start' });
+        h?.focus({ preventScroll: true });
         return;
+      }
       case 'ans-share': {
         const link = shareLink(state);
         setShareHash(link.split('#')[1]);
@@ -90,7 +134,42 @@ export function bindAnswerActions(): void {
     }
   });
   document.addEventListener('ds:number', (e) => {
-    if (openSheetId() === FT_SHEET && applyFineTune(state, (e as CustomEvent<DsNumberDetail>).detail)) afterEdit();
+    const d = (e as CustomEvent<DsNumberDetail>).detail;
+    if (openSheetId() === FT_SHEET && applyFineTune(state, d)) afterEdit();
+    else if (openSheetId() === WHY_SHEET && d.name.startsWith('cw.')) {
+      const c = state.criteria.find((x) => x.id === d.name.slice(3));
+      if (!c) return;
+      c.weight = Math.max(0, Math.min(100, d.value));
+      afterWhyEdit();
+    }
+  });
+  document.addEventListener('click', (e) => {
+    const el = (e.target as HTMLElement).closest<HTMLElement>('[data-act="why-tab"]');
+    if (el && WHY_TABS.includes(el.dataset.val as Tab)) selectTab(el.dataset.val as Tab, true);
+  });
+  document.addEventListener('keydown', (e) => {
+    const el = (e.target as HTMLElement).closest?.<HTMLElement>('[data-act="why-tab"]');
+    if (!el) return;
+    const i = WHY_TABS.indexOf(el.dataset.val as Tab);
+    const next = e.key === 'ArrowRight' ? (i + 1) % WHY_TABS.length : e.key === 'ArrowLeft' ? (i + WHY_TABS.length - 1) % WHY_TABS.length : e.key === 'Home' ? 0 : e.key === 'End' ? WHY_TABS.length - 1 : -1;
+    if (next < 0) return;
+    e.preventDefault();
+    selectTab(WHY_TABS[next], true);
+  });
+  document.addEventListener('change', (e) => {
+    const el = e.target as HTMLElement;
+    if (el instanceof HTMLInputElement && el.dataset.act === 'why-rcar') {
+      rateCar = el.value;
+      const car = state.vehicles.find((v) => v.id === rateCar);
+      const host = document.getElementById('why-raters');
+      if (car && host) host.innerHTML = raters(state, car);
+    } else if (el instanceof HTMLSelectElement && el.dataset.act === 'why-rate') {
+      const car = state.vehicles.find((v) => v.id === el.dataset.car);
+      const n = Number(el.value);
+      if (!car || !el.dataset.crit || !(n >= 1 && n <= 5)) return;
+      car.ratings[el.dataset.crit] = n;
+      afterWhyEdit();
+    }
   });
   document.addEventListener('change', (e) => {
     const el = e.target as HTMLInputElement;

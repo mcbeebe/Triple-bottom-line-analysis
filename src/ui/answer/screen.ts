@@ -3,7 +3,7 @@ import { sensitivityRows } from '../../analyst';
 import { esc, num } from '../../app/format';
 import { hasCar, lx, optionName, scoring, visibleOptions } from '../../app/options';
 import type { State } from '../../app/state';
-import { answerCards, breakEvenLine, cardTags, flipLine, pickFlip, verdictSentence, type VerdictOption } from '../../app/verdict';
+import { answerCards, breakEvenLine, cardName, cardTags, flipLine, pickFlip, verdictSentence, type VerdictOption } from '../../app/verdict';
 import { dsButton } from '../components/button';
 import { dsOptionCard } from '../components/optionCard';
 import { aiOfferHtml } from '../analyst/offer';
@@ -58,7 +58,7 @@ export function answerScreenHtml(s: State, ai: boolean = analyst.client !== null
   const cards = answerCards(ranked)
     .map((o) => {
       const x = byId.get(o.id) as ScoredOption;
-      return dsOptionCard({ id: `ans-card-${o.id}`, name: o.name, tag: (tags[o.id] ?? []).join(' · ') || undefined, score: o.overall, cost: o.cost, carbonT: o.carbon, people: x.pillars.people, years: s.g.horizonYears, highlight: x.rank === 1 });
+      return dsOptionCard({ id: `ans-card-${o.id}`, name: cardName(o, carName), tag: (tags[o.id] ?? []).join(' · ') || undefined, score: o.overall, cost: o.cost, carbonT: o.carbon, people: x.pillars.people, years: s.g.horizonYears, highlight: x.rank === 1 });
     })
     .join('');
   const change = changeLines(s, scored);
