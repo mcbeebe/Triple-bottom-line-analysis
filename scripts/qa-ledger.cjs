@@ -19,7 +19,7 @@ const fail = (msg) => { console.log('FAIL  ' + msg); failures++; };
 /** Every check name in a suite: the first string literal passed to check(...). */
 function checkNames(file) {
   const src = fs.readFileSync(path.join(__dirname, file), 'utf8');
-  const re = /check\(\s*(['`])((?:\\.|(?!\1).)*)\1/g;
+  const re = /check\(\s*(['"`])((?:\\.|(?!\1).)*)\1/g;
   const out = [];
   let m;
   while ((m = re.exec(src))) out.push(m[2]);

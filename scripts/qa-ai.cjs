@@ -53,6 +53,12 @@ async function audit(page, root, label) {
       .filter((b) => b.w < 44 || b.h < 44)
   }), root);
   check(`${label}: no horizontal overflow`, r.overflow <= 0, `overflow=${r.overflow}`);
+  const clipped = await page.evaluate((sel) => {
+    const root = document.querySelector(sel);
+    const edge = Math.min(root.getBoundingClientRect().right, window.innerWidth) + 1;
+    return [...root.querySelectorAll('*')].filter((el) => el.getClientRects().length && !el.closest('.ds-table-wrap') && !el.closest('[hidden]') && el.getBoundingClientRect().right > edge).map((el) => el.outerHTML.slice(0, 60));
+  }, root);
+  check(`${label}: nothing is cut off at the right edge`, clipped.length === 0, clipped.slice(0, 3).join(' | '));
   check(`${label}: every control is at least 44 x 44 px`, r.small.length === 0, r.small.map((s) => `${Math.round(s.w)}x${Math.round(s.h)} ${s.d}`).join(' | '));
   await page.addScriptTag({ path: AXE });
   const res = await page.evaluate((sel) => window.axe.run(document.querySelector(sel), { runOnly: { type: 'tag', values: ['wcag2a', 'wcag2aa', 'wcag21a', 'wcag21aa'] } }), root);

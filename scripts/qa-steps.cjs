@@ -149,7 +149,8 @@ const statusText = (page, slot) => page.evaluate((id) => document.getElementById
     await page.click('[data-act="st-next"]');
     await page.click('[data-act="st-answer"]');
     const ans = await page.evaluate(() => ({ keep: [...document.querySelectorAll('#answer-screen .ds-card-name')].map((h) => h.textContent).find((t) => t.startsWith('Keep')), basis: document.querySelector('#answer-screen .ds-basis').textContent }));
-    await page.click('#ans-why');
+    await page.evaluate(() => { location.hash = '#details'; });
+    await page.waitForSelector('input[data-field="lx..mpg"]');
     const mpg = await page.inputValue('input[data-field="lx..mpg"]');
     check('step answers reach the answer screen (name, mpg, miles)', ans.keep === 'Keep your Old Civic' && ans.basis.includes('8,000 miles a year') && mpg === '31', JSON.stringify({ ...ans, mpg }));
     check('step 2: no console errors', errors.length === 0, errors.join(' | '));

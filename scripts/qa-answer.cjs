@@ -33,6 +33,12 @@ async function audit(page, root, label) {
       .filter((b) => b.w < 44 || b.h < 44)
   }), root);
   check(`${label}: no horizontal overflow`, r.overflow <= 0, `overflow=${r.overflow}`);
+  const clipped = await page.evaluate((sel) => {
+    const root = document.querySelector(sel);
+    const edge = Math.min(root.getBoundingClientRect().right, window.innerWidth) + 1;
+    return [...root.querySelectorAll('*')].filter((el) => el.getClientRects().length && !el.closest('.ds-table-wrap') && !el.closest('[hidden]') && el.getBoundingClientRect().right > edge).map((el) => el.outerHTML.slice(0, 60));
+  }, root);
+  check(`${label}: nothing is cut off at the right edge`, clipped.length === 0, clipped.slice(0, 3).join(' | '));
   check(`${label}: every control is at least 44 x 44 px`, r.small.length === 0, r.small.map((s) => `${Math.round(s.w)}x${Math.round(s.h)} ${s.d}`).join(' | '));
   await page.addScriptTag({ path: AXE });
   const res = await page.evaluate((sel) => window.axe.run(document.querySelector(sel), { runOnly: { type: 'tag', values: ['wcag2a', 'wcag2aa', 'wcag21a', 'wcag21aa'] } }), root);
@@ -181,10 +187,93 @@ const read = (page) => page.evaluate(() => ({
     await ctx.close();
   }
 
-  // ---------- links to "All the details" until Phase 3b ----------
+  // ---------- Why this result (Phase 3b, mockups 2a to 2c) ----------
   {
     const { ctx, page, errors } = await open(browser);
-    for (const [btn, target, name] of [['#ans-why', 'res-main', 'Why this result'], ['#ans-table', 'res-main', 'Table'], ['#ans-sources', 'sources', 'Sources']]) {
+    await page.click('#ans-why');
+    const opened = await page.evaluate(() => ({ visible: !document.querySelector('[data-sheet="why"]').hidden, title: document.getElementById('why-title')?.textContent, focusIn: !!document.activeElement.closest('#why'), inert: document.getElementById('answer-screen').closest('[inert]') !== null }));
+    check('why: opens as a sheet titled "Why this result", focus inside, the answer behind is inert', opened.visible && opened.title === 'Why this result' && opened.focusIn && opened.inert, JSON.stringify(opened));
+    for (const t of ['planet', 'people', 'profit']) {
+      await page.click(`#why-tab-${t}`);
+      const r = await page.evaluate((x) => ({ sel: document.getElementById(`why-tab-${x}`).getAttribute('aria-selected'), tables: document.querySelectorAll('#why-panel table').length, rows: document.querySelectorAll('#why-panel tbody tr').length }), t);
+      check(`why: tab ${t} renders a table`, r.sel === 'true' && r.tables === 1 && r.rows >= 6, JSON.stringify(r));
+    }
+    await page.focus('#why-tab-planet');
+    await page.click('#why-tab-planet');
+    await page.keyboard.press('ArrowRight');
+    const k1 = await page.evaluate(() => [document.activeElement.id, document.getElementById('why-tab-people').getAttribute('aria-selected')].join(' '));
+    await page.keyboard.press('End');
+    const k2 = await page.evaluate(() => document.activeElement.id);
+    await page.keyboard.press('Home');
+    const k3 = await page.evaluate(() => document.activeElement.id);
+    await page.keyboard.press('ArrowLeft');
+    const k4 = await page.evaluate(() => document.activeElement.id);
+    check('why: arrow keys, Home and End move between tabs and select them', k1 === 'why-tab-people true' && k2 === 'why-tab-profit' && k3 === 'why-tab-planet' && k4 === 'why-tab-profit', [k1, k2, k3, k4].join(' | '));
+    const tabStops = await page.evaluate(() => [...document.querySelectorAll('#why [role="tab"]')].filter((b) => b.getAttribute('tabindex') !== '-1').length);
+    check('why: only the selected tab is in the Tab order', tabStops === 1);
+
+    // People: ratings and weights
+    await page.click('#why-tab-people');
+    const peopleScore = () => page.evaluate(() => Number(document.querySelector('#why-table .ds-row-sum td').textContent));
+    const before = await peopleScore();
+    await page.click('#why-rate summary');
+    await page.click('input[name="why-rcar"][value="lx"]', { force: true });
+    const cur = await page.inputValue('#why-r-safety');
+    await page.selectOption('#why-r-safety', cur === '5' ? '4' : '5');
+    const after = await peopleScore();
+    check("why: raising a safety rating raises that car's People score", cur === '5' ? after < before : after > before, `${before} -> ${after} (was ${cur})`);
+    const live = await page.textContent('#why-live');
+    check('why: an edit updates the answer behind the sheet and says so', live.startsWith('Answer updated. ') && live.slice(16) === (await page.textContent('#ans-title')), live);
+    await page.click('input[name="why-rcar"][value="bolt"]', { force: true });
+    const boltRaters = await page.evaluate(() => document.getElementById('why-r-safety').dataset.car);
+    check('why: picking another car shows its ratings', boltRaters === 'bolt');
+    await page.click('#why-weights summary');
+    const w0 = await page.evaluate(() => [...document.querySelectorAll('#why-table .ds-row-sum td')].map((td) => td.textContent).join(','));
+    await page.fill('#why-cw-safety', '0');
+    const w1 = await page.evaluate(() => [...document.querySelectorAll('#why-table .ds-row-sum td')].map((td) => td.textContent).join(','));
+    check('why: a criterion weight of 0 changes the People scores', w0 !== w1, `${w0} -> ${w1}`);
+    const sharedEdits = await page.evaluate(() => window.__tbl.snapshot().selected.length);
+    check('why: edits keep the compared cars', sharedEdits === 3);
+
+    // sources
+    const links = await page.evaluate(() => [...document.querySelectorAll('#why-srcs a')].map((a) => ({ href: a.href, rel: a.rel, target: a.target })));
+    check('why: the sources list is populated', links.length >= 60, `${links.length}`);
+    check('why: every source link is an https URL', links.every((l) => l.href.startsWith('https://')));
+    check('why: source links open a new tab with rel=noopener', links.every((l) => l.target === '_blank' && /noopener/.test(l.rel)));
+    const regions = await page.evaluate(() => [...document.querySelectorAll('#why table')].every((t) => t.closest('.ds-table-wrap[role="region"][tabindex="0"]')));
+    check('why: every wide table scrolls inside a focusable, labelled region', regions);
+    check('why: no horizontal page overflow', await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth));
+    await page.keyboard.press('Escape');
+    check('why: Escape closes it and focus returns to "Why this result"', await page.evaluate(() => document.querySelector('[data-sheet="why"]').hidden && document.activeElement.id === 'ans-why'));
+
+    await page.click('#ans-sources');
+    const src = await page.evaluate(() => ({ visible: !document.querySelector('[data-sheet="why"]').hidden, open: document.getElementById('why-srcs').open, focus: document.activeElement.id }));
+    check('why: the footer Sources link opens the sheet at the sources, list open', src.visible && src.open && src.focus === 'why-src-h', JSON.stringify(src));
+    await page.click('#why [data-sheet-close]');
+    check('why: Close returns focus to the Sources link', await page.evaluate(() => document.activeElement.id === 'ans-sources'));
+    check('why: no console errors', errors.length === 0, errors.join(' | '));
+    await ctx.close();
+  }
+  for (const width of [390, 1280]) {
+    for (const theme of ['ledger', 'night']) {
+      const { ctx, page, errors } = await open(browser, { width, theme });
+      await page.click('#ans-why');
+      await page.click('#why-tab-people');
+      await page.click('#why-rate summary');
+      await page.click('#why-weights summary');
+      await audit(page, '#why', `${width}px ${theme} why (people, editors open)`);
+      await page.click('#why-tab-profit');
+      await page.click('#why-srcs summary');
+      await audit(page, '#why', `${width}px ${theme} why (profit, sources open)`);
+      check(`${width}px ${theme} why: no console errors`, errors.length === 0, errors.join(' | '));
+      await ctx.close();
+    }
+  }
+
+  // ---------- links to "All the details" until Phase 3b steps 3 and 4 ----------
+  {
+    const { ctx, page, errors } = await open(browser);
+    for (const [btn, target, name] of [['#ans-table', 'res-main', 'Table']]) {
       await page.click(btn);
       const r = await page.evaluate((id) => ({ hash: location.hash, details: !document.querySelector('main:not(#steps):not(#answer-screen)').hidden, inView: document.getElementById(id).getBoundingClientRect().top < window.innerHeight }), target);
       check(`${name} opens "All the details" at the right part`, r.hash === '#details' && r.details && r.inView, JSON.stringify(r));

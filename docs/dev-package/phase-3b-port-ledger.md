@@ -80,12 +80,12 @@ Every check in the three old-page suites (`qa.cjs` 79, `qa-path.cjs` 43, `qa-ana
 | 69 | qa.cjs | loan-only view shows 4 cards | pending | |
 | 70 | qa.cjs | lease-only view shows 4 cards | pending | |
 | 71 | qa.cjs | wallet-first winner has a profit score at least as high as the planet-first winner | pending | |
-| 72 | qa.cjs | tab ${t} renders a table | pending | |
-| 73 | qa.cjs | raising the Lexus safety rating raises its People score | pending | |
+| 72 | qa.cjs | tab ${t} renders a table | ported | qa-answer.cjs: why: tab ${t} renders a table |
+| 73 | qa.cjs | raising the Lexus safety rating raises its People score | ported | qa-answer.cjs: why: raising a safety rating raises that car's People score |
 | 74 | qa.cjs | strict embodied mode still renders | pending | |
-| 75 | qa.cjs | every link is an https URL | pending | |
-| 76 | qa.cjs | external links use rel=noopener | pending | |
-| 77 | qa.cjs | sources list is populated | pending | |
+| 75 | qa.cjs | every link is an https URL | ported | qa-answer.cjs: why: every source link is an https URL |
+| 76 | qa.cjs | external links use rel=noopener | ported | qa-answer.cjs: why: source links open a new tab with rel=noopener |
+| 77 | qa.cjs | sources list is populated | ported | qa-answer.cjs: why: the sources list is populated |
 | 78 | qa.cjs | desktop: scoring options start open | pending | |
 | 79 | qa.cjs | no page or console errors | pending | |
 | 80 | qa-path.cjs | path panel sits between analyst and design bar | pending | |
