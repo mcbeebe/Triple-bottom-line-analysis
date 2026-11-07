@@ -9,36 +9,36 @@ Every check in the three old-page suites (`qa.cjs` 79, `qa-path.cjs` 43, `qa-ana
 
 | # | Old suite | Old check | Status | New check, or why it is retired |
 | --- | --- | --- | --- | --- |
-| 1 | qa.cjs | mobile: scoring options start collapsed | pending | |
-| 2 | qa.cjs | assumptions panel is visible without opening anything | pending | |
-| 3 | qa.cjs | assumption inputs are visible (key drivers) | pending | |
-| 4 | qa.cjs | the "please confirm" box is visible with the MyFirstEV switch | pending | |
-| 5 | qa.cjs | assumptions sit between the verdict and the detail results | pending | |
-| 6 | qa.cjs | live scoreboard is present inside the assumptions panel | pending | |
-| 7 | qa.cjs | car matrix has one column per active car (Lexus + 3 selected) | pending | |
-| 8 | qa.cjs | matrix cell exists for Tesla loan APR | pending | |
+| 1 | qa.cjs | mobile: scoring options start collapsed | ported | qa-answer.cjs: fine-tune: Scoring and appearance starts closed |
+| 2 | qa.cjs | assumptions panel is visible without opening anything | ported | qa-answer.cjs: fine-tune: the top drivers are visible as soon as it opens |
+| 3 | qa.cjs | assumption inputs are visible (key drivers) | ported | qa-answer.cjs: fine-tune: Key drivers has its inputs (horizon, charging price, discount rate) |
+| 4 | qa.cjs | the "please confirm" box is visible with the MyFirstEV switch | ported | qa-answer.cjs: fine-tune: Please confirm starts open with the first-time EV buyer switch |
+| 5 | qa.cjs | assumptions sit between the verdict and the detail results | retired | Order of the old single page. The assumptions now live in the Fine-tune panel, opened from the answer (spec; owner decision Q1). |
+| 6 | qa.cjs | live scoreboard is present inside the assumptions panel | ported | qa-answer.cjs: fine-tune: the answer behind updates and the change is announced |
+| 7 | qa.cjs | car matrix has one column per active car (Lexus + 3 selected) | ported | qa-answer.cjs: fine-tune: one car chip per car you can edit (yours and the 3 compared) |
+| 8 | qa.cjs | matrix cell exists for Tesla loan APR | ported | qa-answer.cjs: fine-tune: a compared car shows its loan APR (Tesla) |
 | 9 | qa.cjs | page renders 7 option cards by default | pending | |
 | 10 | qa.cjs | ranks are 1..7 and unique | pending | |
-| 11 | qa.cjs | repro: Lexus net cost goes negative with a high resale value | pending | |
-| 12 | qa.cjs | profit scores still differ across options when the Lexus NPV is negative | pending | |
-| 13 | qa.cjs | ...and the Lexus profit score falls when gas gets expensive | pending | |
-| 14 | qa.cjs | edited markers appear on the three changed inputs | pending | |
-| 15 | qa.cjs | edit counter reports the edits | pending | |
-| 16 | qa.cjs | per-field reset restores the gas price input | pending | |
-| 17 | qa.cjs | reset all restores default Lexus NPV | pending | |
-| 18 | qa.cjs | ...and clears the edited markers | pending | |
-| 19 | qa.cjs | the confirm section starts expanded | pending | |
-| 20 | qa.cjs | tapping the confirm heading collapses it | pending | |
-| 21 | qa.cjs | tapping again expands it | pending | |
-| 22 | qa.cjs | Collapse all closes every assumption section | pending | |
-| 23 | qa.cjs | ...but the live scoreboard and header stay visible | pending | |
-| 24 | qa.cjs | Expand all opens every section | pending | |
-| 25 | qa.cjs | a collapsed section stays collapsed after the page re-renders (picking a car) | pending | |
-| 26 | qa.cjs | section headers show how many values were edited | pending | |
-| 27 | qa.cjs | the confirm box stays inside the screen width | pending | |
-| 28 | qa.cjs | default scale is "typical new car" | pending | |
-| 29 | qa.cjs | Lexus Profit score RISES when its running costs fall | pending | |
-| 30 | qa.cjs | Lexus Planet score RISES when its fuel economy improves | pending | |
+| 11 | qa.cjs | repro: Lexus net cost goes negative with a high resale value | ported | qa-answer.cjs: fine-tune: a high sale value makes keeping cost less than zero |
+| 12 | qa.cjs | profit scores still differ across options when the Lexus NPV is negative | ported | qa-answer.cjs: fine-tune: profit scores still differ when keeping costs less than zero |
+| 13 | qa.cjs | ...and the Lexus profit score falls when gas gets expensive | ported | qa-answer.cjs: fine-tune: ...and keeping's profit score falls when gas gets expensive |
+| 14 | qa.cjs | edited markers appear on the three changed inputs | ported | qa-answer.cjs: fine-tune: edited values are marked "Your number" (3 or more) |
+| 15 | qa.cjs | edit counter reports the edits | ported | qa-answer.cjs: fine-tune: the edit count reports the edits |
+| 16 | qa.cjs | per-field reset restores the gas price input | ported | qa-answer.cjs: fine-tune: a field's Reset puts the default back and keeps focus on the field |
+| 17 | qa.cjs | reset all restores default Lexus NPV | ported | qa-answer.cjs: fine-tune: Reset all puts every default back |
+| 18 | qa.cjs | ...and clears the edited markers | ported | qa-answer.cjs: fine-tune: ...and clears every "Your number" mark |
+| 19 | qa.cjs | the confirm section starts expanded | ported | qa-answer.cjs: fine-tune: the Please confirm section starts open |
+| 20 | qa.cjs | tapping the confirm heading collapses it | ported | qa-answer.cjs: fine-tune: tapping the Please confirm heading closes it |
+| 21 | qa.cjs | tapping again expands it | ported | qa-answer.cjs: fine-tune: tapping again opens it |
+| 22 | qa.cjs | Collapse all closes every assumption section | ported | qa-answer.cjs: fine-tune: Close all closes every section |
+| 23 | qa.cjs | ...but the live scoreboard and header stay visible | ported | qa-answer.cjs: fine-tune: ...but the edit count and its tools stay visible |
+| 24 | qa.cjs | Expand all opens every section | ported | qa-answer.cjs: fine-tune: Open all opens every section |
+| 25 | qa.cjs | a collapsed section stays collapsed after the page re-renders (picking a car) | ported | qa-answer.cjs: fine-tune: a closed section stays closed when the panel is opened again |
+| 26 | qa.cjs | section headers show how many values were edited | ported | qa-answer.cjs: fine-tune: section headings show how many values were edited |
+| 27 | qa.cjs | the confirm box stays inside the screen width | ported | qa-answer.cjs: fine-tune: the Please confirm box stays inside the screen width |
+| 28 | qa.cjs | default scale is "typical new car" | ported | qa-answer.cjs: fine-tune: the default scale is "a typical new car" |
+| 29 | qa.cjs | Lexus Profit score RISES when its running costs fall | ported | qa-answer.cjs: fine-tune: keeping's Profit score rises when its running costs fall |
+| 30 | qa.cjs | Lexus Planet score RISES when its fuel economy improves | ported | qa-answer.cjs: fine-tune: keeping's Planet score rises when its fuel economy improves |
 | 31 | qa.cjs | the verdict panel has a one-tap shortcut to the table | pending | |
 | 32 | qa.cjs | results default to cards | pending | |
 | 33 | qa.cjs | table view replaces the cards | pending | |
@@ -61,33 +61,33 @@ Every check in the three old-page suites (`qa.cjs` 79, `qa-path.cjs` 43, `qa-ana
 | 50 | qa.cjs | Show all reveals every option | pending | |
 | 51 | qa.cjs | clear selection leaves only the Lexus | pending | |
 | 52 | qa.cjs | adding a custom hybrid selects it and offers a loan option | pending | |
-| 53 | qa.cjs | custom car can be renamed | pending | |
-| 54 | qa.cjs | lease terms can be added to a custom car | pending | |
+| 53 | qa.cjs | custom car can be renamed | ported | qa-answer.cjs: fine-tune: your car can be renamed and the cards use the name |
+| 54 | qa.cjs | lease terms can be added to a custom car | ported | qa-answer.cjs: fine-tune: a lease can be added to a car without one |
 | 55 | qa.cjs | a custom car can be removed | pending | |
-| 56 | qa.cjs | turning off MyFirstEV raises the Bolt net cost by about $3,500 | pending | |
-| 57 | qa.cjs | Tesla is unaffected by MyFirstEV (funding closed) | pending | |
-| 58 | qa.cjs | turning off the loan-interest deduction raises the Tesla loan cost | pending | |
-| 59 | qa.cjs | ...but not the Tesla lease (leases do not qualify) | pending | |
-| 60 | qa.cjs | income above the phase-out removes the deduction | pending | |
-| 61 | qa.cjs | Clean Cars 4 All changes the replacement scores (scrapping removes the sold Lexus emissions) | pending | |
-| 62 | qa.cjs | upstream gasoline input affects emissions only (NPV unchanged) | pending | |
-| 63 | qa.cjs | theme ${t} applied | pending | |
-| 64 | qa.cjs | theme ${t}: no horizontal page overflow at 390px | pending | |
-| 65 | qa.cjs | mode ${m} selected and scores finite | pending | |
-| 66 | qa.cjs | relative scale: cheapest option shows profit 100 | pending | |
-| 67 | qa.cjs | anchored scale: keep profit = 50 | pending | |
-| 68 | qa.cjs | weakest-link aggregation still ranks | pending | |
-| 69 | qa.cjs | loan-only view shows 4 cards | pending | |
-| 70 | qa.cjs | lease-only view shows 4 cards | pending | |
-| 71 | qa.cjs | wallet-first winner has a profit score at least as high as the planet-first winner | pending | |
+| 56 | qa.cjs | turning off MyFirstEV raises the Bolt net cost by about $3,500 | ported | qa-answer.cjs: fine-tune: turning off MyFirstEV raises the Bolt net cost by about $3,500 |
+| 57 | qa.cjs | Tesla is unaffected by MyFirstEV (funding closed) | ported | qa-answer.cjs: fine-tune: Tesla is unaffected by MyFirstEV (funding closed) |
+| 58 | qa.cjs | turning off the loan-interest deduction raises the Tesla loan cost | ported | qa-answer.cjs: fine-tune: turning off the loan-interest deduction raises the Tesla loan cost |
+| 59 | qa.cjs | ...but not the Tesla lease (leases do not qualify) | ported | qa-answer.cjs: fine-tune: ...but not the Tesla lease (leases do not qualify) |
+| 60 | qa.cjs | income above the phase-out removes the deduction | ported | qa-answer.cjs: fine-tune: income above the phase-out removes the deduction |
+| 61 | qa.cjs | Clean Cars 4 All changes the replacement scores (scrapping removes the sold Lexus emissions) | ported | qa-answer.cjs: fine-tune: Clean Cars 4 All changes the replacement scores (scrapping ends the sold car's emissions) |
+| 62 | qa.cjs | upstream gasoline input affects emissions only (NPV unchanged) | ported | qa-answer.cjs: fine-tune: upstream gasoline input affects emissions only (cost unchanged) |
+| 63 | qa.cjs | theme ${t} applied | ported | qa-answer.cjs: fine-tune: theme ${t} applied |
+| 64 | qa.cjs | theme ${t}: no horizontal page overflow at 390px | ported | qa-answer.cjs: fine-tune: theme ${t}: no horizontal page overflow at 390px |
+| 65 | qa.cjs | mode ${m} selected and scores finite | ported | qa-answer.cjs: fine-tune: mode ${m} selected and scores finite |
+| 66 | qa.cjs | relative scale: cheapest option shows profit 100 | ported | qa-answer.cjs: fine-tune: relative scale: the cheapest option scores Profit 100 |
+| 67 | qa.cjs | anchored scale: keep profit = 50 | ported | qa-answer.cjs: fine-tune: anchored scale: keeping scores Profit 50 |
+| 68 | qa.cjs | weakest-link aggregation still ranks | ported | qa-answer.cjs: fine-tune: weakest-link combining still ranks |
+| 69 | qa.cjs | loan-only view shows 4 cards | ported | qa-answer.cjs: fine-tune: loans only shows 4 options |
+| 70 | qa.cjs | lease-only view shows 4 cards | ported | qa-answer.cjs: fine-tune: leases only shows 4 options |
+| 71 | qa.cjs | wallet-first winner has a profit score at least as high as the planet-first winner | ported | qa-answer.cjs: fine-tune: wallet-first winner has a profit score at least as high as the planet-first winner |
 | 72 | qa.cjs | tab ${t} renders a table | ported | qa-answer.cjs: why: tab ${t} renders a table |
 | 73 | qa.cjs | raising the Lexus safety rating raises its People score | ported | qa-answer.cjs: why: raising a safety rating raises that car's People score |
-| 74 | qa.cjs | strict embodied mode still renders | pending | |
+| 74 | qa.cjs | strict embodied mode still renders | ported | qa-answer.cjs: fine-tune: counting all the factory carbon still ranks every option |
 | 75 | qa.cjs | every link is an https URL | ported | qa-answer.cjs: why: every source link is an https URL |
 | 76 | qa.cjs | external links use rel=noopener | ported | qa-answer.cjs: why: source links open a new tab with rel=noopener |
 | 77 | qa.cjs | sources list is populated | ported | qa-answer.cjs: why: the sources list is populated |
-| 78 | qa.cjs | desktop: scoring options start open | pending | |
-| 79 | qa.cjs | no page or console errors | pending | |
+| 78 | qa.cjs | desktop: scoring options start open | retired | One behavior at every width now: Scoring and appearance starts closed (mockup 3a, covered by 'fine-tune: Scoring and appearance starts closed'); on desktop the panel opens beside the answer (decision D2). |
+| 79 | qa.cjs | no page or console errors | ported | qa-answer.cjs: fine-tune: no console errors |
 | 80 | qa-path.cjs | path panel sits between analyst and design bar | pending | |
 | 81 | qa-path.cjs | default path is sell-then-buy | pending | |
 | 82 | qa-path.cjs | Keep option present by default | pending | |

@@ -134,6 +134,8 @@ describe('dsDisclosure', () => {
     expect(h).toContain('3 edited');
     expect(h).toContain('<p>body</p>');
     expect(dsDisclosure({ id: 'x', title: 't', bodyHtml: '', open: true })).toContain('<details class="ds-disc" id="x" open>');
+    expect(dsDisclosure({ id: 'x', title: 't', bodyHtml: '', sec: 'confirm', metaId: 'x-meta', meta: '1 edited' })).toContain('<details class="ds-disc" id="x" data-sec="confirm"><summary class="ds-disc-sum"><span class="ds-disc-title">t</span><span class="ds-disc-meta" id="x-meta">1 edited</span>');
+    expect(dsDisclosure({ id: 'x', title: 't', bodyHtml: '', metaId: 'x-meta' })).toContain('<span class="ds-disc-meta" id="x-meta"></span>');
   });
 });
 

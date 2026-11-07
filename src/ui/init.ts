@@ -15,6 +15,7 @@ import { applyTheme, bindEvents, refreshAll } from './events';
 import { bindStyleGuide } from './styleGuide';
 import { bindStepActions } from './steps/actions';
 import { bindAnswerActions } from './answer/screenActions';
+import { bindFineTuneActions } from './answer/fineTuneActions';
 import { rerenderScreen, startRouter } from './steps/router';
 import { bindAiActions } from './analyst/aiSheet';
 import { bindSheets } from './components/sheet';
@@ -44,6 +45,7 @@ export function init(): void {
   bindStyleGuide();
   bindStepActions();
   bindAnswerActions();
+  bindFineTuneActions();
   bindAiActions();
   startRouter();
   // Expose a tiny read-only hook so automated QA can verify state without scraping.
@@ -54,7 +56,7 @@ export function init(): void {
         theme: state.theme,
         mode: state.mode,
         selected: [...state.selected],
-        ranks: scoreOptions(state.g, state.vehicles, visibleOptions(), scoring()).map((s) => ({ id: s.spec.id, rank: s.rank, overall: s.overall, profit: s.pillars.profit, npv: s.result.netCostNPV })),
+        ranks: scoreOptions(state.g, state.vehicles, visibleOptions(), scoring()).map((s) => ({ id: s.spec.id, rank: s.rank, overall: s.overall, planet: s.pillars.planet, profit: s.pillars.profit, npv: s.result.netCostNPV })),
         keepNPV: keep.netCostNPV
       };
     }

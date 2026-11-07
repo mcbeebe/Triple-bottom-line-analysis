@@ -12,8 +12,9 @@ const AXE = require.resolve('axe-core/axe.min.js');
 let failures = 0;
 const check = (name, ok, extra = '') => { console.log(`${ok ? 'PASS' : 'FAIL'}  ${name}${extra ? '  ' + extra : ''}`); if (!ok) failures++; };
 
-async function open(browser, { width = 390, theme = null, hash = '#answer' } = {}) {
+async function open(browser, { width = 390, theme = null, hash = '#answer', legacy = false } = {}) {
   const ctx = await browser.newContext({ viewport: { width, height: 844 }, deviceScaleFactor: 1 });
+  if (legacy) await ctx.addInitScript(() => { window.__TBL_QA__ = { scenario: 'legacy' }; });
   if (theme) await ctx.addInitScript((t) => { try { localStorage.setItem('tbl-theme', t); } catch {} }, theme);
   const page = await ctx.newPage();
   const errors = [];
@@ -266,6 +267,189 @@ const read = (page) => page.evaluate(() => ({
       await page.click('#why-srcs summary');
       await audit(page, '#why', `${width}px ${theme} why (profit, sources open)`);
       check(`${width}px ${theme} why: no console errors`, errors.length === 0, errors.join(' | '));
+      await ctx.close();
+    }
+  }
+
+  // ---------- Fine-tune: All assumptions and Scoring and appearance (Phase 3b, decision D1) ----------
+  // Ported from the old page's suite (qa.cjs); runs on the same Lexus test case (Tesla, Rivian, Bolt).
+  {
+    const { ctx, page, errors } = await open(browser, { legacy: true });
+    const snap = () => page.evaluate(() => window.__tbl.snapshot());
+    const rankOf = (sn, id) => sn.ranks.find((r) => r.id === id);
+    const dom = (fid) => fid.replace(/[^a-zA-Z0-9_-]/g, '-');
+    const fill = async (fid, v) => { await page.fill(`#fe-${dom(fid)}`, String(v)); };
+    const pick = (name, value) => page.click(`input[name="${name}"][value="${value}"]`, { force: true });
+    const yesNo = (fid, yes) => pick(`fb-${dom(fid)}`, yes ? '1' : '0');
+    const isOpen = (id) => page.evaluate((x) => document.getElementById(x).open, id);
+    await page.click('#ans-finetune');
+    check('fine-tune: the top drivers are visible as soon as it opens', await page.locator('#ft-miles').isVisible() && await page.locator('#ft-gas').isVisible());
+    check('fine-tune: Scoring and appearance starts closed', (await isOpen('ft-scoring')) === false && (await isOpen('ft-all')) === false);
+    await page.click('#ft-all > summary');
+    check('fine-tune: Key drivers has its inputs (horizon, charging price, discount rate)', await page.locator('#fe-g--horizonYears').isVisible() && await page.locator('#fe-g--elecPrice').isVisible() && await page.locator('#fe-g--discountRate').isVisible());
+    check('fine-tune: Please confirm starts open with the first-time EV buyer switch', (await isOpen('ft-sec-confirm')) && await page.locator('#ft-sec-confirm input[name="fb-g--firstTimeZev"]').first().isVisible());
+    check('fine-tune: one car chip per car you can edit (yours and the 3 compared)', (await page.locator('input[name="ft-car"]').count()) === 4);
+    await pick('ft-car', 'tesla');
+    check('fine-tune: a compared car shows its loan APR (Tesla)', (await page.locator('#fe-tesla-loan-apr').count()) === 1);
+
+    // the old page's reported bug: a negative keep cost froze the profit score
+    const s0 = await snap();
+    await pick('ft-car', 'lx');
+    await fill('lx..price', 60000);
+    await fill('lx..annualValueLoss', 0);
+    await fill('g..horizonYears', 3);
+    const neg = await snap();
+    check('fine-tune: a high sale value makes keeping cost less than zero', neg.keepNPV < 0, `(${Math.round(neg.keepNPV)})`);
+    const profits = neg.ranks.map((r) => Math.round(r.profit * 100));
+    check('fine-tune: profit scores still differ when keeping costs less than zero', new Set(profits).size >= 4, profits.join(','));
+    const before = rankOf(neg, 'keep').profit;
+    await page.fill('#ft-gas', '10');
+    const after = await snap();
+    check("fine-tune: ...and keeping's profit score falls when gas gets expensive", rankOf(after, 'keep').profit < before - 0.5, `(${before.toFixed(1)} -> ${rankOf(after, 'keep').profit.toFixed(1)})`);
+    check('fine-tune: edited values are marked "Your number" (3 or more)', (await page.locator('#ft .ds-status-yours').count()) >= 4);
+    check('fine-tune: the edit count reports the edits', /4 values changed/.test(await page.textContent('#ft-edcount')), await page.textContent('#ft-edcount'));
+    check('fine-tune: the answer behind updates and the change is announced', (await page.textContent('#ft-live')).startsWith('Answer updated. ') && (await page.textContent('#ans-title')).length > 0);
+    await page.click('[data-act="ft-reset"][data-val="g..horizonYears"]');
+    const reH = await page.evaluate(() => ({ v: document.getElementById('fe-g--horizonYears').value, focus: document.activeElement.id }));
+    check("fine-tune: a field's Reset puts the default back and keeps focus on the field", reH.v === '8' && reH.focus === 'fe-g--horizonYears', JSON.stringify(reH));
+    await page.click('#ft-resetall');
+    const reset = await snap();
+    check('fine-tune: Reset all puts every default back', Math.abs(reset.keepNPV - s0.keepNPV) < 1e-6 && (await page.inputValue('#ft-gas')) === '5.50', `(${reset.keepNPV.toFixed(0)} vs ${s0.keepNPV.toFixed(0)})`);
+    check('fine-tune: ...and clears every "Your number" mark', (await page.locator('#ft .ds-status-yours').count()) === 0 && (await page.textContent('#ft-edcount')) === 'No values changed yet.');
+    check('fine-tune: Reset all keeps focus on its button', await page.evaluate(() => document.activeElement.id === 'ft-resetall'));
+
+    // sections
+    check('fine-tune: the Please confirm section starts open', await isOpen('ft-sec-confirm'));
+    await page.click('#ft-sec-confirm > summary');
+    check('fine-tune: tapping the Please confirm heading closes it', (await isOpen('ft-sec-confirm')) === false && !(await page.locator('input[name="fb-g--firstTimeZev"]').first().isVisible()));
+    await page.click('#ft-sec-confirm > summary');
+    check('fine-tune: tapping again opens it', await isOpen('ft-sec-confirm'));
+    await page.click('#ft-closeall');
+    check('fine-tune: Close all closes every section', (await page.locator('#ft-all-body details[data-sec]:not([open])').count()) === 5);
+    check('fine-tune: ...but the edit count and its tools stay visible', await page.locator('#ft-edcount').isVisible() && await page.locator('#ft-openall').isVisible());
+    await page.click('#ft-openall');
+    check('fine-tune: Open all opens every section', (await page.locator('#ft-all-body details[data-sec][open]').count()) === 5);
+    await page.click('#ft-sec-confirm > summary');
+    await page.keyboard.press('Escape');
+    await page.click('#ans-finetune');
+    check('fine-tune: a closed section stays closed when the panel is opened again', (await isOpen('ft-all')) && (await isOpen('ft-sec-confirm')) === false && (await isOpen('ft-sec-other')));
+    await page.click('#ft-sec-confirm > summary');
+    await yesNo('g..firstTimeZev', false);
+    check('fine-tune: section headings show how many values were edited', (await page.textContent('#ft-sec-confirm-meta')) === '1 edited');
+    check('fine-tune: a second control for the same value follows it (top driver)', await page.evaluate(() => document.querySelector('input[name="ft-zev"][value="0"]').checked));
+    await page.click('[data-act="ft-reset"][data-val="g..firstTimeZev"]');
+    const boxOver = await page.evaluate(() => document.getElementById('ft-sec-confirm').getBoundingClientRect().right - window.innerWidth);
+    check('fine-tune: the Please confirm box stays inside the screen width', boxOver <= 0.5, `(${boxOver})`);
+
+    // your car's score responds to its own numbers (default scale)
+    await page.click('#ft-scoring > summary');
+    check('fine-tune: the default scale is "a typical new car"', await page.evaluate(() => document.querySelector('input[name="ft-scale"][value="benchmark"]').checked));
+    await pick('ft-car', 'lx');
+    const k0 = rankOf(await snap(), 'keep');
+    await fill('lx..maintPerMile', '0.05');
+    await fill('lx..insurancePerYear', 400);
+    const k1 = rankOf(await snap(), 'keep');
+    check("fine-tune: keeping's Profit score rises when its running costs fall", k1.profit > k0.profit, `(${k0.profit.toFixed(1)} -> ${k1.profit.toFixed(1)})`);
+    await fill('lx..mpg', 25);
+    const k2 = rankOf(await snap(), 'keep');
+    check("fine-tune: keeping's Planet score rises when its fuel economy improves", k2.planet > k0.planet, `(${k0.planet.toFixed(1)} -> ${k2.planet.toFixed(1)})`);
+    await page.fill('#ft-rename', 'Old Cruiser');
+    check('fine-tune: your car can be renamed and the cards use the name', (await page.textContent('#answer-screen')).includes('Keep your Old Cruiser') && (await page.textContent('#ft-carname-lx')) === 'Yours: Old Cruiser');
+    await page.click('#ft-resetall');
+
+    // incentives (old page suite, same numbers)
+    const base = await snap();
+    await page.click('#ft-sec-confirm > summary').catch(() => {});
+    if (!(await isOpen('ft-sec-confirm'))) await page.click('#ft-sec-confirm > summary');
+    await yesNo('g..firstTimeZev', false);
+    const noRebate = await snap();
+    check('fine-tune: turning off MyFirstEV raises the Bolt net cost by about $3,500', Math.abs(rankOf(noRebate, 'bolt-loan').npv - rankOf(base, 'bolt-loan').npv - 3500) < 1, `(${(rankOf(noRebate, 'bolt-loan').npv - rankOf(base, 'bolt-loan').npv).toFixed(0)})`);
+    check('fine-tune: Tesla is unaffected by MyFirstEV (funding closed)', Math.abs(rankOf(noRebate, 'tesla-loan').npv - rankOf(base, 'tesla-loan').npv) < 1e-6);
+    await yesNo('g..firstTimeZev', true);
+    await yesNo('g..loanInterestDeduction', false);
+    const noDed = await snap();
+    check('fine-tune: turning off the loan-interest deduction raises the Tesla loan cost', rankOf(noDed, 'tesla-loan').npv > rankOf(base, 'tesla-loan').npv + 100);
+    check('fine-tune: ...but not the Tesla lease (leases do not qualify)', Math.abs(rankOf(noDed, 'tesla-lease').npv - rankOf(base, 'tesla-lease').npv) < 1e-6);
+    await yesNo('g..loanInterestDeduction', true);
+    await fill('g..magi', 300000);
+    const hi = await snap();
+    check('fine-tune: income above the phase-out removes the deduction', Math.abs(rankOf(hi, 'tesla-loan').npv - rankOf(noDed, 'tesla-loan').npv) < 1e-6);
+    await fill('g..magi', 150000);
+    await yesNo('g..cc4a', true);
+    const cc = await snap();
+    check("fine-tune: Clean Cars 4 All changes the replacement scores (scrapping ends the sold car's emissions)", rankOf(cc, 'bolt-loan').overall > rankOf(base, 'bolt-loan').overall + 1, `(${rankOf(base, 'bolt-loan').overall.toFixed(1)} -> ${rankOf(cc, 'bolt-loan').overall.toFixed(1)})`);
+    await yesNo('g..cc4a', false);
+    if (!(await isOpen('ft-sec-emissions'))) await page.click('#ft-sec-emissions > summary');
+    await fill('g..gasUpstreamKgPerGal', 0);
+    const noUp = await snap();
+    check('fine-tune: upstream gasoline input affects emissions only (cost unchanged)', Math.abs(noUp.keepNPV - base.keepNPV) < 1e-6);
+    await pick('ft-embodied', 'full');
+    check('fine-tune: counting all the factory carbon still ranks every option', (await snap()).ranks.length === 7);
+    await page.click('#ft-resetall');
+    await pick('ft-embodied', 'allocated');
+
+    // scoring and appearance
+    for (const t of ['ledger', 'night']) {
+      await pick('ft-theme', t);
+      check(`fine-tune: theme ${t} applied`, (await page.evaluate(() => document.body.getAttribute('data-theme'))) === t);
+      const over = await page.evaluate(() => document.documentElement.scrollWidth - window.innerWidth);
+      check(`fine-tune: theme ${t}: no horizontal page overflow at 390px`, over <= 1, `(overflow ${over}px)`);
+    }
+    await pick('ft-theme', 'ledger');
+    for (const m of ['hybrid', 'metrics', 'ratings']) {
+      await pick('ft-mode', m);
+      const sn = await snap();
+      check(`fine-tune: mode ${m} selected and scores finite`, sn.mode === m && sn.ranks.every((r) => Number.isFinite(r.overall) && r.overall >= 0 && r.overall <= 100));
+    }
+    await pick('ft-mode', 'hybrid');
+    await pick('ft-scale', 'relative');
+    check('fine-tune: relative scale: the cheapest option scores Profit 100', Math.round(rankOf(await snap(), 'keep').profit) === 100);
+    await pick('ft-scale', 'anchored');
+    check('fine-tune: anchored scale: keeping scores Profit 50', Math.round(rankOf(await snap(), 'keep').profit) === 50);
+    await pick('ft-scale', 'benchmark');
+    await pick('ft-agg', 'weakest');
+    check('fine-tune: weakest-link combining still ranks', (await snap()).ranks.length === 7);
+    await pick('ft-agg', 'average');
+    await pick('ft-view', 'loan');
+    check('fine-tune: loans only shows 4 options', (await snap()).ranks.length === 4);
+    await pick('ft-view', 'lease');
+    check('fine-tune: leases only shows 4 options', (await snap()).ranks.length === 4);
+    await pick('ft-view', 'both');
+    await pick('ft-preset', 'planet');
+    const planetTop = (await snap()).ranks.find((r) => r.rank === 1);
+    await pick('ft-preset', 'wallet');
+    const walletTop = (await snap()).ranks.find((r) => r.rank === 1);
+    check('fine-tune: wallet-first winner has a profit score at least as high as the planet-first winner', walletTop.profit >= planetTop.profit - 1e-9, `(${walletTop.id} ${walletTop.profit.toFixed(0)} vs ${planetTop.id} ${planetTop.profit.toFixed(0)})`);
+    check('fine-tune: a weighting moves the sliders to its weights', (await page.inputValue('#ft-w-profit')) === '60' || Number(await page.inputValue('#ft-w-profit')) > Number(await page.inputValue('#ft-w-planet')));
+    await page.focus('#ft-w-planet');
+    await page.keyboard.press('ArrowRight');
+    check('fine-tune: moving a weight slider switches the weighting to "Your own"', await page.evaluate(() => document.querySelector('input[name="ft-preset"][value="custom"]').checked) && (await snap()).ranks.length === 7);
+    await pick('ft-preset', 'balanced');
+    check('fine-tune: no console errors', errors.length === 0, errors.join(' | '));
+    await ctx.close();
+  }
+  // the public defaults: a car without a lease can get one
+  {
+    const { ctx, page, errors } = await open(browser);
+    await page.click('#ans-finetune');
+    await page.click('#ft-all > summary');
+    await page.click('input[name="ft-car"][value="corolla"]', { force: true });
+    const had = (await page.evaluate(() => window.__tbl.snapshot().ranks.map((r) => r.id))).includes('corolla-lease');
+    await page.click('#ft-addlease');
+    const ids = await page.evaluate(() => window.__tbl.snapshot().ranks.map((r) => r.id));
+    check('fine-tune: a lease can be added to a car without one', !had && ids.includes('corolla-lease') && (await page.evaluate(() => document.activeElement.id)) === 'fe-corolla-lease-monthly', ids.join(','));
+    check('fine-tune (defaults): no console errors', errors.length === 0, errors.join(' | '));
+    await ctx.close();
+  }
+  for (const width of [390, 1280]) {
+    for (const theme of ['ledger', 'night']) {
+      const { ctx, page, errors } = await open(browser, { width, theme });
+      await page.click('#ans-finetune');
+      await page.click('#ft-all > summary');
+      await page.click('#ft-openall');
+      await page.click('#ft-scoring > summary');
+      await audit(page, '#ft', `${width}px ${theme} fine-tune (everything open)`);
+      check(`${width}px ${theme} fine-tune: no console errors`, errors.length === 0, errors.join(' | '));
       await ctx.close();
     }
   }

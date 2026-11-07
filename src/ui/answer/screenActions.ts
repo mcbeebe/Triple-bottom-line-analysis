@@ -4,7 +4,8 @@ import { clearShareHash, navigate, renderAnswer, setShareHash } from '../steps/r
 import { SHARE_SHEET, renderShareSheet, shareLink } from './shareSheet';
 import { hideSheet, openSheetId, showSheet } from '../components/sheet';
 import type { DsNumberDetail } from '../components/field';
-import { FT_SHEET, applyFineTune, refreshFineTuneStatus, renderFineTuneSheet } from './fineTuneSheet';
+import { FT_SHEET, applyFineTune, renderFineTuneSheet } from './fineTuneSheet';
+import { afterFineTuneEdit, fineTuneCar } from './fineTuneActions';
 import { WHY_SHEET, WHY_TABS, raters, refreshWhy, renderWhySheet, whyPanel } from './whySheet';
 import type { Tab } from '../../app/state';
 
@@ -27,14 +28,6 @@ function announce(liveId: string): void {
   const live = document.getElementById(liveId);
   const verdict = document.getElementById('ans-title')?.textContent ?? '';
   if (live) live.textContent = `Answer updated. ${verdict}`;
-}
-
-/** After a Fine-tune edit: refresh the labels, re-render the answer behind the sheet and announce the new verdict. */
-function afterEdit(): void {
-  clearShareHash();
-  refreshFineTuneStatus(state);
-  renderAnswer();
-  announce('ft-live');
 }
 
 /** After an edit in Why (ratings or weights): refresh its tables and the answer behind, then announce. */
@@ -86,14 +79,8 @@ export function bindAnswerActions(): void {
         toDetails('res-main', () => (state.resultsView = 'table'));
         return;
       case 'ans-finetune':
-        renderFineTuneSheet(state);
+        renderFineTuneSheet(state, fineTuneCar());
         showSheet(FT_SHEET, el);
-        return;
-      case 'ans-assumptions':
-        toDetails('assump');
-        return;
-      case 'ans-scoring':
-        toDetails('controls');
         return;
       case 'ans-sources': {
         renderWhySheet(state, rateCar, true);
@@ -135,7 +122,7 @@ export function bindAnswerActions(): void {
   });
   document.addEventListener('ds:number', (e) => {
     const d = (e as CustomEvent<DsNumberDetail>).detail;
-    if (openSheetId() === FT_SHEET && applyFineTune(state, d)) afterEdit();
+    if (openSheetId() === FT_SHEET && applyFineTune(state, d)) afterFineTuneEdit();
     else if (openSheetId() === WHY_SHEET && d.name.startsWith('cw.')) {
       const c = state.criteria.find((x) => x.id === d.name.slice(3));
       if (!c) return;
@@ -175,6 +162,6 @@ export function bindAnswerActions(): void {
     const el = e.target as HTMLInputElement;
     if (!(el instanceof HTMLInputElement) || el.dataset.act !== 'ft-zev') return;
     state.g.firstTimeZev = el.value === '1';
-    afterEdit();
+    afterFineTuneEdit();
   });
 }
