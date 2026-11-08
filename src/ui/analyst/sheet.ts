@@ -1,14 +1,12 @@
 import { WEIGHT_PRESETS } from '../../engine';
 import { hasContent, sanitizeAnswer, type FieldInfo } from '../../analyst';
 import { esc, num, usd } from '../../app/format';
-import { fieldRegistry, readField, writeField } from '../../app/fields';
+import { writeFieldIn } from '../../app/fields';
+import { findField } from '../../app/assumptions';
 import { MODES, PRESET_LABELS, state } from '../../app/state';
 import { analyst } from '../../app/analystSession';
 import { AN_EXAMPLES, addableCars, analystFields, analystPrompt, fmtField, fromShown, toShown } from '../../app/analystBridge';
 import { ArtifactSampleClient, describeAnalystError, type AnalystClient } from '../../app/analystClient';
-import { PATHS } from '../legacy/pathPanel';
-import { renderResults } from '../answer/answer';
-import { refreshEdited } from '../answer/fineTune';
 import { addCatalogCar, addCustomCar } from '../../app/mutations';
 import { refresh } from '../refresh';
 
@@ -72,51 +70,27 @@ function syncAnButtons(): void {
   if (stop) stop.hidden = !analyst.busy;
 }
 
-/** Where the analyst renders: the old page's panel, or the body of the "Ask the analyst" sheet. */
-export type AnalystHost = 'analyst' | 'ai-host';
-
 /** Class names for the analyst's controls: design-system buttons and chips (44 px targets). */
 const K = { btn: 'ds-btn ds-btn-primary', ghost: 'ds-btn ds-btn-secondary', small: 'ds-btn ds-btn-secondary', chip: 'ds-chip', label: 'ds-label' } as const;
 
-let hostId: AnalystHost = 'analyst';
+/** Plain names for the paths, for the suggested-settings line. */
+const PATH_WORDS: Record<string, string> = { sell: 'Sell, then buy', trade: 'Trade it in', none: 'Just buy' };
 
-/** The host the analyst renders into now. */
-export const analystHost = (): AnalystHost => hostId;
-
-/**
- * Move the analyst to `id` and render it there. The other host is emptied so its ids (an-text, an-out,
- * an-status) exist only once. Session state (text, last answer, what was applied) is kept.
- */
-export function setAnalystHost(id: AnalystHost): void {
-  const other = document.getElementById(id === 'analyst' ? 'ai-host' : 'analyst');
-  if (other && hostId !== id) other.innerHTML = '';
-  hostId = id;
-  renderAnalyst();
-}
-
-/** Render the analyst into its current host, or hide the old panel when no client is available. */
+/** Render the analyst into the "Ask the analyst" sheet (#ai-host), or say why it is not available. */
 export function renderAnalyst(): void {
-  const host = document.getElementById(hostId);
+  const host = document.getElementById('ai-host');
   if (!host) return;
   if (!analyst.client) {
-    if (hostId === 'analyst') host.hidden = true;
-    else host.innerHTML = `<p class="ds-note" role="status">${esc(analyst.status || 'The analyst is not available here.')}</p>`;
+    host.innerHTML = `<p class="ds-note" role="status">${esc(analyst.status || 'The analyst is not available here.')}</p>`;
     return;
   }
-  host.hidden = false;
-  // In the sheet the Analyze button comes before the long examples, so it is in view on a phone.
+  // The Analyze button comes before the long examples, so it is in view on a phone.
   const examples = `<div class="ds-an-examples" aria-label="Examples">${AN_EXAMPLES.map((t, i) => `<button type="button" class="${K.chip}" data-act="an-example" data-val="${i}">${esc(t)}</button>`).join('')}</div>`;
-  const intro =
-    hostId === 'analyst'
-      ? `<h2>Ask the analyst</h2>
-  <p class="ds-small">Describe your situation in your own words. The analyst suggests which inputs to set (and to what), can add cars worth comparing, and explains what would change the result. It only reads the numbers on this page, and nothing changes until you tap Apply. Uses your Claude usage.</p>`
-      : `<p class="ds-guide-note">Say it in your own words. The analyst suggests answers and cars to compare; nothing changes until you tap Apply. Uses your Claude usage.</p>`;
-  host.innerHTML = `${intro}
+  host.innerHTML = `<p class="ds-guide-note">Say it in your own words. The analyst suggests answers and cars to compare; nothing changes until you tap Apply. Uses your Claude usage.</p>
   <label class="${K.label}" for="an-text">Your situation</label>
   <textarea id="an-text" maxlength="1500" placeholder="e.g. I commute 40 miles a day, have solar panels, and my current car needs a $3,000 repair soon. Is it time to switch?"></textarea>
-  ${hostId === 'analyst' ? examples : ''}
   <div class="ds-an-actions"><button type="button" class="${K.btn}" data-act="an-analyze">Analyze my situation</button><button type="button" class="${K.ghost}" data-act="an-explain">Explain these results</button><button type="button" class="${K.ghost}" data-act="an-stop" hidden>Stop</button><span id="an-status" class="ds-an-status" role="status" aria-live="polite"></span></div>
-  ${hostId === 'analyst' ? '' : `<h3 class="ds-group-h">Or start from an example</h3>${examples}`}
+  <h3 class="ds-group-h">Or start from an example</h3>${examples}
   <div id="an-out" class="ds-an-out"></div>`;
   (document.getElementById('an-text') as HTMLTextAreaElement).value = analyst.text;
   setAnStatus(analyst.status, analyst.statusErr);
@@ -203,7 +177,7 @@ export function renderAnalystOut(): void {
     const SCALE: Record<string, string> = { benchmark: 'a typical new car', anchored: 'keeping your car', relative: 'best and worst here' };
     const VIEW: Record<string, string> = { both: 'loans and leases', loan: 'loans only', lease: 'leases only' };
     const parts = [
-      st.path && `Deciding: ${PATHS.find((p) => p.id === st.path)?.label}`,
+      st.path && `Deciding: ${PATH_WORDS[st.path] ?? st.path}`,
       st.mode && `Scores: ${MODES.find((m) => m.id === st.mode)?.label}`,
       st.scale && `50 means ${SCALE[st.scale] ?? st.scale}`,
       st.preset && `Weighting: ${PRESET_LABELS[st.preset]}`,
@@ -233,11 +207,9 @@ export function renderAnalystOut(): void {
 }
 
 function applyAnalystField(fieldId: string, value: number): boolean {
-  const f = fieldRegistry.get(fieldId);
+  const f = findField(state, fieldId);
   if (!f) return false;
-  writeField(f, value);
-  const input = document.getElementById(`in-${fieldId}`) as HTMLInputElement | HTMLSelectElement | null;
-  if (input) input.value = String(f.meta.bool ? (value >= 0.5 ? 1 : 0) : Math.round(readField(f) * (f.meta.pct ? 100 : 1) * 10000) / 10000);
+  writeFieldIn(state, f, value);
   analyst.applied.add('f:' + fieldId);
   return true;
 }
@@ -264,8 +236,6 @@ export function onAnalystAction(act: string, val: string): boolean {
     case 'an-apply': {
       const s = a?.suggestions[Number(val)];
       if (s && applyAnalystField(s.field, s.value)) {
-        refreshEdited();
-        renderResults();
         renderAnalystOut();
       }
       return true;
@@ -274,10 +244,8 @@ export function onAnalystAction(act: string, val: string): boolean {
       let n = 0;
       for (const s of a?.suggestions ?? []) if (!analyst.applied.has('f:' + s.field) && applyAnalystField(s.field, s.value)) n++;
       if (n) {
-        refreshEdited();
-        renderResults();
         renderAnalystOut();
-        setAnStatus(`Applied ${n} input${n === 1 ? '' : 's'}.${hostId === 'analyst' ? ' Scroll down to see the new results.' : ''}`);
+        setAnStatus(`Applied ${n} input${n === 1 ? '' : 's'}.`);
       }
       return true;
     }
@@ -289,8 +257,6 @@ export function onAnalystAction(act: string, val: string): boolean {
       const n = parseFloat(el.value);
       if (!Number.isFinite(n)) return true;
       if (applyAnalystField(f.id, f.kind === 'yesno' ? n : fromShown(f, n))) {
-        refreshEdited();
-        renderResults();
         renderAnalystOut();
       }
       return true;
@@ -299,11 +265,9 @@ export function onAnalystAction(act: string, val: string): boolean {
       const r = addCatalogCar(state, val);
       if (r === 'limit') {
         setAnStatus(state.notice, true);
-        refresh.picker();
         return true;
       }
       if (r !== 'added') return true;
-      refresh.all();
       renderAnalystOut();
       return true;
     }
@@ -312,17 +276,14 @@ export function onAnalystAction(act: string, val: string): boolean {
       if (!nc || analyst.applied.has('newcar:' + val)) return true;
       if (addCustomCar(state, { kind: nc.kind, name: nc.name, price: nc.price, efficiency: nc.efficiency }) === null) {
         setAnStatus(state.notice, true);
-        refresh.picker();
         return true;
       }
       analyst.applied.add('newcar:' + val);
-      refresh.all();
       renderAnalystOut();
       return true;
     }
     case 'an-removecar': {
       state.selected = state.selected.filter((id) => id !== val);
-      refresh.all();
       renderAnalystOut();
       return true;
     }
@@ -332,7 +293,6 @@ export function onAnalystAction(act: string, val: string): boolean {
       state.vehicles = state.vehicles.map((v) => (v.owned ? { ...v, name, short: name } : v));
       state.defaults = state.defaults.map((v) => (v.owned ? { ...v, name, short: name } : v));
       analyst.applied.add('name');
-      refresh.all();
       renderAnalystOut();
       return true;
     }
@@ -351,8 +311,6 @@ export function onAnalystAction(act: string, val: string): boolean {
       }
       if (st.view) state.view = st.view;
       analyst.applied.add('settings');
-      refresh.controls();
-      refresh.all();
       renderAnalystOut();
       return true;
     }

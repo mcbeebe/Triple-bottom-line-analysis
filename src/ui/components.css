@@ -1,7 +1,7 @@
 /* Styles for ds- components (Phase 1). Loaded after style.css so ds- rules win ties;
    every rule targets a ds- class, so the old page is unaffected. */
-.ds-guide,.ds-sheet,.ds-app,.ds-app-bar{font-family:var(--font-body);color:var(--color-ink);font-size:var(--text-md);line-height:1.5}
-.ds-guide :focus-visible,.ds-sheet :focus-visible,.ds-backdrop :focus-visible,.ds-app :focus-visible,.ds-app-bar :focus-visible{outline:2px solid var(--color-accent);outline-offset:2px}
+.ds-guide,.ds-sheet,.ds-app{font-family:var(--font-body);color:var(--color-ink);font-size:var(--text-md);line-height:1.5}
+.ds-guide :focus-visible,.ds-sheet :focus-visible,.ds-backdrop :focus-visible,.ds-app :focus-visible{outline:2px solid var(--color-accent);outline-offset:2px}
 .ds-guide [tabindex="-1"]:focus,.ds-sheet[tabindex="-1"]:focus,.ds-app [tabindex="-1"]:focus{outline:none}
 
 /* buttons */
@@ -154,11 +154,6 @@ a.ds-status-src{color:var(--color-accent);min-height:var(--tap);min-width:var(--
 .ds-radio input:checked+span{background:var(--color-accent);border-color:var(--color-accent);color:var(--color-on-accent)}
 .ds-radio input:focus-visible+span{outline:2px solid var(--color-accent);outline-offset:2px}
 .ds-app .ds-step-nav{margin-top:0}
-.ds-app-bar{position:fixed;left:0;right:0;bottom:0;z-index:40;background:var(--color-surface);border-top:1px solid var(--color-line);box-shadow:0 -4px 16px rgba(0,0,0,.08)}
-.ds-app-bar[hidden]{display:none}
-.ds-app-bar-inner{max-width:1040px;margin:0 auto;padding:var(--space-2) var(--space-4);display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:var(--space-2) var(--space-3)}
-.ds-app-bar-note{margin:0;font-size:var(--text-sm);color:var(--color-ink)}
-body.has-answer-bar{padding-bottom:88px}
 /* answer screen (Phase 3a) */
 .ds-answer{max-width:1040px;margin:0 auto;display:grid;grid-template-columns:minmax(0,1fr);gap:var(--space-5)}
 .ds-answer-main,.ds-answer-side{display:grid;gap:var(--space-4);align-content:start;min-width:0}

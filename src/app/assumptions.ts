@@ -185,3 +185,15 @@ export function resetAll(s: State): void {
   s.vehicles = clone(s.defaults);
   s.criteria = clone(DEFAULT_CRITERIA);
 }
+
+/**
+ * Every value the analyst may read and suggest, in the order of Fine-tune: the top drivers (the trade-in
+ * discount only on the trade path), the All assumptions sections, then each editable car's numbers. Cars that
+ * are not being compared are left out, as the old page's registry did.
+ */
+export function analystFieldList(s: State): Field[] {
+  const top = TOP_DRIVER_KEYS.filter((k) => k !== 'tradeInDiscount' || s.g.disposal === 'trade').map(globalField);
+  const sections = assumptionSections(s).flatMap((x) => x.fields);
+  const cars = editableCars(s).flatMap((v) => carFieldGroups(s, v.id).flatMap((g) => g.fields));
+  return [...top, ...sections, ...cars];
+}

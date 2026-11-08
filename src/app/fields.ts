@@ -11,8 +11,6 @@ export interface Field {
   meta: ParamMeta;
 }
 
-/** Fields currently rendered, by id. Rebuilt on every assumptions render; read by events and the analyst. */
-export const fieldRegistry = new Map<string, Field>();
 /** Stable id for a field: `scope.sub.key`. */
 export const fieldId = (f: Field): string => `${f.scope}.${f.sub}.${f.key}`;
 
@@ -57,14 +55,6 @@ export const readField = (f: Field): number => readFieldIn(state, f);
 
 /** Default value in stored units, from the sourced defaults. */
 export const defaultOf = (f: Field): number => defaultOfIn(state, f);
-
-/** Write a value in stored units, clamped to the field range (booleans from >= 0.5). */
-export const writeField = (f: Field, value: number): void => writeFieldIn(state, f, value);
-
-/** True when the current value differs from the default. */
-export function isEdited(f: Field): boolean {
-  return Math.abs(readField(f) - defaultOf(f)) > 1e-9;
-}
 
 /** Vehicle meta keys that live under the loan or lease (and the lease term's real key). Others are on the vehicle itself. */
 export const SUB_OF: Record<string, { sub: '' | 'loan' | 'lease'; key: string }> = {

@@ -3,7 +3,7 @@
  * "Not sure? Describe it in a sentence" and the answer screen's "Ask the analyst" button, both opening the
  * analyst in a bottom sheet. The AI is stubbed with window.claude.use (as in qa-analyst.cjs); nothing real is called.
  * Checks: hidden without the AI, appears once the AI check resolves without stealing focus, sheet focus and Escape,
- * suggestions apply only on a tap and update the screen behind, "See my answer", the old page still gets the panel,
+ * suggestions apply only on a tap and update the screen behind, "See my answer", old #details links,
  * and at 390 and 1280 px in Ledger and Night: axe WCAG 2.1 A/AA, 44 px controls, no overflow, no console errors.
  */
 const { chromium } = require('playwright');
@@ -115,7 +115,6 @@ const offerCount = (page) => page.locator('[data-act="ai-open"]').count();
     check('focus goes to the text box', await page.evaluate(() => document.activeElement?.id === 'an-text'));
     check('the page behind is inert', await page.evaluate(() => document.getElementById('steps').closest('[inert]') !== null || document.getElementById('steps').inert));
     check('the analyst renders only once (no duplicate ids)', await page.evaluate(() => document.querySelectorAll('#an-text').length === 1 && document.querySelectorAll('#an-out').length === 1));
-    check('the old page panel was emptied while the sheet holds the analyst', await page.evaluate(() => document.getElementById('analyst').innerHTML === ''));
     check('Stop is hidden while idle', !(await page.locator('#ai [data-act="an-stop"]').isVisible()));
     await audit(page, '#ai', 'analyst sheet, empty (390, Ledger)');
 
@@ -159,11 +158,12 @@ const offerCount = (page) => page.locator('[data-act="ai-open"]').count();
     check('"Back to my answer" closes the sheet, stays on #answer, focus returns to the button', await page.evaluate(() => location.hash === '#answer' && document.getElementById('ai').closest('[data-sheet]').hidden && document.activeElement?.id === 'ans-ai'));
     check('back to #answer after closing: history did not grow a duplicate answer entry', await page.evaluate(() => history.state?.prev !== 'answer'));
 
-    // ---------- the old page still gets the panel ----------
+    // ---------- an old #details link (Phase 3a) now opens the answer; the analyst keeps its session ----------
     await page.evaluate(() => { location.hash = '#details'; });
-    await page.waitForFunction(() => !document.querySelector('main:not(#steps):not(#answer-screen)').hidden);
-    check('"All the details": the analyst moves back to the old panel', await page.evaluate(() => !!document.querySelector('#analyst #an-text') && document.querySelectorAll('#an-text').length === 1));
-    check('"All the details": the last answer is still shown', (await page.locator('#analyst .ds-an-summary').count()) === 1);
+    await page.waitForFunction(() => location.hash === '#answer' && !document.getElementById('answer-screen').hidden);
+    await page.click('#ans-ai');
+    check('an old #details link opens the answer; the analyst keeps its last answer', (await page.locator('#ai .ds-an-summary').count()) === 1 && (await page.evaluate(() => document.querySelectorAll('#an-text').length)) === 1);
+    await page.keyboard.press('Escape');
     check('flow: no console errors', errors.length === 0, errors.join(' | '));
     await ctx.close();
   }

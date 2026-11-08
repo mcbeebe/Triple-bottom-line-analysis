@@ -66,7 +66,7 @@ const statusText = (page, slot) => page.evaluate((id) => document.getElementById
     let s = await info(page);
     check('fresh load shows Step 1', s.steps && !s.answer && s.heading === 'What are you deciding?' && s.title.startsWith('Step 1 of 3: What are you deciding?'), JSON.stringify(s));
     check('fresh load: nothing pressed and focus not moved', (await page.locator('#steps [aria-pressed="true"]').count()) === 0 && s.active === 'BODY');
-    check('Step 1: the analyst option is hidden until Phase 4 (P8)', (await page.locator('#steps .ds-option').count()) === 3 && !(await page.locator('#steps').innerText()).includes('Not sure'));
+    check('Step 1: without the AI there is no analyst option', (await page.locator('#steps .ds-option').count()) === 3 && !(await page.locator('#steps').innerText()).includes('Not sure'));
     await page.click('[data-act="st-path"][data-val="sell"]');
     s = await info(page);
     check('tap 1 (Sell) opens Step 2 and focuses its heading', s.hash === '#step-2' && s.heading === 'Your car and your driving' && s.active === 'st-title', JSON.stringify(s));
@@ -149,9 +149,7 @@ const statusText = (page, slot) => page.evaluate((id) => document.getElementById
     await page.click('[data-act="st-next"]');
     await page.click('[data-act="st-answer"]');
     const ans = await page.evaluate(() => ({ keep: [...document.querySelectorAll('#answer-screen .ds-card-name')].map((h) => h.textContent).find((t) => t.startsWith('Keep')), basis: document.querySelector('#answer-screen .ds-basis').textContent }));
-    await page.evaluate(() => { location.hash = '#details'; });
-    await page.waitForSelector('input[data-field="lx..mpg"]');
-    const mpg = await page.inputValue('input[data-field="lx..mpg"]');
+    const mpg = String((await page.evaluate(() => window.__tbl.snapshot())).cars.find((c) => c.owned).mpg);
     check('step answers reach the answer screen (name, mpg, miles)', ans.keep === 'Keep your Old Civic' && ans.basis.includes('8,000 miles a year') && mpg === '31', JSON.stringify({ ...ans, mpg }));
     check('step 2: no console errors', errors.length === 0, errors.join(' | '));
     await ctx.close();

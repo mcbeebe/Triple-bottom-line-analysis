@@ -6,6 +6,7 @@ import { fieldId, readFieldIn, writeFieldIn } from './fields';
 import {
   TOP_DRIVER_KEYS,
   addLease,
+  analystFieldList,
   assumptionSections,
   carFieldGroups,
   defaultText,
@@ -154,5 +155,26 @@ describe('editedCount and resetAll', () => {
     expect(s.criteria[0].weight).toBeGreaterThan(0);
     expect(s.g.disposal).toBe('trade');
     expect(s.selected).toEqual(['bolt', 'camryh', 'corolla']);
+  });
+});
+
+describe('analystFieldList (what the analyst may read and suggest)', () => {
+  const ids = (s: ReturnType<typeof fresh>) => analystFieldList(s).map((f) => fieldId(f));
+  it('has the top drivers, every section and the compared cars, each once', () => {
+    const s = fresh();
+    const list = ids(s);
+    expect(list).toEqual(expect.arrayContaining(['g..milesPerYear', 'g..gasPrice', 'g..firstTimeZev', 'g..elecPrice', 'lx..price', 'lx..mpg', 'bolt.loan.apr', 'corolla..price']));
+    expect(new Set(list).size).toBe(list.length);
+  });
+
+  it('leaves out cars that are not compared, and follows the path', () => {
+    const s = fresh();
+    expect(ids(s).some((id) => id.startsWith('tesla.'))).toBe(false);
+    expect(ids(s)).not.toContain('g..tradeInDiscount');
+    setPath(s, 'trade');
+    expect(ids(s)).toContain('g..tradeInDiscount');
+    setPath(s, 'none');
+    expect(ids(s).some((id) => id.startsWith('lx.'))).toBe(false);
+    expect(ids(s)).not.toContain('g..lxLeakage');
   });
 });

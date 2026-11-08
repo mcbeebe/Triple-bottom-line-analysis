@@ -10,13 +10,14 @@
  * - 185,141  Phase 2: scenario and step logic, the three step screens, router, answer bar (+18.7 KB)
  * - 195,981  Phase 3a: verdict, share links, scenario edits/settings, new answer screen; old page still in (+10.8 KB). Phase 3b deletes the old page.
  * - 207,569  Phase 3a final: + Fine-tune top drivers and the Share sheet (+11.3 KB). Phase 3b deletes the old page.
- * - 244,484  Phase 3b step 3: full Fine-tune (All assumptions, one car at a time, Scoring and appearance) (+14.4 KB); temporary, same reason.
  * - 230,128  Phase 3b step 2: Why this result sheet and table styles (+16.7 KB with the 3b logic); temporary while the old page is still in. Step 7 deletes it and resets this.
+ * - 244,484  Phase 3b step 3: full Fine-tune (All assumptions, one car at a time, Scoring and appearance) (+14.4 KB); temporary, same reason.
+ * - 197,160  Phase 3b step 7: the old page, its panels, style.css and the old-page suites are deleted; the baseline is reset to the new single design (down from 252,661 before the deletion).
  */
 const fs = require('fs');
 const path = require('path');
 
-const BASELINE_BYTES = 244484;
+const BASELINE_BYTES = 197160;
 const TOLERANCE = 0.05;
 const file = path.resolve(__dirname, '../dist/index.html');
 const size = fs.statSync(file).size;

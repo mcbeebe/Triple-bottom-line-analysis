@@ -2,10 +2,10 @@ import { WEIGHT_PRESETS, type Aggregation, type Criterion, type Globals, type Pi
 import { CATALOG, DEFAULT_CRITERIA, DEFAULT_GLOBALS, DEFAULT_SELECTED, DEFAULT_VEHICLES, RATING_NOTES, VEHICLE_META, type ParamMeta, type VehicleGroup } from '../data';
 
 /** Visual theme id; persisted in localStorage under `tbl-theme`. */
-export type Theme = 'ledger' | 'night' | 'field';
+export type Theme = 'ledger' | 'night';
 /** Which financing options are shown. */
 export type View = 'both' | 'loan' | 'lease';
-/** Tab of the "Behind the scores" panel. */
+/** Tab of the pillar tables in "Why this result". */
 export type Tab = 'planet' | 'people' | 'profit';
 
 /** The single mutable UI state. Every render reads it; every event handler mutates it. */
@@ -19,11 +19,8 @@ export interface State {
   carPreset: string;
   view: View;
   tab: Tab;
-  showAll: boolean;
-  resultsView: 'cards' | 'table';
   sortKey: string;
   sortDir: 1 | -1;
-  copyNote: string;
   secOpen: Record<string, boolean>;
   g: Globals;
   vehicles: Vehicle[];
@@ -45,9 +42,11 @@ export const MAX_SELECTED = 4;
 /** Theme chips, in display order. */
 export const THEMES: { id: Theme; label: string }[] = [
   { id: 'ledger', label: 'Ledger' },
-  { id: 'night', label: 'Night desk' },
-  { id: 'field', label: 'Field guide' }
+  { id: 'night', label: 'Night' }
 ];
+
+/** The theme to use for a saved choice: Night or Ledger; anything else (the old page's "field", junk) is Ledger. */
+export const themeFrom = (saved: string | null): Theme => (saved === 'night' ? 'night' : 'ledger');
 
 /** Scoring modes with the one-line explanation shown in the verdict. */
 export const MODES: { id: ScoringMode; label: string; blurb: string }[] = [
@@ -74,11 +73,8 @@ export function freshState(): State {
     carPreset: 'lexus',
     view: 'both',
     tab: 'profit',
-    showAll: false,
-    resultsView: 'cards',
     sortKey: 'rank',
     sortDir: 1,
-    copyNote: '',
     secOpen: { confirm: true, drivers: true, cars: true, emissions: false, other: false },
     g: clone(DEFAULT_GLOBALS),
     vehicles: clone(DEFAULT_VEHICLES),

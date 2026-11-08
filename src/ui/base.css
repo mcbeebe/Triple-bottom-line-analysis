@@ -1,0 +1,6 @@
+/* Page base (Phase 3b: replaces the old page's stylesheet). Element rules only; components live in components.css. */
+*,*::before,*::after{box-sizing:border-box}
+html{-webkit-text-size-adjust:100%}
+body{margin:0;background:var(--color-bg);color:var(--color-ink);font:400 var(--text-md)/1.5 var(--font-body)}
+h1,h2,h3,h4{margin:0;line-height:1.25}
+button,input,select,textarea{font:inherit;color:inherit}
