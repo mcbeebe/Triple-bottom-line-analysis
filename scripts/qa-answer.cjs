@@ -513,6 +513,66 @@ const read = (page) => page.evaluate(() => ({
     }
   }
 
+  // ---------- paths: sell, trade, just buy (ported from the old page's qa-path.cjs, same Lexus test case) ----------
+  {
+    const { ctx, page, errors } = await open(browser, { legacy: true });
+    const snap = () => page.evaluate(() => window.__tbl.snapshot());
+    const bolt = async () => (await snap()).ranks.find((r) => r.id === 'bolt-loan');
+    const choosePath = async (p) => {
+      await page.evaluate(() => { location.hash = '#step-1'; });
+      await page.waitForSelector('[data-act="st-path"]');
+      await page.click(`[data-act="st-path"][data-val="${p}"]`);
+      await page.click('[data-act="st-skip"]');
+      await page.waitForSelector('#ans-title');
+    };
+    await choosePath('sell');
+    const sellNpv = (await bolt()).npv;
+    await choosePath('trade');
+    check('paths: trade-in costs more than selling (15% below value)', (await bolt()).npv > sellNpv, `${sellNpv.toFixed(0)} -> ${(await bolt()).npv.toFixed(0)}`);
+    await page.click('#ans-finetune');
+    check('trade path: Fine-tune says a trade-in saves no sales tax in California', /California taxes the full price, so a trade-in saves no sales tax/.test(await page.textContent('#ft')));
+    await page.fill('#ft-discount', '0');
+    check('paths: a 0% trade-in discount costs the same as selling', Math.abs((await bolt()).npv - sellNpv) < 0.5);
+    await page.fill('#ft-discount', '30');
+    check('paths: a bigger trade-in discount costs more', (await bolt()).npv > sellNpv + 100);
+    await page.click('#ft-all > summary');
+    await page.click('#ft-resetall');
+    check('fine-tune: Reset all keeps the path you chose', (await snap()).path === 'trade' && (await page.textContent('#answer-screen .ds-basis')).startsWith('Trade in, then buy'));
+    await page.keyboard.press('Escape');
+
+    await choosePath('none');
+    check('just buy: no sale money, so the Bolt costs more', (await bolt()).npv > sellNpv);
+    await page.click('#ans-finetune');
+    const ensureOpen = async (id) => { if (!(await page.evaluate((x) => document.getElementById(x).open, id))) await page.click(`#${id} > summary`); };
+    await ensureOpen('ft-all');
+    await page.click('#ft-openall');
+    check('just buy: Fine-tune has no trade-in discount, sale value or sold-car emissions', (await page.locator('#ft-discount, #ft-value, #fe-g--lxLeakage, #fe-g--cc4a').count()) === 0);
+    check('just buy: Fine-tune offers no car of yours', (await page.locator('input[name="ft-car"][value="lx"]').count()) === 0);
+    await ensureOpen('ft-scoring');
+    let finite = true;
+    for (const sc of ['anchored', 'relative', 'benchmark']) {
+      await page.click(`input[name="ft-scale"][value="${sc}"]`, { force: true });
+      finite = finite && (await snap()).ranks.every((r) => Number.isFinite(r.overall));
+    }
+    check('just buy: every scale still scores (no keep to compare with)', finite && errors.length === 0, errors.join(' | '));
+    await page.keyboard.press('Escape');
+    await page.click('#ans-table');
+    check('just buy: the table has no keep row', (await page.locator('#tb-wrap tbody tr').count()) > 0 && (await page.locator('#tb-wrap .ds-row-keep').count()) === 0 && !(await page.textContent('#tb-wrap')).includes('Keep '));
+    await page.keyboard.press('Escape');
+    await choosePath('sell');
+    check('paths: going back to Sell brings back the keep option', (await snap()).ranks.some((r) => r.id === 'keep'));
+    check('paths: no console errors', errors.length === 0, errors.join(' | '));
+    await ctx.close();
+  }
+  for (const width of [390, 1280]) {
+    const { ctx, page } = await open(browser, { width, hash: '' });
+    await page.click('[data-act="st-path"][data-val="none"]');
+    await page.click('[data-act="st-skip"]');
+    await page.waitForSelector('#ans-title');
+    await audit(page, '#answer-screen', `${width}px just buy answer`);
+    await ctx.close();
+  }
+
   // ---------- desktop: panels open beside the answer (decision D2) ----------
   {
     const { ctx, page, errors } = await open(browser, { width: 1280 });

@@ -273,6 +273,54 @@ const offerCount = (page) => page.locator('[data-act="ai-open"]').count();
     check('analyst: no console errors', errors.length === 0, errors.join(' | '));
     await ctx.close();
   }
+  // the analyst fills in your car, adds and drops cars and changes the path (ported from qa-path.cjs, same Lexus test case)
+  {
+    const PATH_ANSWER = {
+      summary: 'Trade-in vs selling: selling nets more.',
+      currentCarName: '2014 Subaru Outback',
+      suggestions: [{ field: 'lx..price', value: 9000, reason: 'You said about $9,000' }, { field: 'lx..mpg', value: 26, reason: 'You said 26 mpg' }],
+      newCars: [{ name: 'Mazda CX-50 Hybrid', kind: 'hybrid', price: 38000, efficiency: 38, reason: 'You asked about it' }, { name: 'Bad', kind: 'ev', efficiency: 30 }],
+      removeCars: [{ id: 'tesla', reason: 'Not interested' }, { id: 'lx', reason: 'owned' }],
+      settings: { path: 'trade', reason: 'You mentioned a dealer' }
+    };
+    const mock = `window.__prompts=[];window.claude={use:async()=>({json:async(p)=>{window.__prompts.push(p);return ${JSON.stringify(PATH_ANSWER)}}})};`;
+    const { ctx, page, errors } = await open(browser, { hash: '#answer', mock, legacy: true });
+    const snap = () => page.evaluate(() => window.__tbl.snapshot());
+    await page.waitForSelector('#ans-ai');
+    await page.click('#ans-ai');
+    await page.fill('#an-text', 'I drive a 2014 Subaru Outback worth $9,000 at 26 mpg and want to trade it for a Mazda CX-50 hybrid at $38,000.');
+    await page.click('#ai [data-act="an-analyze"]');
+    await page.waitForSelector('#ai .ds-an-summary');
+    const prompt = await page.evaluate(() => window.__prompts[0]);
+    check('analyst (path): the prompt carries the path, your car and the compared cars', prompt.includes('"path":"sell"') && prompt.includes('THE CAR THEY HAVE NOW: {"name":"Lexus LX 470"') && prompt.includes('Tesla Model Y'));
+    check("analyst (path): the prompt lists your car's input ids", prompt.includes('lx..price') && prompt.includes('lx..mpg'));
+    check('analyst (path): the prompt includes the trade-in what-if', prompt.includes('Trade in at a dealer instead'));
+    check('analyst (path): a new car without a price is dropped (1 offered)', (await page.locator('#ai [data-act="an-newcar"]').count()) === 1);
+    check('analyst (path): your own car is never offered for removal (only Tesla)', (await page.locator('#ai [data-act="an-removecar"]').count()) === 1);
+    await page.click('#ai [data-act="an-carname"]');
+    check('analyst (path): the suggested name is used on the keep card', (await page.textContent('#answer-screen')).includes('Keep your 2014 Subaru Outback'));
+    await page.click('#ai [data-act="an-apply"]');
+    await page.click('#ai [data-act="an-apply"]');
+    const own = (await snap()).cars.find((c) => c.owned);
+    check("analyst (path): your car's value and mpg are set", own.price === 9000 && own.mpg === 26, JSON.stringify(own));
+    await page.click('#ai [data-act="an-newcar"]');
+    const custom = (await snap()).cars.find((c) => c.id.startsWith('custom'));
+    check('analyst (path): the new car is added and chosen with the price and mpg given', !!custom && custom.short === 'Mazda CX-50 Hybrid' && custom.price === 38000 && custom.mpg === 38, JSON.stringify(custom));
+    await page.click('#ai [data-act="an-removecar"]');
+    check('analyst (path): Tesla is removed from the comparison', !(await snap()).selected.includes('tesla'));
+    await page.click('#ai [data-act="an-settings"]');
+    check('analyst (path): the suggested path (trade-in) is applied', (await snap()).path === 'trade' && (await page.textContent('#answer-screen .ds-basis')).startsWith('Trade in, then buy'));
+    await page.click('#ai-answer');
+    await page.click('#ans-finetune');
+    check('analyst (path): after the path changes, Fine-tune shows the trade-in discount', (await page.locator('#ft-discount').count()) === 1);
+    await page.click('#ft-all > summary');
+    await page.click(`input[name="ft-car"][value="${custom.id}"]`, { force: true });
+    const st = await page.textContent(`#fs-${custom.id}--price`);
+    check("analyst (path): the new car's numbers are not marked as edited", !st.includes('Your number'), st);
+    check('analyst (path): no console errors', errors.length === 0, errors.join(' | '));
+    await ctx.close();
+  }
+
   // failures and Stop (old page's suite)
   for (const [code, expect] of [['rate_limited', 'usage limit'], ['boom', 'could not answer']]) {
     const { ctx, page } = await open(browser, { mock: `window.claude={use:async()=>({json:async()=>{const e=new Error('x');e.code='${code}';throw e}})};` });

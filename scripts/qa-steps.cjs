@@ -125,7 +125,7 @@ const statusText = (page, slot) => page.evaluate((id) => document.getElementById
     const { ctx, page, errors } = await open(browser);
     await page.click('[data-act="st-path"][data-val="trade"]');
     check('trade path: the field is "Trade-in offer" at 15% below the private value', (await page.locator('label[for="st-value"]').innerText()) === 'Trade-in offer' && (await page.inputValue('#st-value')) === '7,650');
-    check('trade path: the discount is called a placeholder', /^Allowed: .* Placeholder: dealers usually offer about 15% less than a private buyer\.$/.test(await page.locator('#st-value-hint').innerText()));
+    check('trade path: the discount is called a placeholder', /^Allowed: .* Placeholder: dealers usually offer about 15% less than a private buyer\. California taxes the full price, so a trade-in saves no sales tax\.$/.test(await page.locator('#st-value-hint').innerText()));
     check('sedan value is marked Placeholder', (await statusText(page, 'st-value-status')) === 'Placeholder');
     await page.fill('#st-value', '8500');
     await page.locator('#st-value').blur();
@@ -207,6 +207,33 @@ const statusText = (page, slot) => page.evaluate((id) => document.getElementById
     await page.click('[data-act="st-cancel"]');
     check('Cancel closes the form and returns focus', (await page.locator('#st-addcar').count()) === 0 && (await page.evaluate(() => document.activeElement.id)) === 'st-addopen');
     check('step 3: no console errors', errors.length === 0, errors.join(' | '));
+    await ctx.close();
+  }
+
+  // ---------- picker and presets (ported from the old page's qa.cjs and qa-path.cjs) ----------
+  {
+    const { ctx, page, errors } = await open(browser);
+    const snap = () => page.evaluate(() => window.__tbl.snapshot());
+    await page.click('[data-act="st-path"][data-val="sell"]');
+    const own = async () => (await snap()).cars.find((c) => c.owned);
+    await page.click('[data-act="st-preset"][data-val="suv"]');
+    const suv = await own();
+    check('choosing a preset sets its value and mpg', suv.price === 11000 && suv.mpg === 21 && (await page.inputValue('#st-value')) === '11,000', JSON.stringify(suv));
+    await page.click('[data-act="st-next"]');
+    const legends = await page.evaluate(() => [...document.querySelectorAll('#steps .ds-checks > legend')].map((l) => l.textContent));
+    check('Step 3 lists electric, hybrid and gas cars in groups', legends.slice(0, 3).join('|') === 'Electric|Hybrid|Gas', legends.join('|'));
+    await page.focus('#st-pick-corolla');
+    await page.keyboard.press('Space');
+    const ids = (await snap()).ranks.map((r) => r.id);
+    check('unticking a car takes its options out of the answer', !ids.some((id) => id.startsWith('corolla')) && ids.includes('bolt-loan'), ids.join(','));
+    await page.click('[data-act="st-answer"]');
+    const keepName = await page.evaluate(() => [...document.querySelectorAll('#answer-screen .ds-card-name')].map((h) => h.textContent).find((t) => t.startsWith('Keep')));
+    check('the keep card takes its name from the preset', keepName === 'Keep your gas SUV', keepName);
+    await page.evaluate(() => { location.hash = '#step-2'; });
+    await page.waitForSelector('[data-act="st-preset"]');
+    await page.click('[data-act="st-preset"][data-val="hybrid"]');
+    check('the hybrid preset still has a keep option', (await snap()).ranks.some((r) => r.id === 'keep') && (await own()).mpg > 30);
+    check('picker and presets: no console errors', errors.length === 0, errors.join(' | '));
     await ctx.close();
   }
 

@@ -56,6 +56,8 @@ export function init(): void {
         theme: state.theme,
         mode: state.mode,
         preset: state.preset,
+        path: state.g.disposal,
+        cars: state.vehicles.filter((v) => v.owned || state.selected.includes(v.id)).map((v) => ({ id: v.id, short: v.short, owned: !!v.owned, price: v.price, mpg: v.mpg, kwhPer100mi: v.kwhPer100mi })),
         g: { gasPrice: state.g.gasPrice, milesPerYear: state.g.milesPerYear, elecPrice: state.g.elecPrice },
         selected: [...state.selected],
         ranks: scoreOptions(state.g, state.vehicles, visibleOptions(), scoring()).map((s) => ({ id: s.spec.id, rank: s.rank, overall: s.overall, planet: s.pillars.planet, profit: s.pillars.profit, npv: s.result.netCostNPV })),

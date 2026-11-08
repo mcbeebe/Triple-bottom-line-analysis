@@ -47,7 +47,7 @@ export function fineTuneBody(s: State, carId = ''): string {
   }
   if (s.g.disposal === 'trade') {
     const t = m.tradeInDiscount;
-    parts.push(dsField({ id: 'ft-discount', label: 'Trade-in discount', name: 'ft.discount', unit: 'percent', value: Math.round(s.g.tradeInDiscount * 100), min: t.min * 100, max: t.max * 100, step: 1, note: 'How much less a dealer offers than a private buyer.', statusHtml: slot('ft-discount-status', dsStatusLabel(globalStatus(s, 'tradeInDiscount', t))) }));
+    parts.push(dsField({ id: 'ft-discount', label: 'Trade-in discount', name: 'ft.discount', unit: 'percent', value: Math.round(s.g.tradeInDiscount * 100), min: t.min * 100, max: t.max * 100, step: 1, note: 'How much less a dealer offers than a private buyer. California taxes the full price, so a trade-in saves no sales tax.', statusHtml: slot('ft-discount-status', dsStatusLabel(globalStatus(s, 'tradeInDiscount', t))) }));
   }
   parts.push(moreGroups(s, carId));
   parts.push('<p class="ds-sr" id="ft-live" aria-live="polite"></p>');
