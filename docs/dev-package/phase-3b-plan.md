@@ -1,6 +1,6 @@
 # Phase 3b plan: rebuild the rest, then delete the old page
 
-Status: **D1 and D2 decided by the owner Nov 6, 2026 (both recommendations); waiting for approval of the plan as a whole.** Builds on `phase-3-plan.md` (decisions Q1 to Q9, approved Nov 4) and the approved Phase 3 mockups. New mockups for the one open design question: `phase-3b-mockups.html`.
+Status: **built** (Nov 6 to 8, 2026) on branch `phase-3b`, PR #6. D1 and D2 decided by the owner Nov 6, 2026; plan approved the same day. Results at the end. Builds on `phase-3-plan.md` (decisions Q1 to Q9, approved Nov 4) and the approved Phase 3 mockups. New mockups for the one open design question: `phase-3b-mockups.html`.
 
 ## Goal
 Finish Phase 3 in `04-phases.md`: "old layout removed; no feature lost". After 3b:
@@ -66,3 +66,33 @@ Finish Phase 3 in `04-phases.md`: "old layout removed; no feature lost". After 3
 
 ## Estimate
 About 4.5 days: 4 in the Phase 3 plan plus half a day for the desktop side panels. `04-phases.md` budgeted 1.5 days for all of Phase 3; the difference is Q1 (rebuild everything) and porting 155 checks.
+
+## Results (Nov 8, 2026)
+
+| Check | Phase 3a (+ AI addendum) | Phase 3b |
+| --- | --- | --- |
+| Unit tests | 402 | 446 (old-page tests removed with the old page) |
+| Browser checks | 572 (including the old page's 3 suites) | 666 in the 4 remaining suites, every one of the old suites' 155 checks ported (146) or retired with a reason (9); see `phase-3b-port-ledger.md` |
+| axe WCAG 2.1 AA, 44 px, nothing cut off | answer, steps, Fine-tune top drivers, Share | every screen and every panel at 390 and 1280 px in Ledger and Night (the cut-off check is new in 3b) |
+| Old page vs Phase 0 pixels | identical | retired with the old page (Q3) |
+| `dist/index.html` | 213,319 bytes | 197,160 bytes (-7.6%), the new size baseline |
+
+**What shipped (one commit per step):**
+1. Port ledger and its guard; assumptions logic (sections, each car's field groups, add a lease, reset all); "Keep your gas sedan" on the cards.
+2. Why this result: what the numbers rest on, real Planet/People/Profit tabs, rating and weight editors, bars, "Does the winner hold up?", every source, what the tool leaves out.
+3. Fine-tune in full: All assumptions (D1), Scoring and appearance, Reset to default, Open/Close/Reset all, one refresh path that keeps every control in step.
+4. Table: every option, sortable, "Copy as spreadsheet text".
+5. Desktop: panels beside the answer (D2).
+6. The analyst's answer in design-system styles; its suggested-settings line in plain words.
+7. The last old checks ported; then the old page, its stylesheet, the Field theme and the old suites deleted; base styles kept in `base.css`; size baseline reset.
+
+**Found and fixed while building**
+- Sheet contents were wider than the sheet on phones (cut off on the right); fixed, and a cut-off check now runs in every audit.
+- The edit count left out the top drivers; "Reset" did not redraw the field it focused.
+- At 1024 px a fixed 440 px panel covered the cards' scores; the panel narrows to 40% of the screen.
+- The analyst's list of editable values came from a registry only the old page filled: deleting the old page would have dropped every suggestion. It now comes from `analystFieldList(state)`, tested.
+- The California trade-in tax fact lived only in the old page; it is now on Step 2 and in Fine-tune.
+
+**Deviations from the plan**
+- Step 7 was split in two commits (7a: last ports, 7b: deletion) so the deletion is easy to review.
+- The bundle-size baseline was raised twice during the build (temporary, while both pages were in) and reset at the end.
