@@ -41,7 +41,7 @@ export function drivingHtml(s: State): string {
         ? dsField({
             id: 'st-value', label: 'Trade-in offer', name: 'owned.offer', money: true,
             value: Math.round(tradeOffer(owned.price, d)), min: Math.ceil(tradeOffer(pm.min, d)), max: Math.floor(tradeOffer(pm.max, d)), step: pm.step,
-            note: `Placeholder: dealers usually offer about ${Math.round(d * 100)}% less than a private buyer.`,
+            note: `Placeholder: dealers usually offer about ${Math.round(d * 100)}% less than a private buyer. California taxes the full price, so a trade-in saves no sales tax.`,
             statusHtml: statusSlot('st-value-status', dsStatusLabel(ownedStatus(s, 'price')))
           })
         : dsField({

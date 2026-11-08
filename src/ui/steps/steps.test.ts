@@ -59,7 +59,7 @@ describe('Step 2 renderer', () => {
     const h = drivingHtml(s);
     expect(h).toContain('>Trade-in offer</label>');
     expect(h).toContain('value="7,650"');
-    expect(h).toContain('Placeholder: dealers usually offer about 15% less than a private buyer.');
+    expect(h).toContain('Placeholder: dealers usually offer about 15% less than a private buyer. California taxes the full price, so a trade-in saves no sales tax.');
   });
 
   it('shows miles only on the just-buy path (P9)', () => {

@@ -1,7 +1,8 @@
 import { breakEvenGasPrice, paybackYear, scoreOptions, type Vehicle } from '../engine';
 import { buildPrompt, sensitivityRows, type CarInfo, type FieldInfo, type ResultRow } from '../analyst';
 import { num } from './format';
-import { defaultOf, fieldRegistry, readField } from './fields';
+import { defaultOf, fieldId, readField } from './fields';
+import { analystFieldList } from './assumptions';
 import { hasCar, incentiveTotal, keepOf, kindLabel, lx, optionName, scoring, tagFor, vehicle, visibleOptions } from './options';
 import { state } from './state';
 import { analyst } from './analystSession';
@@ -25,10 +26,11 @@ export const fromShown = (f: FieldInfo, v: number): number => (f.kind === 'fract
 /** Display text for a field value with its unit. */
 export const fmtField = (f: FieldInfo, v: number): string => (f.kind === 'yesno' ? (v ? 'Yes' : 'No') : f.kind === 'fraction' ? `${num(v * 100, 2)}%` : `${num(v, v % 1 === 0 ? 0 : 2)}${f.unit ? ' ' + f.unit : ''}`);
 
-/** Snapshot of every input currently on screen, in stored units, for the analyst. */
+/** Snapshot of every value the analyst may suggest (see `analystFieldList`), in stored units. */
 export function analystFields(): Map<string, FieldInfo> {
   const out = new Map<string, FieldInfo>();
-  fieldRegistry.forEach((f, id) => {
+  analystFieldList(state).forEach((f) => {
+    const id = fieldId(f);
     const v = f.scope === 'g' ? undefined : state.vehicles.find((x) => x.id === f.scope);
     const where = f.sub === 'loan' ? ' (loan)' : f.sub === 'lease' ? ' (lease)' : '';
     out.set(id, {

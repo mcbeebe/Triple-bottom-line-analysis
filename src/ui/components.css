@@ -1,7 +1,7 @@
 /* Styles for ds- components (Phase 1). Loaded after style.css so ds- rules win ties;
    every rule targets a ds- class, so the old page is unaffected. */
-.ds-guide,.ds-sheet,.ds-app,.ds-app-bar{font-family:var(--font-body);color:var(--color-ink);font-size:var(--text-md);line-height:1.5}
-.ds-guide :focus-visible,.ds-sheet :focus-visible,.ds-backdrop :focus-visible,.ds-app :focus-visible,.ds-app-bar :focus-visible{outline:2px solid var(--color-accent);outline-offset:2px}
+.ds-guide,.ds-sheet,.ds-app{font-family:var(--font-body);color:var(--color-ink);font-size:var(--text-md);line-height:1.5}
+.ds-guide :focus-visible,.ds-sheet :focus-visible,.ds-backdrop :focus-visible,.ds-app :focus-visible{outline:2px solid var(--color-accent);outline-offset:2px}
 .ds-guide [tabindex="-1"]:focus,.ds-sheet[tabindex="-1"]:focus,.ds-app [tabindex="-1"]:focus{outline:none}
 
 /* buttons */
@@ -64,7 +64,7 @@
 .ds-disc[open]>.ds-disc-sum::after{content:"Hide"}
 .ds-disc-title{min-width:0}
 .ds-disc-meta{margin-left:auto;font-weight:400;font-size:var(--text-sm);color:var(--color-muted)}
-.ds-disc-body{padding:0 var(--space-4) var(--space-4)}
+.ds-disc-body{min-width:0;padding:0 var(--space-4) var(--space-4)}
 
 /* field */
 .ds-field{margin:0 0 var(--space-4)}
@@ -154,11 +154,6 @@ a.ds-status-src{color:var(--color-accent);min-height:var(--tap);min-width:var(--
 .ds-radio input:checked+span{background:var(--color-accent);border-color:var(--color-accent);color:var(--color-on-accent)}
 .ds-radio input:focus-visible+span{outline:2px solid var(--color-accent);outline-offset:2px}
 .ds-app .ds-step-nav{margin-top:0}
-.ds-app-bar{position:fixed;left:0;right:0;bottom:0;z-index:40;background:var(--color-surface);border-top:1px solid var(--color-line);box-shadow:0 -4px 16px rgba(0,0,0,.08)}
-.ds-app-bar[hidden]{display:none}
-.ds-app-bar-inner{max-width:1040px;margin:0 auto;padding:var(--space-2) var(--space-4);display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:var(--space-2) var(--space-3)}
-.ds-app-bar-note{margin:0;font-size:var(--text-sm);color:var(--color-ink)}
-body.has-answer-bar{padding-bottom:88px}
 /* answer screen (Phase 3a) */
 .ds-answer{max-width:1040px;margin:0 auto;display:grid;grid-template-columns:minmax(0,1fr);gap:var(--space-5)}
 .ds-answer-main,.ds-answer-side{display:grid;gap:var(--space-4);align-content:start;min-width:0}
@@ -184,7 +179,7 @@ body.has-answer-bar{padding-bottom:88px}
 .ds-kv{display:grid;gap:2px}
 .ds-kv dt{font:600 var(--text-xs)/1.3 var(--font-body);letter-spacing:.06em;text-transform:uppercase;color:var(--color-muted)}
 .ds-kv dd{margin:0;color:var(--color-ink)}
-.ds-sheet-body{display:grid;gap:var(--space-3)}
+.ds-sheet-body{display:grid;grid-template-columns:minmax(0,1fr);gap:var(--space-3)}
 #share-link{font:400 var(--text-sm)/1.2 var(--font-body)}
 
 /* Ask the analyst sheet (owner reversed P8; Phase 4 rebuilds the panel) */
@@ -195,3 +190,89 @@ body.has-answer-bar{padding-bottom:88px}
 .ds-ai .ds-label{margin:0}
 .ds-ai .ds-chip{font-weight:400}
 .ds-ai-foot{padding-top:var(--space-3);border-top:1px solid var(--color-line)}
+
+/* Why this result (Phase 3b; mockups 2a to 2c) */
+.ds-h3{margin:var(--space-3) 0 0;font:600 var(--text-md)/1.3 var(--font-body);color:var(--color-ink);text-transform:none;letter-spacing:0}
+.ds-h3[tabindex="-1"]:focus{outline:none}
+.ds-h4{margin:var(--space-2) 0 0;font:600 var(--text-sm)/1.3 var(--font-body);color:var(--color-ink);text-transform:none;letter-spacing:0}
+.ds-small{margin:0;font-size:var(--text-sm);color:var(--color-muted)}
+.ds-stack{display:grid;gap:var(--space-2)}
+.ds-rest{list-style:none;margin:0;padding:0;border-top:1px solid var(--color-line)}
+.ds-rest li{display:flex;justify-content:space-between;align-items:center;gap:var(--space-3);min-height:var(--tap);padding:var(--space-1) 0;border-bottom:1px solid var(--color-line)}
+.ds-rest-k{font-size:var(--text-sm);color:var(--color-ink);min-width:0}
+.ds-rest-v{display:block;font-weight:600;font-variant-numeric:tabular-nums}
+.ds-tabs{display:flex;gap:var(--space-1);padding:var(--space-1);background:var(--color-soft);border-radius:var(--radius-md)}
+.ds-tab{appearance:none;flex:1;min-height:var(--tap);border:1px solid transparent;border-radius:var(--radius-sm);background:transparent;color:var(--color-ink);font:600 var(--text-sm)/1.2 var(--font-body);cursor:pointer}
+.ds-tab-on{background:var(--color-surface);border-color:var(--color-accent);box-shadow:inset 0 -3px 0 var(--color-accent)}
+.ds-tabpanel{display:grid;grid-template-columns:minmax(0,1fr);gap:var(--space-2)}
+.ds-table-wrap{overflow-x:auto;max-width:100%;border:1px solid var(--color-line);border-radius:var(--radius-md);background:var(--color-surface)}
+.ds-table{border-collapse:collapse;font-size:var(--text-sm);min-width:100%;color:var(--color-ink)}
+.ds-table th,.ds-table td{padding:var(--space-2) var(--space-3);border-bottom:1px solid var(--color-line);text-align:left;vertical-align:top;white-space:nowrap}
+.ds-table thead th{font-weight:600;color:var(--color-muted);background:var(--color-soft);white-space:normal;min-width:72px;vertical-align:bottom}
+.ds-table tbody th{font-weight:600;color:var(--color-ink);white-space:normal;min-width:128px}
+.ds-table .n{text-align:right;font-variant-numeric:tabular-nums}
+.ds-table tbody tr:last-child>*{border-bottom:0}
+.ds-table tr>:first-child{position:sticky;left:0;z-index:1;background:var(--color-surface);box-shadow:1px 0 0 var(--color-line)}
+.ds-table thead tr>:first-child{background:var(--color-soft);z-index:2}
+.ds-row-keep>*,.ds-table .ds-row-keep>:first-child{background:var(--color-tint)}
+.ds-row-sum>*{border-top:2px solid var(--color-line)}
+.ds-kind{display:block;font:600 var(--text-xs)/1.3 var(--font-body);letter-spacing:.06em;text-transform:uppercase;color:var(--color-muted)}
+.ds-cell-flip{font-weight:600;text-decoration:underline;text-decoration-style:dotted;text-underline-offset:3px}
+.ds-cell-flip::before{content:"≠ ";color:var(--color-accent)}
+.ds-select{width:100%;min-height:var(--tap-lg);padding:0 var(--space-3);border:1px solid var(--color-control);border-radius:var(--radius-sm);background:var(--color-surface);color:var(--color-ink);font:600 var(--text-md)/1.2 var(--font-body)}
+.ds-bars{list-style:none;margin:0;padding:0;display:grid;gap:var(--space-2)}
+.ds-bar{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:2px var(--space-2);font-size:var(--text-sm)}
+.ds-bar-name{color:var(--color-ink)}
+.ds-bar-val{font-weight:600;font-variant-numeric:tabular-nums;color:var(--color-ink)}
+.ds-bar-track{grid-column:1 / -1;height:8px;border-radius:4px;background:var(--color-soft);overflow:hidden}
+.ds-bar-track i{display:block;height:100%;background:var(--color-accent)}
+.ds-srcs{margin:0;padding:0 0 0 var(--space-4);font-size:var(--text-sm)}
+.ds-srcs a{display:inline-flex;align-items:center;min-height:var(--tap);color:var(--color-accent);text-decoration:underline;text-underline-offset:3px;overflow-wrap:anywhere}
+.ds-limits{margin:0;padding:0 0 0 var(--space-4);font-size:var(--text-sm);color:var(--color-ink);display:grid;gap:var(--space-1)}
+
+/* Fine-tune: All assumptions and Scoring and appearance (Phase 3b, decision D1) */
+.ds-ft-head{display:grid;gap:var(--space-1)}
+.ds-ft-tools{display:flex;flex-wrap:wrap;gap:0 var(--space-3)}
+.ds-ft-field .ds-field{margin-bottom:0}
+.ds-reset-slot:empty{display:none}
+.ds-reset-slot .ds-btn-link{min-height:var(--tap);padding:0}
+.ds-ft-group{margin:0 0 var(--space-3)}
+.ds-ft-group legend.ds-label-row{display:flex;width:100%}
+.ds-ft-group .ds-hint{flex-basis:100%;margin:0}
+
+/* Table (Phase 3b, mockup 4) */
+.ds-table-sort thead th{padding:0;min-width:104px}
+.ds-sort{appearance:none;display:flex;align-items:flex-end;justify-content:space-between;gap:var(--space-1);width:100%;min-height:var(--tap);min-width:var(--tap);padding:var(--space-2) var(--space-3);border:0;background:transparent;color:var(--color-ink);font:600 var(--text-sm)/1.25 var(--font-body);text-align:left;cursor:pointer}
+.ds-sort-on{color:var(--color-accent);text-decoration:underline;text-underline-offset:3px}
+.ds-sort-ico{flex:none;font-size:var(--text-xs);color:var(--color-muted)}
+.ds-sort-on .ds-sort-ico{color:var(--color-accent)}
+.ds-copy{display:grid;gap:var(--space-1)}
+
+/* Decision D2: on wide screens a panel opens beside the answer, which stays readable (but not clickable) on the left */
+@media(min-width:1024px){
+  .ds-backdrop{align-items:stretch;justify-content:flex-end;background:var(--backdrop-side)}
+  .ds-sheet{width:min(440px,40vw);height:100%;max-height:none;border-radius:0;box-shadow:var(--shadow-side);padding:var(--space-5) var(--space-5) var(--space-7)}
+}
+
+/* Ask the analyst: the answer cards (Phase 3b step 6; ported from the old page's an-* rules, tokens only) */
+.ds-an-examples{display:flex;flex-wrap:wrap;gap:var(--space-2)}
+.ds-an-examples .ds-chip{font-weight:400;text-align:left}
+.ds-an-actions{display:flex;flex-wrap:wrap;gap:var(--space-2);align-items:center}
+.ds-an-status{font-size:var(--text-sm);color:var(--color-muted)}
+.ds-an-status.ds-an-err{color:var(--color-ink);font-weight:600}
+.ds-an-out{display:grid;gap:var(--space-3)}
+.ds-an-out:empty{display:none}
+.ds-an-block{border:1px solid var(--color-line);border-radius:var(--radius-md);padding:var(--space-3) var(--space-4);background:var(--color-surface);display:grid;gap:var(--space-2)}
+.ds-an-block h3{margin:0;font:600 var(--text-xs)/1.3 var(--font-body);letter-spacing:.06em;text-transform:uppercase;color:var(--color-muted)}
+.ds-an-block p{margin:0}
+.ds-an-block ul{margin:0;padding-left:var(--space-5)}
+.ds-an-summary{font-size:var(--text-md)}
+.ds-an-q,.ds-an-s{display:grid;gap:var(--space-1);padding:var(--space-2) 0;border-top:1px dashed var(--color-line)}
+.ds-an-q:first-of-type,.ds-an-s:first-of-type{border-top:0;padding-top:0}
+.ds-an-why{font-size:var(--text-sm);color:var(--color-muted)}
+.ds-an-arrow{font-variant-numeric:tabular-nums}
+.ds-an-row{display:flex;flex-wrap:wrap;gap:var(--space-2);align-items:center}
+.ds-an-done{font-weight:600;font-size:var(--text-sm);color:var(--color-accent)}
+.ds-an-done::before{content:"✓ "}
+.ds-an-input{min-height:var(--tap);min-width:120px;padding:0 var(--space-3);border:1px solid var(--color-control);border-radius:var(--radius-sm);background:var(--color-surface);color:var(--color-ink);font:600 var(--text-md)/1.2 var(--font-body)}
+@media(max-width:560px){.ds-an-input{width:100%}}

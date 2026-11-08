@@ -1,10 +1,8 @@
-import { esc } from '../../app/format';
 import { state } from '../../app/state';
 import { backAction, guardRoute, hashFor, parseRoute, titleFor, type HistoryTag, type Route } from '../../app/steps';
-import { applyTheme, refreshAll } from '../events';
+import { applyTheme } from '../events';
 import { renderStyleGuide } from '../styleGuide';
 import { hideSheet } from '../components/sheet';
-import { setAnalystHost } from '../analyst/sheet';
 import { carsHtml, newAddCarForm, type AddCarForm } from './cars';
 import { decisionHtml } from './decision';
 import { drivingHtml } from './driving';
@@ -22,7 +20,6 @@ export const addCarForm: { value: AddCarForm } = { value: newAddCarForm() };
 export const currentRoute = (): Route => current;
 
 const el = (id: string): HTMLElement | null => document.getElementById(id);
-const oldMain = (): HTMLElement | null => document.querySelector('main:not(#steps):not(#answer-screen)');
 
 /** Re-render the step on show, then put focus back on the control that matches `focusSelector` (if any). */
 export function renderStep(focusSelector?: string): void {
@@ -47,13 +44,6 @@ export function rerenderScreen(): void {
   if (key) host.querySelector<HTMLElement>(key)?.focus();
 }
 
-/** Bar under "All the details" (the old page): back to the answer, or change the step answers. */
-function detailsBar(): void {
-  const bar = el('answer-bar');
-  if (!bar) return;
-  bar.innerHTML = `<div class="ds-app-bar-inner"><button type="button" class="ds-btn ds-btn-primary" data-act="st-toanswer" id="st-toanswer">${esc('Back to my answer')}</button><button type="button" class="ds-btn ds-btn-secondary" data-act="st-edit" id="st-edit">${esc('Change my answers')}</button></div>`;
-}
-
 /** Re-render the answer screen in place (after a Fine-tune edit), keeping focus where it is. */
 export function renderAnswer(): void {
   const host = el('answer-screen');
@@ -66,16 +56,11 @@ function show(route: Route, focus: boolean): void {
   rendered = hashFor(route);
   const isStep = route === 'step-1' || route === 'step-2' || route === 'step-3';
   const steps = el('steps');
-  const main = oldMain();
   const guide = el('style-guide');
-  const bar = el('answer-bar');
   const ans = el('answer-screen');
   if (steps) steps.hidden = !isStep;
   if (ans) ans.hidden = route !== 'answer';
-  if (main) main.hidden = route !== 'details';
   if (guide) guide.hidden = route !== 'style-guide';
-  if (bar) bar.hidden = route !== 'details';
-  document.body.classList.toggle('has-answer-bar', route === 'details');
   if (route !== 'style-guide') hideSheet();
   if (leavingGuide) applyTheme();
   document.title = titleFor(route, state.g.disposal);
@@ -92,15 +77,6 @@ function show(route: Route, focus: boolean): void {
     if (focus) {
       window.scrollTo(0, 0);
       el('ans-title')?.focus();
-    }
-  } else if (route === 'details') {
-    setAnalystHost('analyst');
-    refreshAll();
-    detailsBar();
-    if (focus) {
-      const h = el('answer-title');
-      h?.focus({ preventScroll: true });
-      h?.scrollIntoView({ block: 'start' });
     }
   } else renderStyleGuide();
 }
@@ -154,7 +130,8 @@ function onLocationChange(): void {
   if (location.hash === rendered || (location.hash === '' && rendered === '#step-1')) return;
   if (isShareHash(location.hash)) return openShare(location.hash, true);
   const g = guardRoute(parseRoute(location.hash), state);
-  if (g.replace) history.replaceState({ tbl: true, prev: null } satisfies HistoryTag, '', hashFor(g.route));
+  // A guarded, unknown or renamed hash (#details) is corrected in the address without adding a history entry.
+  if (g.replace || location.hash !== hashFor(g.route)) history.replaceState({ tbl: true, prev: null } satisfies HistoryTag, '', hashFor(g.route));
   show(g.route, true);
 }
 

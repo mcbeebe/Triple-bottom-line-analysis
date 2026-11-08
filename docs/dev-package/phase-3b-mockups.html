@@ -1,0 +1,451 @@
+<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Phase 3b Fine-tune Mockups</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&family=Source+Serif+4:opsz,wght@8..60,600&display=swap" rel="stylesheet">
+<style>/* Design tokens (Phase 1). Ledger is the default; Night applies when body[data-theme="night"].
+   Names are new (--color-*, --space-*, ...) so the old page's variables are untouched.
+   Contrast targets are enforced by src/ui/tokens.test.ts. */
+:root{
+  --color-bg:#f6f3ec;--color-surface:#fffdf8;--color-soft:#efe9da;--color-tint:#e3efe9;
+  --color-ink:#1d2a24;--color-muted:#5d6a63;--color-line:#ddd6c6;--color-control:#7d8478;
+  --color-accent:#1f5f4a;--color-on-accent:#ffffff;
+  --font-body:"Inter",system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;
+  --font-head:"Source Serif 4","Iowan Old Style",Georgia,serif;
+  --text-xs:11px;--text-sm:13px;--text-md:15px;--text-lg:18px;--text-xl:24px;
+  --space-1:4px;--space-2:8px;--space-3:12px;--space-4:16px;--space-5:20px;--space-6:24px;--space-7:32px;
+  --radius-sm:10px;--radius-md:12px;--radius-lg:14px;--radius-pill:999px;
+  --tap:44px;--tap-lg:48px;
+  --shadow-sheet:0 -8px 28px rgba(60,50,20,.16);--backdrop:rgba(20,26,22,.45)
+}
+body[data-theme="night"]{
+  --color-bg:#0d1218;--color-surface:#151c24;--color-soft:#1b2530;--color-tint:#16302a;
+  --color-ink:#e6edf3;--color-muted:#8b98a6;--color-line:#263241;--color-control:#6b7a8b;
+  --color-accent:#4cc9a0;--color-on-accent:#06130e;
+  --shadow-sheet:0 -8px 28px rgba(0,0,0,.5);--backdrop:rgba(0,0,0,.6)
+}
+</style><style>/* Styles for ds- components (Phase 1). Loaded after style.css so ds- rules win ties;
+   every rule targets a ds- class, so the old page is unaffected. */
+.ds-guide,.ds-sheet,.ds-app,.ds-app-bar{font-family:var(--font-body);color:var(--color-ink);font-size:var(--text-md);line-height:1.5}
+.ds-guide :focus-visible,.ds-sheet :focus-visible,.ds-backdrop :focus-visible,.ds-app :focus-visible,.ds-app-bar :focus-visible{outline:2px solid var(--color-accent);outline-offset:2px}
+.ds-guide [tabindex="-1"]:focus,.ds-sheet[tabindex="-1"]:focus,.ds-app [tabindex="-1"]:focus{outline:none}
+
+/* buttons */
+.ds-btn{appearance:none;display:inline-flex;align-items:center;justify-content:center;gap:var(--space-2);min-height:var(--tap-lg);min-width:var(--tap);padding:var(--space-3) var(--space-4);border-radius:var(--radius-md);border:1px solid var(--color-accent);font:600 var(--text-md)/1.2 var(--font-body);cursor:pointer;text-align:center}
+.ds-btn-primary{background:var(--color-accent);color:var(--color-on-accent)}
+.ds-btn-secondary{background:transparent;color:var(--color-accent)}
+.ds-btn-link{background:transparent;border-color:transparent;color:var(--color-accent);min-height:var(--tap);padding:var(--space-2) var(--space-2);font-size:var(--text-sm);text-decoration:underline;text-underline-offset:3px}
+.ds-btn-full{display:flex;width:100%}
+.ds-btn:disabled{cursor:not-allowed;opacity:.55}
+.ds-btn-link:disabled{text-decoration:none;color:var(--color-muted)}
+
+/* chips */
+.ds-chip{appearance:none;display:inline-flex;flex-direction:column;align-items:flex-start;justify-content:center;min-height:var(--tap);min-width:var(--tap);padding:var(--space-2) var(--space-4);border-radius:var(--radius-pill);border:1px solid var(--color-control);background:var(--color-bg);color:var(--color-ink);font:600 var(--text-sm)/1.2 var(--font-body);cursor:pointer;text-align:left}
+.ds-chip small{display:block;font-size:var(--text-xs);font-weight:400;color:var(--color-muted);margin-top:2px}
+.ds-chip-on{background:var(--color-accent);border-color:var(--color-accent);color:var(--color-on-accent)}
+.ds-chip-on small{color:inherit}
+.ds-chips{display:flex;flex-wrap:wrap;gap:var(--space-2)}
+
+/* option buttons (Step 1) */
+.ds-option{appearance:none;display:block;width:100%;min-height:64px;padding:var(--space-4);border-radius:var(--radius-lg);border:1px solid var(--color-control);background:var(--color-surface);color:var(--color-ink);text-align:left;cursor:pointer;font-family:var(--font-body)}
+.ds-option-on{background:var(--color-tint);border:2px solid var(--color-accent);padding:calc(var(--space-4) - 1px)}
+.ds-option-title{display:block;font-weight:600;font-size:var(--text-md)}
+.ds-option-sub{display:block;margin-top:2px;font-size:var(--text-sm);color:var(--color-muted)}
+.ds-options{display:grid;gap:var(--space-3)}
+.ds-or{margin:var(--space-4) 0 var(--space-2);text-align:center;font-size:var(--text-sm);color:var(--color-muted)}
+.ds-option-ai{border-style:dashed}
+
+/* step header and footer */
+.ds-step{margin:0 0 var(--space-5)}
+.ds-step-count{margin:0 0 var(--space-2);font:600 var(--text-sm)/1.3 var(--font-body);color:var(--color-muted)}
+.ds-progress{display:flex;gap:6px;margin:0 0 var(--space-4)}
+.ds-seg{flex:1;height:4px;border-radius:2px;background:var(--color-line)}
+.ds-seg-on{background:var(--color-accent)}
+.ds-step-title{margin:0;font:600 var(--text-xl)/1.2 var(--font-head);color:var(--color-ink);text-transform:none;letter-spacing:0}
+.ds-step-sub{margin:var(--space-2) 0 0;font-size:var(--text-md);color:var(--color-muted)}
+.ds-step-nav{display:flex;justify-content:space-between;align-items:center;gap:var(--space-3);margin-top:var(--space-4)}
+
+/* option card (answer screen) */
+.ds-card{background:var(--color-surface);border:1px solid var(--color-line);border-radius:var(--radius-lg);padding:var(--space-4)}
+.ds-card-top{background:var(--color-tint);border:2px solid var(--color-accent);padding:calc(var(--space-4) - 1px)}
+.ds-card-head{display:flex;justify-content:space-between;align-items:flex-start;gap:var(--space-3)}
+.ds-card-names{min-width:0}
+.ds-card-name{margin:0;font:600 var(--text-md)/1.3 var(--font-body);color:var(--color-ink);text-transform:none;letter-spacing:0;overflow-wrap:anywhere}
+.ds-card-tag{margin:2px 0 0;font:600 var(--text-xs)/1.3 var(--font-body);letter-spacing:.06em;text-transform:uppercase;color:var(--color-accent)}
+.ds-card-score{margin:0;white-space:nowrap;color:var(--color-ink)}
+.ds-card-score b{font:600 28px/1 var(--font-head)}
+.ds-card-score span{font-size:var(--text-sm);color:var(--color-muted);margin-left:2px}
+.ds-card-stats{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:var(--space-2);margin:var(--space-3) 0 0;padding-top:var(--space-3);border-top:1px solid var(--color-line)}
+.ds-card-stats div{min-width:0}
+.ds-card-stats dt{font-size:var(--text-xs);color:var(--color-muted)}
+.ds-card-stats dd{margin:0;font-weight:600;font-variant-numeric:tabular-nums;overflow-wrap:anywhere}
+.ds-cards{display:grid;gap:var(--space-3)}
+@media(min-width:1024px){.ds-cards{grid-template-columns:repeat(2,minmax(0,1fr))}}
+
+/* disclosure */
+.ds-disc{background:var(--color-surface);border:1px solid var(--color-line);border-radius:var(--radius-md)}
+.ds-disc-sum{display:flex;justify-content:space-between;align-items:center;gap:var(--space-3);min-height:var(--tap-lg);padding:0 var(--space-4);cursor:pointer;list-style:none;font-weight:600}
+.ds-disc-sum::-webkit-details-marker{display:none}
+.ds-disc-sum::after{content:"Show";font-size:var(--text-sm);color:var(--color-accent);flex:none}
+.ds-disc[open]>.ds-disc-sum::after{content:"Hide"}
+.ds-disc-title{min-width:0}
+.ds-disc-meta{margin-left:auto;font-weight:400;font-size:var(--text-sm);color:var(--color-muted)}
+.ds-disc-body{padding:0 var(--space-4) var(--space-4)}
+
+/* field */
+.ds-field{margin:0 0 var(--space-4)}
+.ds-label{display:block;margin:0 0 6px;font:600 var(--text-sm)/1.3 var(--font-body);color:var(--color-ink)}
+.ds-input{display:flex;align-items:center;gap:var(--space-2);min-height:var(--tap-lg);padding:0 var(--space-3);background:var(--color-surface);border:1px solid var(--color-control);border-radius:var(--radius-sm)}
+.ds-input:focus-within{outline:2px solid var(--color-accent);outline-offset:2px}
+.ds-input input{flex:1;min-width:0;width:100%;min-height:var(--tap);border:0;background:transparent;padding:0;font:600 var(--text-lg)/1.2 var(--font-body);color:var(--color-ink);font-variant-numeric:tabular-nums}
+.ds-input input:focus-visible{outline:none}
+.ds-prefix,.ds-unit{color:var(--color-muted);font-size:var(--text-sm)}
+.ds-hint{margin:6px 0 0;font-size:var(--text-sm);color:var(--color-muted)}
+
+/* bottom sheet */
+.ds-backdrop{position:fixed;inset:0;z-index:50;display:flex;align-items:flex-end;justify-content:center;background:var(--backdrop)}
+.ds-backdrop[hidden]{display:none}
+.ds-sheet{width:min(560px,100%);max-height:85vh;max-height:85dvh;overflow:auto;background:var(--color-surface);border-radius:var(--radius-lg) var(--radius-lg) 0 0;box-shadow:var(--shadow-sheet);padding:var(--space-4) var(--space-5) var(--space-6)}
+.ds-sheet-head{display:flex;justify-content:space-between;align-items:center;gap:var(--space-3);margin-bottom:var(--space-3)}
+.ds-sheet-title{margin:0;font:600 var(--text-lg)/1.3 var(--font-head);color:var(--color-ink);text-transform:none;letter-spacing:0}
+html.ds-scroll-lock,html.ds-scroll-lock body{overflow:hidden}
+
+/* style guide page */
+.ds-guide{background:var(--color-bg);min-height:100vh;padding:var(--space-5) var(--space-4) var(--space-7)}
+.ds-guide-inner{max-width:960px;margin:0 auto;display:grid;grid-template-columns:minmax(0,1fr);gap:var(--space-6)}
+.ds-guide-title{margin:0;font:600 28px/1.2 var(--font-head);color:var(--color-ink)}
+.ds-guide-lead{margin:var(--space-2) 0 0;color:var(--color-muted);max-width:65ch}
+.ds-guide-sec{background:var(--color-surface);border:1px solid var(--color-line);border-radius:var(--radius-lg);padding:var(--space-4)}
+.ds-guide-h{margin:0 0 var(--space-3);font:600 var(--text-lg)/1.3 var(--font-head);color:var(--color-ink);text-transform:none;letter-spacing:0}
+.ds-guide-row{display:flex;flex-wrap:wrap;gap:var(--space-3);align-items:center}
+.ds-guide-col{max-width:560px;display:grid;gap:var(--space-3)}
+.ds-guide-note{margin:0;font-size:var(--text-sm);color:var(--color-muted)}
+.ds-swatches{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:var(--space-2);margin:0;padding:0;list-style:none}
+.ds-swatch{display:flex;align-items:center;gap:var(--space-2);font-size:var(--text-sm)}
+.ds-swatch i{width:28px;height:28px;border-radius:6px;border:1px solid var(--color-control);flex:none}
+.ds-guide-col+.ds-guide-col{margin-top:var(--space-6);padding-top:var(--space-5);border-top:1px dashed var(--color-line)}
+/* field: label row with status, error state (Phase 2) */
+.ds-label-row{display:flex;justify-content:space-between;align-items:baseline;gap:var(--space-2);margin:0 0 6px}
+.ds-label-row .ds-label{margin:0}
+.ds-error{margin:4px 0 0;font:600 var(--text-sm)/1.4 var(--font-body);color:var(--color-ink)}
+.ds-error:empty{display:none}
+.ds-field-invalid .ds-input{border:2px solid var(--color-ink);padding:0 calc(var(--space-3) - 1px)}
+.ds-field-invalid .ds-error::before{content:"! ";font-weight:700}
+/* visually hidden text for screen readers */
+.ds-sr{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap;border:0}
+/* status label: Placeholder, Source, Your number */
+.ds-status{display:inline-flex;align-items:center;font:600 var(--text-xs)/1.2 var(--font-body);letter-spacing:.06em;text-transform:uppercase;color:var(--color-muted)}
+.ds-status-yours{color:var(--color-accent)}
+a.ds-status-src{color:var(--color-accent);min-height:var(--tap);min-width:var(--tap);justify-content:flex-end;text-decoration:underline;text-underline-offset:3px}
+/* check row */
+.ds-check{display:flex;align-items:center;gap:var(--space-2);min-height:52px;padding:var(--space-1) var(--space-3) var(--space-1) var(--space-1);background:var(--color-surface);border:1px solid var(--color-line);border-radius:var(--radius-md)}
+.ds-check-on{background:var(--color-tint);border-color:var(--color-accent)}
+.ds-check-ctl{position:relative;flex:none;width:var(--tap);height:var(--tap);display:grid;place-items:center}
+.ds-check-input{position:absolute;inset:0;width:var(--tap);height:var(--tap);margin:0;opacity:0;cursor:pointer}
+.ds-check-box{width:22px;height:22px;border:2px solid var(--color-control);border-radius:5px;background:var(--color-surface);display:grid;place-items:center}
+.ds-check-input:checked+.ds-check-box{background:var(--color-accent);border-color:var(--color-accent)}
+.ds-check-input:checked+.ds-check-box::after{content:"";width:6px;height:11px;border:solid var(--color-on-accent);border-width:0 3px 3px 0;transform:translateY(-1px) rotate(45deg)}
+.ds-check-input:focus-visible+.ds-check-box{outline:2px solid var(--color-accent);outline-offset:3px}
+.ds-check-input:disabled{cursor:not-allowed}
+.ds-check-input:disabled+.ds-check-box{opacity:.45}
+.ds-check-input:disabled~*,.ds-check:has(.ds-check-input:disabled) .ds-check-label{color:var(--color-muted)}
+.ds-check-label{flex:1;min-width:0;display:flex;flex-direction:column;justify-content:center;min-height:var(--tap);cursor:pointer}
+.ds-check-name{font-weight:600;font-size:var(--text-md);overflow-wrap:anywhere}
+.ds-check-detail{font-size:var(--text-sm);color:var(--color-muted)}
+.ds-checks{display:grid;gap:var(--space-2);margin:0;padding:0;border:0;min-width:0}
+.ds-checks legend{padding:0;margin:0 0 var(--space-2);font:600 var(--text-xs)/1.3 var(--font-body);letter-spacing:.06em;text-transform:uppercase;color:var(--color-muted)}
+/* slider */
+.ds-slider{margin:0 0 var(--space-4)}
+.ds-slider-row{display:flex;align-items:center;gap:var(--space-3)}
+.ds-slider-row input[type=range]{flex:1;min-width:0;height:var(--tap);margin:0;accent-color:var(--color-accent);cursor:pointer}
+.ds-slider-out{flex:none;min-width:84px;text-align:right;font:600 var(--text-lg)/1.2 var(--font-body);font-variant-numeric:tabular-nums;color:var(--color-ink)}
+
+/* guided steps (Phase 2) */
+.ds-app{background:var(--color-bg);min-height:100vh;padding:var(--space-5) var(--space-4) var(--space-7)}
+.ds-screen{max-width:540px;margin:0 auto;display:grid;grid-template-columns:minmax(0,1fr);gap:var(--space-4)}
+.ds-screen>.ds-step{margin:0}
+.ds-group-h{margin:var(--space-2) 0 0;font:600 var(--text-sm)/1.3 var(--font-body);color:var(--color-ink);text-transform:none;letter-spacing:0}
+.ds-note{margin:0;padding:var(--space-3) var(--space-4);border-radius:var(--radius-md);background:var(--color-soft);color:var(--color-ink);font-size:var(--text-sm)}
+.ds-count{margin:0;font:600 var(--text-sm)/1.4 var(--font-body);color:var(--color-ink)}
+.ds-groups{display:grid;gap:var(--space-5)}
+.ds-check-wrap{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:var(--space-2);align-items:center}
+.ds-subform{display:grid;gap:var(--space-2);padding:var(--space-4);border:1px solid var(--color-line);border-radius:var(--radius-lg);background:var(--color-surface)}
+.ds-subform .ds-field{margin:0 0 var(--space-2)}
+.ds-subform h3.ds-group-h{margin:0}
+.ds-radios{display:flex;flex-wrap:wrap;gap:var(--space-2);margin:0 0 var(--space-2);padding:0;border:0;min-width:0}
+.ds-radios legend{margin:0 0 6px;padding:0}
+.ds-radio{position:relative;display:inline-flex}
+.ds-radio input{position:absolute;inset:0;width:100%;height:100%;margin:0;opacity:0;cursor:pointer}
+.ds-radio span{display:inline-flex;align-items:center;min-height:var(--tap);min-width:var(--tap);padding:0 var(--space-4);border-radius:var(--radius-pill);border:1px solid var(--color-control);background:var(--color-bg);color:var(--color-ink);font:600 var(--text-sm)/1 var(--font-body)}
+.ds-radio input:checked+span{background:var(--color-accent);border-color:var(--color-accent);color:var(--color-on-accent)}
+.ds-radio input:focus-visible+span{outline:2px solid var(--color-accent);outline-offset:2px}
+.ds-app .ds-step-nav{margin-top:0}
+.ds-app-bar{position:fixed;left:0;right:0;bottom:0;z-index:40;background:var(--color-surface);border-top:1px solid var(--color-line);box-shadow:0 -4px 16px rgba(0,0,0,.08)}
+.ds-app-bar[hidden]{display:none}
+.ds-app-bar-inner{max-width:1040px;margin:0 auto;padding:var(--space-2) var(--space-4);display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:var(--space-2) var(--space-3)}
+.ds-app-bar-note{margin:0;font-size:var(--text-sm);color:var(--color-ink)}
+body.has-answer-bar{padding-bottom:88px}
+/* answer screen (Phase 3a) */
+.ds-answer{max-width:1040px;margin:0 auto;display:grid;grid-template-columns:minmax(0,1fr);gap:var(--space-5)}
+.ds-answer-main,.ds-answer-side{display:grid;gap:var(--space-4);align-content:start;min-width:0}
+.ds-answer-title{margin:0;font:600 26px/1.25 var(--font-head);color:var(--color-ink);text-wrap:balance}
+.ds-basis{margin:0;display:flex;flex-wrap:wrap;align-items:center;gap:0 var(--space-2);font-size:var(--text-sm);color:var(--color-muted)}
+.ds-answer-note{margin:0;font-size:var(--text-sm);color:var(--color-ink)}
+.ds-answer-cards{grid-template-columns:minmax(0,1fr)}
+.ds-change{background:var(--color-surface);border:1px solid var(--color-line);border-radius:var(--radius-lg);padding:var(--space-4)}
+.ds-change-h{margin:0 0 var(--space-2);font:600 var(--text-xs)/1.3 var(--font-body);letter-spacing:.06em;text-transform:uppercase;color:var(--color-muted)}
+.ds-change p{margin:0 0 var(--space-2)}
+.ds-change p:last-child{margin-bottom:0}
+.ds-actions{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:var(--space-2)}
+.ds-actions>:last-child:nth-child(odd){grid-column:1/-1}
+.ds-notice{grid-column:1/-1;font-size:var(--text-sm);color:var(--color-muted);border-top:1px solid var(--color-line);padding-top:var(--space-3)}
+.ds-notice p{margin:0}
+.ds-notice .ds-btn-link{padding-left:0}
+@media(min-width:1024px){.ds-answer{grid-template-columns:minmax(0,1.6fr) minmax(0,1fr);column-gap:var(--space-7)}.ds-actions{grid-template-columns:minmax(0,1fr)}}
+.ds-ft-group legend.ds-label-row{display:flex;width:100%}
+.ds-ft-more{display:grid;gap:var(--space-2);margin-top:var(--space-3)}
+.ds-sheet .ds-slider,.ds-sheet .ds-field{margin-bottom:var(--space-3)}
+/* share sheet */
+.ds-kvs{display:grid;gap:var(--space-2);margin:0}
+.ds-kv{display:grid;gap:2px}
+.ds-kv dt{font:600 var(--text-xs)/1.3 var(--font-body);letter-spacing:.06em;text-transform:uppercase;color:var(--color-muted)}
+.ds-kv dd{margin:0;color:var(--color-ink)}
+.ds-sheet-body{display:grid;gap:var(--space-3)}
+#share-link{font:400 var(--text-sm)/1.2 var(--font-body)}
+
+/* Ask the analyst sheet (owner reversed P8; Phase 4 rebuilds the panel) */
+.ds-btn[hidden]{display:none}
+.ds-ai{display:grid;gap:var(--space-3)}
+.ds-ai textarea{width:100%;min-height:96px;padding:var(--space-3);border:1px solid var(--color-control);border-radius:var(--radius-sm);background:var(--color-surface);color:var(--color-ink);font:400 var(--text-md)/1.4 var(--font-body);resize:vertical;box-sizing:border-box}
+.ds-ai input,.ds-ai select{min-height:var(--tap);padding:0 var(--space-3);border:1px solid var(--color-control);border-radius:var(--radius-sm);background:var(--color-surface);color:var(--color-ink);font:inherit}
+.ds-ai .ds-label{margin:0}
+.ds-ai .ds-chip{font-weight:400}
+.ds-ai-foot{padding-top:var(--space-3);border-top:1px solid var(--color-line)}
+</style>
+<style>
+/* proposed, not built yet */
+.ds-table-wrap{overflow-x:auto;border:1px solid var(--color-line);border-radius:var(--radius-md)}
+.mock-gridtab{border-collapse:separate;border-spacing:0;font-size:var(--text-sm)}
+.mock-gridtab th,.mock-gridtab td{padding:var(--space-2);border-bottom:1px solid var(--color-line);text-align:left;vertical-align:middle;background:var(--color-surface)}
+.mock-gridtab thead th{font-weight:600;white-space:nowrap}
+.mock-gridtab tbody th{position:sticky;left:0;z-index:1;min-width:120px;max-width:140px;font-weight:600;box-shadow:1px 0 0 var(--color-line)}
+.mock-gridtab thead th:first-child{position:sticky;left:0;z-index:2}
+.mock-gridtab small{display:block;font-weight:400;color:var(--color-muted)}
+.mock-grid-sec th{background:var(--color-soft)!important;font-size:var(--text-xs);letter-spacing:.06em;text-transform:uppercase;color:var(--color-muted)}
+.mock-cell{width:96px;min-height:var(--tap);box-sizing:border-box;padding:0 var(--space-2);border:1px solid var(--color-control);border-radius:var(--radius-sm);font:600 var(--text-md)/1 var(--font-body);background:var(--color-surface);color:var(--color-ink)}
+.mock-na{color:var(--color-muted);text-align:center}
+/* page chrome */
+body{margin:0;background:#e9e5da;font-family:var(--font-body);color:var(--color-ink)}
+.mock-page{padding:32px;max-width:1400px;margin:0 auto}
+.mock-title{font:600 30px/1.2 var(--font-head);margin:0 0 12px}
+.mock-lead{max-width:92ch;margin:0 0 10px;font-size:15px;line-height:1.55;color:var(--color-muted)}
+.mock-grid{display:flex;flex-wrap:wrap;gap:40px 32px;align-items:flex-start;margin-top:28px}
+.mock-item{width:390px}.mock-wide-item{width:1088px}
+.mock-cap{margin:0 0 8px;font:600 14px/1.35 var(--font-body);min-height:56px}
+.mock-cap b{display:inline-block;min-width:1.6em}
+.mock-note{margin-top:12px;font-size:14px;line-height:1.5}
+.mock-note ul{margin:6px 0 0;padding-left:18px}
+.phone{position:relative;width:390px;height:1000px;box-sizing:border-box;border:1px solid #b9b2a2;border-radius:32px;overflow:hidden;background:var(--color-bg);box-shadow:0 6px 24px rgba(40,30,10,.12)}
+.mock-behind{padding:var(--space-5) var(--space-4) 56px;opacity:.5}
+.mock-behind .ds-verdict{font:600 20px/1.3 var(--font-head);margin:0}
+.phone-sheet::before{content:"";position:absolute;inset:0;background:var(--backdrop);z-index:1}
+.mock-sheet-wrap{position:relative;z-index:2;margin-top:-28px}
+.mock-sheet-wrap .ds-backdrop{position:static;display:block;background:none}
+.mock-sheet-wrap .ds-sheet{width:100%;max-height:none;box-sizing:border-box}
+.mock-crumb{margin:0;font-size:var(--text-xs);color:var(--color-muted)}
+.mock-more{margin:0;font-size:var(--text-sm);color:var(--color-muted);font-style:italic}
+.wide{width:1088px;height:760px;overflow:hidden;box-sizing:border-box;border:1px solid #b9b2a2;border-radius:16px;background:var(--color-bg);box-shadow:0 6px 24px rgba(40,30,10,.12)}
+.mock-desk{display:grid;grid-template-columns:minmax(0,1fr) 440px;height:100%}
+.mock-desk-main{padding:32px;display:grid;gap:16px;align-content:start}
+.mock-desk-main .ds-cards{grid-template-columns:minmax(0,1fr)}
+.mock-desk-panel{border-left:1px solid var(--color-line);background:var(--color-surface);overflow:hidden}
+.mock-desk-panel .ds-backdrop{position:static;display:block;background:none}
+.mock-desk-panel .ds-sheet{width:100%;max-height:none;border-radius:0;box-shadow:none;box-sizing:border-box}
+.mock-tag{display:inline-block;margin-left:6px;padding:2px 8px;border-radius:999px;background:var(--color-accent);color:var(--color-on-accent);font-size:12px}
+</style></head><body><div class="mock-page">
+<h1 class="mock-title">Phase 3b: where each car’s numbers live in Fine-tune (mockup)</h1>
+<p class="mock-lead">For approval before code. Real design-system renderers and real values at the public defaults (your gas sedan, Chevy Bolt, Toyota Camry Hybrid, Toyota Corolla). Today these numbers sit in one wide grid on the old page: up to 17 inputs × 5 cars. Everything else in 3b follows the Phase 3 mockups you already approved (Why this result, Fine-tune top drivers and Scoring, Table).</p>
+<p class="mock-lead">Each frame is the Fine-tune sheet on a 390 px phone, scrolled to “Your cars’ numbers”. Inputs are the real 44 px fields with their Source / Placeholder labels.</p>
+<div class="mock-grid">
+<section class="mock-item"><p class="mock-cap"><b>A</b> One car at a time <span class="mock-tag">Recommended</span></p><div class="phone phone-sheet"><div class="mock-behind" aria-hidden="true"><p class="ds-verdict">It is close. Keeping your gas sedan and the Chevy Bolt (loan) are within 2 points.</p></div><div class="mock-sheet-wrap"><div class="ds-backdrop" data-sheet="fa"><section class="ds-sheet" id="fa" role="dialog" aria-modal="true" aria-labelledby="fa-title" tabindex="-1">
+<div class="ds-sheet-head"><h2 id="fa-title" class="ds-sheet-title">Fine-tune</h2><button type="button" class="ds-btn ds-btn-link ds-sheet-close" data-sheet-close>Close</button></div>
+<div class="ds-sheet-body"><p class="mock-crumb">Fine-tune › All assumptions › <b>Your cars’ numbers</b></p><p class="ds-guide-note">Pick a car, then change any of its numbers. The answer updates as you type.</p><fieldset class="ds-radios"><legend class="ds-label">Car</legend><label class="ds-radio"><input type="radio" name="a-car" ><span>Your gas sedan</span></label><label class="ds-radio"><input type="radio" name="a-car" checked><span>Chevy Bolt</span></label><label class="ds-radio"><input type="radio" name="a-car" ><span>Toyota Camry Hybrid</span></label><label class="ds-radio"><input type="radio" name="a-car" ><span>Toyota Corolla</span></label></fieldset><h3 class="ds-group-h">Price and efficiency</h3><div class="ds-field"><div class="ds-label-row"><label for="a-0-0" class="ds-label">Price</label><a class="ds-status ds-status-src" href="https://autofinder.com/deals/lease/chevrolet/bolt/2027" target="_blank" rel="noopener">Source<span class="ds-sr">: AutoFinder (Oct 2026): Bolt LT $28,995 MSRP, $477/mo, $2,977 due, 36 mo, 12k mi/yr (opens in a new tab)</span></a></div>
+<div class="ds-input"><span class="ds-prefix" aria-hidden="true">$</span><input id="a-0-0" type="text" inputmode="numeric" autocomplete="off" value="28,995" aria-describedby="a-0-0-hint a-0-0-error" data-num="a-0-0" data-min="1000" data-max="150000" data-step="250" data-example="28995" data-last="28995" data-money="1"></div>
+<p class="ds-hint" id="a-0-0-hint">Allowed: $1,000 to $150,000.</p>
+<p class="ds-error" id="a-0-0-error" aria-live="polite"></p></div><div class="ds-field"><div class="ds-label-row"><label for="a-0-1" class="ds-label">Energy use (EPA-style)</label><a class="ds-status ds-status-src" href="https://www.fueleconomy.gov/feg/PowerSearch.do?action=noform&amp;path=1&amp;year1=2027&amp;year2=2027&amp;make=Chevrolet&amp;baseModel=Bolt&amp;srchtyp=ymm&amp;pageno=1&amp;rowLimit=50" target="_blank" rel="noopener">Source<span class="ds-sr">: fueleconomy.gov: 2027 Bolt 120 MPGe, 28 kWh/100 mi, 262 mi EPA range (opens in a new tab)</span></a></div>
+<div class="ds-input"><input id="a-0-1" type="text" inputmode="decimal" autocomplete="off" value="28.0" aria-describedby="a-0-1-hint a-0-1-error" data-num="a-0-1" data-min="15" data-max="60" data-step="0.5" data-example="28" data-last="28" data-unit="kWh/100mi"><span class="ds-unit">kWh/100mi</span></div>
+<p class="ds-hint" id="a-0-1-hint">Allowed: 15.0 to 60.0 kWh/100mi.</p>
+<p class="ds-error" id="a-0-1-error" aria-live="polite"></p></div><div class="ds-field"><div class="ds-label-row"><label for="a-0-2" class="ds-label">Real-world adjustment vs label</label><span class="ds-status ds-status-ph">Placeholder</span></div>
+<div class="ds-input"><input id="a-0-2" type="text" inputmode="decimal" autocomplete="off" value="1.00" aria-describedby="a-0-2-hint a-0-2-error" data-num="a-0-2" data-min="0.8" data-max="1.5" data-step="0.01" data-example="1" data-last="1" data-unit="x"><span class="ds-unit">x</span></div>
+<p class="ds-hint" id="a-0-2-hint">Allowed: 0.80 to 1.50 x.</p>
+<p class="ds-error" id="a-0-2-error" aria-live="polite"></p></div><h3 class="ds-group-h">Running costs</h3><div class="ds-field"><div class="ds-label-row"><label for="a-1-0" class="ds-label">Maintenance &amp; repair</label><a class="ds-status ds-status-src" href="https://newsroom.aaa.com/wp-content/uploads/2025/09/AAA-Brochure-Your-Driving-Cost-9.2025.pdf" target="_blank" rel="noopener">Source<span class="ds-sr">: AAA Your Driving Costs 2025: maintenance, repair, tires by category (opens in a new tab)</span></a></div>
+<div class="ds-input"><span class="ds-prefix" aria-hidden="true">$</span><input id="a-1-0" type="text" inputmode="decimal" autocomplete="off" value="0.101" aria-describedby="a-1-0-hint a-1-0-error" data-num="a-1-0" data-min="0.03" data-max="0.5" data-step="0.005" data-example="0.1007" data-last="0.1007" data-money="1"></div>
+<p class="ds-hint" id="a-1-0-hint">Allowed: $0.030 to $0.500.</p>
+<p class="ds-error" id="a-1-0-error" aria-live="polite"></p></div><div class="ds-field"><div class="ds-label-row"><label for="a-1-1" class="ds-label">Insurance</label><span class="ds-status ds-status-ph">Placeholder</span></div>
+<div class="ds-input"><span class="ds-prefix" aria-hidden="true">$</span><input id="a-1-1" type="text" inputmode="numeric" autocomplete="off" value="1,900" aria-describedby="a-1-1-hint a-1-1-error" data-num="a-1-1" data-min="300" data-max="8000" data-step="50" data-example="1900" data-last="1900" data-money="1"></div>
+<p class="ds-hint" id="a-1-1-hint">Allowed: $300 to $8,000.</p>
+<p class="ds-error" id="a-1-1-error" aria-live="polite"></p></div><h3 class="ds-group-h">Value and footprint</h3><div class="ds-field"><div class="ds-label-row"><label for="a-2-0" class="ds-label">5-year value loss</label><span class="ds-status ds-status-ph">Placeholder</span></div>
+<div class="ds-input"><input id="a-2-0" type="text" inputmode="numeric" autocomplete="off" value="60" aria-describedby="a-2-0-hint a-2-0-error" data-num="a-2-0" data-min="10" data-max="85" data-step="1" data-example="60" data-last="60" data-unit="%"><span class="ds-unit">%</span></div>
+<p class="ds-hint" id="a-2-0-hint">Allowed: 10 to 85 %.</p>
+<p class="ds-error" id="a-2-0-error" aria-live="polite"></p></div><div class="ds-field"><div class="ds-label-row"><label for="a-2-1" class="ds-label">Manufacturing emissions</label><span class="ds-status ds-status-ph">Placeholder</span></div>
+<div class="ds-input"><input id="a-2-1" type="text" inputmode="decimal" autocomplete="off" value="7.5" aria-describedby="a-2-1-hint a-2-1-error" data-num="a-2-1" data-min="2" data-max="30" data-step="0.5" data-example="7.5" data-last="7.5" data-unit="t"><span class="ds-unit">t</span></div>
+<p class="ds-hint" id="a-2-1-hint">Allowed: 2.0 to 30.0 t.</p>
+<p class="ds-error" id="a-2-1-error" aria-live="polite"></p></div><p class="mock-more">… then Incentives, Loan, Lease (or “+ Add a lease”), and Rename for your own cars</p></div></section></div></div></div><div class="mock-note"><b>Pros:</b><ul><li>Full-size fields with Source/Placeholder labels and allowed ranges, same as the rest of Fine-tune.</li><li>Works at 320 px and 200% text; no sideways scrolling.</li><li>One renderer for phone and desktop; easiest to test.</li></ul><b>Cons:</b><ul><li>You can’t see two cars’ prices side by side while editing (the Table panel still compares them).</li></ul></div></section>
+<section class="mock-item"><p class="mock-cap"><b>B</b> Keep the grid, in a sideways-scrolling box</p><div class="phone phone-sheet"><div class="mock-behind" aria-hidden="true"><p class="ds-verdict">It is close. Keeping your gas sedan and the Chevy Bolt (loan) are within 2 points.</p></div><div class="mock-sheet-wrap"><div class="ds-backdrop" data-sheet="fb"><section class="ds-sheet" id="fb" role="dialog" aria-modal="true" aria-labelledby="fb-title" tabindex="-1">
+<div class="ds-sheet-head"><h2 id="fb-title" class="ds-sheet-title">Fine-tune</h2><button type="button" class="ds-btn ds-btn-link ds-sheet-close" data-sheet-close>Close</button></div>
+<div class="ds-sheet-body"><p class="mock-crumb">Fine-tune › All assumptions › <b>Your cars’ numbers</b></p><p class="ds-guide-note">Every car side by side. Swipe sideways to see more cars; the first column stays put.</p><div class="ds-table-wrap mock-gridwrap" role="region" aria-label="Your cars’ numbers, scrolls sideways" tabindex="0"><table class="mock-gridtab"><thead><tr><th scope="col">Input</th><th scope="col">Your gas sedan</th><th scope="col">Chevy Bolt</th><th scope="col">Toyota Camry Hybrid</th><th scope="col">Toyota Corolla</th></tr></thead><tbody><tr class="mock-grid-sec"><th colspan="5" scope="colgroup">Price and efficiency</th></tr><tr><th scope="row">What it would sell for<small>$</small></th><td><input class="mock-cell" type="text" value="9,000" aria-label="What it would sell for"></td><td><input class="mock-cell" type="text" value="28,995" aria-label="Price"></td><td><input class="mock-cell" type="text" value="30,495" aria-label="Price"></td><td><input class="mock-cell" type="text" value="24,620" aria-label="Price"></td></tr><tr><th scope="row">Fuel economy<small>mpg</small></th><td><input class="mock-cell" type="text" value="28.00" aria-label="Fuel economy"></td><td class="mock-na">-</td><td><input class="mock-cell" type="text" value="51.00" aria-label="Fuel economy"></td><td><input class="mock-cell" type="text" value="35.00" aria-label="Fuel economy"></td></tr><tr><th scope="row">Energy use (EPA-style)<small>kWh/100mi</small></th><td class="mock-na">-</td><td><input class="mock-cell" type="text" value="28.00" aria-label="Energy use (EPA-style)"></td><td class="mock-na">-</td><td class="mock-na">-</td></tr><tr><th scope="row">Real-world adjustment vs label<small>x</small></th><td class="mock-na">-</td><td><input class="mock-cell" type="text" value="1.00" aria-label="Real-world adjustment vs label"></td><td class="mock-na">-</td><td class="mock-na">-</td></tr><tr class="mock-grid-sec"><th colspan="5" scope="colgroup">Running costs</th></tr><tr><th scope="row">Maintenance &amp; repair<small>$/mi</small></th><td><input class="mock-cell" type="text" value="0.09" aria-label="Maintenance &amp; repair"></td><td><input class="mock-cell" type="text" value="0.10" aria-label="Maintenance &amp; repair"></td><td><input class="mock-cell" type="text" value="0.10" aria-label="Maintenance &amp; repair"></td><td><input class="mock-cell" type="text" value="0.10" aria-label="Maintenance &amp; repair"></td></tr><tr><th scope="row">Insurance<small>$/yr</small></th><td><input class="mock-cell" type="text" value="1,400" aria-label="Insurance"></td><td><input class="mock-cell" type="text" value="1,900" aria-label="Insurance"></td><td><input class="mock-cell" type="text" value="1,700" aria-label="Insurance"></td><td><input class="mock-cell" type="text" value="1,600" aria-label="Insurance"></td></tr><tr class="mock-grid-sec"><th colspan="5" scope="colgroup">Value and footprint</th></tr><tr><th scope="row">Value loss / yr<small>%</small></th><td><input class="mock-cell" type="text" value="8.00" aria-label="Value loss / yr"></td><td class="mock-na">-</td><td class="mock-na">-</td><td class="mock-na">-</td></tr><tr><th scope="row">5-year value loss<small>%</small></th><td class="mock-na">-</td><td><input class="mock-cell" type="text" value="60.00" aria-label="5-year value loss"></td><td><input class="mock-cell" type="text" value="35.40" aria-label="5-year value loss"></td><td><input class="mock-cell" type="text" value="31.30" aria-label="5-year value loss"></td></tr><tr><th scope="row">Manufacturing emissions<small>t</small></th><td class="mock-na">-</td><td><input class="mock-cell" type="text" value="7.50" aria-label="Manufacturing emissions"></td><td><input class="mock-cell" type="text" value="6.50" aria-label="Manufacturing emissions"></td><td><input class="mock-cell" type="text" value="6.00" aria-label="Manufacturing emissions"></td></tr></tbody></table></div><p class="mock-more">… then Incentives, Loan, Lease. Source links move to a list under the grid (no room in a cell).</p></div></section></div></div></div><div class="mock-note"><b>Pros:</b><ul><li>Closest to today; compare cars in one glance.</li></ul><b>Cons:</b><ul><li>On a phone you see about 2 cars, then swipe.</li><li>No room for each value’s Source link or allowed range in a cell; they move to a list below.</li><li>Hardest to make pass the 200% text and 320 px checks.</li></ul></div></section>
+<section class="mock-item"><p class="mock-cap"><b>C</b> One input at a time, every car under it</p><div class="phone phone-sheet"><div class="mock-behind" aria-hidden="true"><p class="ds-verdict">It is close. Keeping your gas sedan and the Chevy Bolt (loan) are within 2 points.</p></div><div class="mock-sheet-wrap"><div class="ds-backdrop" data-sheet="fc"><section class="ds-sheet" id="fc" role="dialog" aria-modal="true" aria-labelledby="fc-title" tabindex="-1">
+<div class="ds-sheet-head"><h2 id="fc-title" class="ds-sheet-title">Fine-tune</h2><button type="button" class="ds-btn ds-btn-link ds-sheet-close" data-sheet-close>Close</button></div>
+<div class="ds-sheet-body"><p class="mock-crumb">Fine-tune › All assumptions › <b>Your cars’ numbers</b></p><p class="ds-guide-note">Each input lists every car under it, so you can compare as you edit.</p><details class="ds-disc" id="c-0" open><summary class="ds-disc-sum"><span class="ds-disc-title">Price and efficiency</span><span class="ds-disc-meta">4 inputs × 4 cars</span></summary><div class="ds-disc-body"><h3 class="ds-group-h">What it would sell for</h3><div class="ds-field"><div class="ds-label-row"><label for="c-0-0-0" class="ds-label">Your gas sedan</label><span class="ds-status ds-status-ph">Placeholder</span></div>
+<div class="ds-input"><span class="ds-prefix" aria-hidden="true">$</span><input id="c-0-0-0" type="text" inputmode="numeric" autocomplete="off" value="9,000" aria-describedby="c-0-0-0-hint c-0-0-0-error" data-num="c-0-0-0" data-min="1000" data-max="150000" data-step="250" data-example="9000" data-last="9000" data-money="1"></div>
+<p class="ds-hint" id="c-0-0-0-hint">Allowed: $1,000 to $150,000.</p>
+<p class="ds-error" id="c-0-0-0-error" aria-live="polite"></p></div><div class="ds-field"><div class="ds-label-row"><label for="c-0-0-1" class="ds-label">Chevy Bolt</label><a class="ds-status ds-status-src" href="https://autofinder.com/deals/lease/chevrolet/bolt/2027" target="_blank" rel="noopener">Source<span class="ds-sr">: AutoFinder (Oct 2026): Bolt LT $28,995 MSRP, $477/mo, $2,977 due, 36 mo, 12k mi/yr (opens in a new tab)</span></a></div>
+<div class="ds-input"><span class="ds-prefix" aria-hidden="true">$</span><input id="c-0-0-1" type="text" inputmode="numeric" autocomplete="off" value="28,995" aria-describedby="c-0-0-1-hint c-0-0-1-error" data-num="c-0-0-1" data-min="1000" data-max="150000" data-step="250" data-example="28995" data-last="28995" data-money="1"></div>
+<p class="ds-hint" id="c-0-0-1-hint">Allowed: $1,000 to $150,000.</p>
+<p class="ds-error" id="c-0-0-1-error" aria-live="polite"></p></div><div class="ds-field"><div class="ds-label-row"><label for="c-0-0-2" class="ds-label">Toyota Camry Hybrid</label><a class="ds-status ds-status-src" href="https://www.toyota.com/camry/camry-vs-sonata" target="_blank" rel="noopener">Source<span class="ds-sr">: Toyota: Camry LE hybrid $29,300, 51 mpg combined (opens in a new tab)</span></a></div>
+<div class="ds-input"><span class="ds-prefix" aria-hidden="true">$</span><input id="c-0-0-2" type="text" inputmode="numeric" autocomplete="off" value="30,495" aria-describedby="c-0-0-2-hint c-0-0-2-error" data-num="c-0-0-2" data-min="1000" data-max="150000" data-step="250" data-example="30495" data-last="30495" data-money="1"></div>
+<p class="ds-hint" id="c-0-0-2-hint">Allowed: $1,000 to $150,000.</p>
+<p class="ds-error" id="c-0-0-2-error" aria-live="polite"></p></div><div class="ds-field"><div class="ds-label-row"><label for="c-0-0-3" class="ds-label">Toyota Corolla</label><a class="ds-status ds-status-src" href="https://www.carscoops.com/2026/08/2027-toyota-corolla/" target="_blank" rel="noopener">Source<span class="ds-sr">: Carscoops (Aug 2026): 2027 Corolla LE $23,325 plus $1,295 destination (opens in a new tab)</span></a></div>
+<div class="ds-input"><span class="ds-prefix" aria-hidden="true">$</span><input id="c-0-0-3" type="text" inputmode="numeric" autocomplete="off" value="24,620" aria-describedby="c-0-0-3-hint c-0-0-3-error" data-num="c-0-0-3" data-min="1000" data-max="150000" data-step="250" data-example="24620" data-last="24620" data-money="1"></div>
+<p class="ds-hint" id="c-0-0-3-hint">Allowed: $1,000 to $150,000.</p>
+<p class="ds-error" id="c-0-0-3-error" aria-live="polite"></p></div><h3 class="ds-group-h">Fuel economy</h3><div class="ds-field"><div class="ds-label-row"><label for="c-0-1-0" class="ds-label">Your gas sedan</label><span class="ds-status ds-status-ph">Placeholder</span></div>
+<div class="ds-input"><input id="c-0-1-0" type="text" inputmode="decimal" autocomplete="off" value="28.0" aria-describedby="c-0-1-0-hint c-0-1-0-error" data-num="c-0-1-0" data-min="8" data-max="80" data-step="0.5" data-example="28" data-last="28" data-unit="mpg"><span class="ds-unit">mpg</span></div>
+<p class="ds-hint" id="c-0-1-0-hint">Allowed: 8.0 to 80.0 mpg.</p>
+<p class="ds-error" id="c-0-1-0-error" aria-live="polite"></p></div><div class="ds-field"><div class="ds-label-row"><label for="c-0-1-1" class="ds-label">Toyota Camry Hybrid</label><a class="ds-status ds-status-src" href="https://www.fueleconomy.gov/feg/PowerSearch.do?action=noform&amp;path=1&amp;year1=2026&amp;year2=2026&amp;make=Toyota&amp;baseModel=Camry&amp;srchtyp=ymm&amp;pageno=1&amp;rowLimit=50" target="_blank" rel="noopener">Source<span class="ds-sr">: fueleconomy.gov: 2026 Camry Hybrid LE FWD 51 mpg combined (opens in a new tab)</span></a></div>
+<div class="ds-input"><input id="c-0-1-1" type="text" inputmode="decimal" autocomplete="off" value="51.0" aria-describedby="c-0-1-1-hint c-0-1-1-error" data-num="c-0-1-1" data-min="8" data-max="80" data-step="0.5" data-example="51" data-last="51" data-unit="mpg"><span class="ds-unit">mpg</span></div>
+<p class="ds-hint" id="c-0-1-1-hint">Allowed: 8.0 to 80.0 mpg.</p>
+<p class="ds-error" id="c-0-1-1-error" aria-live="polite"></p></div><div class="ds-field"><div class="ds-label-row"><label for="c-0-1-2" class="ds-label">Toyota Corolla</label><a class="ds-status ds-status-src" href="https://www.fueleconomy.gov/feg/PowerSearch.do?action=noform&amp;path=1&amp;year1=2027&amp;year2=2027&amp;make=Toyota&amp;baseModel=Corolla&amp;srchtyp=ymm&amp;pageno=1&amp;rowLimit=50" target="_blank" rel="noopener">Source<span class="ds-sr">: fueleconomy.gov: 2027 Corolla 2.0L CVT 35 mpg combined (opens in a new tab)</span></a></div>
+<div class="ds-input"><input id="c-0-1-2" type="text" inputmode="decimal" autocomplete="off" value="35.0" aria-describedby="c-0-1-2-hint c-0-1-2-error" data-num="c-0-1-2" data-min="8" data-max="80" data-step="0.5" data-example="35" data-last="35" data-unit="mpg"><span class="ds-unit">mpg</span></div>
+<p class="ds-hint" id="c-0-1-2-hint">Allowed: 8.0 to 80.0 mpg.</p>
+<p class="ds-error" id="c-0-1-2-error" aria-live="polite"></p></div><h3 class="ds-group-h">Energy use (EPA-style)</h3><div class="ds-field"><div class="ds-label-row"><label for="c-0-2-0" class="ds-label">Chevy Bolt</label><a class="ds-status ds-status-src" href="https://www.fueleconomy.gov/feg/PowerSearch.do?action=noform&amp;path=1&amp;year1=2027&amp;year2=2027&amp;make=Chevrolet&amp;baseModel=Bolt&amp;srchtyp=ymm&amp;pageno=1&amp;rowLimit=50" target="_blank" rel="noopener">Source<span class="ds-sr">: fueleconomy.gov: 2027 Bolt 120 MPGe, 28 kWh/100 mi, 262 mi EPA range (opens in a new tab)</span></a></div>
+<div class="ds-input"><input id="c-0-2-0" type="text" inputmode="decimal" autocomplete="off" value="28.0" aria-describedby="c-0-2-0-hint c-0-2-0-error" data-num="c-0-2-0" data-min="15" data-max="60" data-step="0.5" data-example="28" data-last="28" data-unit="kWh/100mi"><span class="ds-unit">kWh/100mi</span></div>
+<p class="ds-hint" id="c-0-2-0-hint">Allowed: 15.0 to 60.0 kWh/100mi.</p>
+<p class="ds-error" id="c-0-2-0-error" aria-live="polite"></p></div><h3 class="ds-group-h">Real-world adjustment vs label</h3><div class="ds-field"><div class="ds-label-row"><label for="c-0-3-0" class="ds-label">Chevy Bolt</label><span class="ds-status ds-status-ph">Placeholder</span></div>
+<div class="ds-input"><input id="c-0-3-0" type="text" inputmode="decimal" autocomplete="off" value="1.00" aria-describedby="c-0-3-0-hint c-0-3-0-error" data-num="c-0-3-0" data-min="0.8" data-max="1.5" data-step="0.01" data-example="1" data-last="1" data-unit="x"><span class="ds-unit">x</span></div>
+<p class="ds-hint" id="c-0-3-0-hint">Allowed: 0.80 to 1.50 x.</p>
+<p class="ds-error" id="c-0-3-0-error" aria-live="polite"></p></div></div></details><details class="ds-disc" id="c-1"><summary class="ds-disc-sum"><span class="ds-disc-title">Running costs</span><span class="ds-disc-meta">2 inputs × 4 cars</span></summary><div class="ds-disc-body"><h3 class="ds-group-h">Maintenance &amp; repair</h3><div class="ds-field"><div class="ds-label-row"><label for="c-1-0-0" class="ds-label">Your gas sedan</label><span class="ds-status ds-status-ph">Placeholder</span></div>
+<div class="ds-input"><span class="ds-prefix" aria-hidden="true">$</span><input id="c-1-0-0" type="text" inputmode="decimal" autocomplete="off" value="0.090" aria-describedby="c-1-0-0-hint c-1-0-0-error" data-num="c-1-0-0" data-min="0.03" data-max="0.5" data-step="0.005" data-example="0.09" data-last="0.09" data-money="1"></div>
+<p class="ds-hint" id="c-1-0-0-hint">Allowed: $0.030 to $0.500.</p>
+<p class="ds-error" id="c-1-0-0-error" aria-live="polite"></p></div><div class="ds-field"><div class="ds-label-row"><label for="c-1-0-1" class="ds-label">Chevy Bolt</label><a class="ds-status ds-status-src" href="https://newsroom.aaa.com/wp-content/uploads/2025/09/AAA-Brochure-Your-Driving-Cost-9.2025.pdf" target="_blank" rel="noopener">Source<span class="ds-sr">: AAA Your Driving Costs 2025: maintenance, repair, tires by category (opens in a new tab)</span></a></div>
+<div class="ds-input"><span class="ds-prefix" aria-hidden="true">$</span><input id="c-1-0-1" type="text" inputmode="decimal" autocomplete="off" value="0.101" aria-describedby="c-1-0-1-hint c-1-0-1-error" data-num="c-1-0-1" data-min="0.03" data-max="0.5" data-step="0.005" data-example="0.1007" data-last="0.1007" data-money="1"></div>
+<p class="ds-hint" id="c-1-0-1-hint">Allowed: $0.030 to $0.500.</p>
+<p class="ds-error" id="c-1-0-1-error" aria-live="polite"></p></div><div class="ds-field"><div class="ds-label-row"><label for="c-1-0-2" class="ds-label">Toyota Camry Hybrid</label><a class="ds-status ds-status-src" href="https://newsroom.aaa.com/wp-content/uploads/2025/09/AAA-Brochure-Your-Driving-Cost-9.2025.pdf" target="_blank" rel="noopener">Source<span class="ds-sr">: AAA Your Driving Costs 2025: maintenance, repair, tires by category (opens in a new tab)</span></a></div>
+<div class="ds-input"><span class="ds-prefix" aria-hidden="true">$</span><input id="c-1-0-2" type="text" inputmode="decimal" autocomplete="off" value="0.098" aria-describedby="c-1-0-2-hint c-1-0-2-error" data-num="c-1-0-2" data-min="0.03" data-max="0.5" data-step="0.005" data-example="0.0975" data-last="0.0975" data-money="1"></div>
+<p class="ds-hint" id="c-1-0-2-hint">Allowed: $0.030 to $0.500.</p>
+<p class="ds-error" id="c-1-0-2-error" aria-live="polite"></p></div><div class="ds-field"><div class="ds-label-row"><label for="c-1-0-3" class="ds-label">Toyota Corolla</label><a class="ds-status ds-status-src" href="https://newsroom.aaa.com/wp-content/uploads/2025/09/AAA-Brochure-Your-Driving-Cost-9.2025.pdf" target="_blank" rel="noopener">Source<span class="ds-sr">: AAA Your Driving Costs 2025: maintenance, repair, tires by category (opens in a new tab)</span></a></div>
+<div class="ds-input"><span class="ds-prefix" aria-hidden="true">$</span><input id="c-1-0-3" type="text" inputmode="decimal" autocomplete="off" value="0.102" aria-describedby="c-1-0-3-hint c-1-0-3-error" data-num="c-1-0-3" data-min="0.03" data-max="0.5" data-step="0.005" data-example="0.1023" data-last="0.1023" data-money="1"></div>
+<p class="ds-hint" id="c-1-0-3-hint">Allowed: $0.030 to $0.500.</p>
+<p class="ds-error" id="c-1-0-3-error" aria-live="polite"></p></div><h3 class="ds-group-h">Insurance</h3><div class="ds-field"><div class="ds-label-row"><label for="c-1-1-0" class="ds-label">Your gas sedan</label><span class="ds-status ds-status-ph">Placeholder</span></div>
+<div class="ds-input"><span class="ds-prefix" aria-hidden="true">$</span><input id="c-1-1-0" type="text" inputmode="numeric" autocomplete="off" value="1,400" aria-describedby="c-1-1-0-hint c-1-1-0-error" data-num="c-1-1-0" data-min="300" data-max="8000" data-step="50" data-example="1400" data-last="1400" data-money="1"></div>
+<p class="ds-hint" id="c-1-1-0-hint">Allowed: $300 to $8,000.</p>
+<p class="ds-error" id="c-1-1-0-error" aria-live="polite"></p></div><div class="ds-field"><div class="ds-label-row"><label for="c-1-1-1" class="ds-label">Chevy Bolt</label><span class="ds-status ds-status-ph">Placeholder</span></div>
+<div class="ds-input"><span class="ds-prefix" aria-hidden="true">$</span><input id="c-1-1-1" type="text" inputmode="numeric" autocomplete="off" value="1,900" aria-describedby="c-1-1-1-hint c-1-1-1-error" data-num="c-1-1-1" data-min="300" data-max="8000" data-step="50" data-example="1900" data-last="1900" data-money="1"></div>
+<p class="ds-hint" id="c-1-1-1-hint">Allowed: $300 to $8,000.</p>
+<p class="ds-error" id="c-1-1-1-error" aria-live="polite"></p></div><div class="ds-field"><div class="ds-label-row"><label for="c-1-1-2" class="ds-label">Toyota Camry Hybrid</label><span class="ds-status ds-status-ph">Placeholder</span></div>
+<div class="ds-input"><span class="ds-prefix" aria-hidden="true">$</span><input id="c-1-1-2" type="text" inputmode="numeric" autocomplete="off" value="1,700" aria-describedby="c-1-1-2-hint c-1-1-2-error" data-num="c-1-1-2" data-min="300" data-max="8000" data-step="50" data-example="1700" data-last="1700" data-money="1"></div>
+<p class="ds-hint" id="c-1-1-2-hint">Allowed: $300 to $8,000.</p>
+<p class="ds-error" id="c-1-1-2-error" aria-live="polite"></p></div><div class="ds-field"><div class="ds-label-row"><label for="c-1-1-3" class="ds-label">Toyota Corolla</label><span class="ds-status ds-status-ph">Placeholder</span></div>
+<div class="ds-input"><span class="ds-prefix" aria-hidden="true">$</span><input id="c-1-1-3" type="text" inputmode="numeric" autocomplete="off" value="1,600" aria-describedby="c-1-1-3-hint c-1-1-3-error" data-num="c-1-1-3" data-min="300" data-max="8000" data-step="50" data-example="1600" data-last="1600" data-money="1"></div>
+<p class="ds-hint" id="c-1-1-3-hint">Allowed: $300 to $8,000.</p>
+<p class="ds-error" id="c-1-1-3-error" aria-live="polite"></p></div></div></details><details class="ds-disc" id="c-2"><summary class="ds-disc-sum"><span class="ds-disc-title">Value and footprint</span><span class="ds-disc-meta">3 inputs × 4 cars</span></summary><div class="ds-disc-body"><h3 class="ds-group-h">Value loss / yr</h3><div class="ds-field"><div class="ds-label-row"><label for="c-2-0-0" class="ds-label">Your gas sedan</label><span class="ds-status ds-status-ph">Placeholder</span></div>
+<div class="ds-input"><input id="c-2-0-0" type="text" inputmode="decimal" autocomplete="off" value="8.0" aria-describedby="c-2-0-0-hint c-2-0-0-error" data-num="c-2-0-0" data-min="0" data-max="20" data-step="0.5" data-example="8" data-last="8" data-unit="%"><span class="ds-unit">%</span></div>
+<p class="ds-hint" id="c-2-0-0-hint">Allowed: 0.0 to 20.0 %.</p>
+<p class="ds-error" id="c-2-0-0-error" aria-live="polite"></p></div><h3 class="ds-group-h">5-year value loss</h3><div class="ds-field"><div class="ds-label-row"><label for="c-2-1-0" class="ds-label">Chevy Bolt</label><span class="ds-status ds-status-ph">Placeholder</span></div>
+<div class="ds-input"><input id="c-2-1-0" type="text" inputmode="numeric" autocomplete="off" value="60" aria-describedby="c-2-1-0-hint c-2-1-0-error" data-num="c-2-1-0" data-min="10" data-max="85" data-step="1" data-example="60" data-last="60" data-unit="%"><span class="ds-unit">%</span></div>
+<p class="ds-hint" id="c-2-1-0-hint">Allowed: 10 to 85 %.</p>
+<p class="ds-error" id="c-2-1-0-error" aria-live="polite"></p></div><div class="ds-field"><div class="ds-label-row"><label for="c-2-1-1" class="ds-label">Toyota Camry Hybrid</label><a class="ds-status ds-status-src" href="https://fordauthority.com/2026/04/ford-mustang-mach-e-among-highest-depreciating-vehicles/" target="_blank" rel="noopener">Source<span class="ds-sr">: iSeeCars 2026 via Ford Authority: hybrids lose 35.4% in 5 yrs, all vehicles 41.8% (opens in a new tab)</span></a></div>
+<div class="ds-input"><input id="c-2-1-1" type="text" inputmode="numeric" autocomplete="off" value="35" aria-describedby="c-2-1-1-hint c-2-1-1-error" data-num="c-2-1-1" data-min="10" data-max="85" data-step="1" data-example="35.4" data-last="35.4" data-unit="%"><span class="ds-unit">%</span></div>
+<p class="ds-hint" id="c-2-1-1-hint">Allowed: 10 to 85 %.</p>
+<p class="ds-error" id="c-2-1-1-error" aria-live="polite"></p></div><div class="ds-field"><div class="ds-label-row"><label for="c-2-1-2" class="ds-label">Toyota Corolla</label><a class="ds-status ds-status-src" href="https://www.gobankingrates.com/loans/auto/affordable-cars-that-will-be-even-cheaper-in-2026/" target="_blank" rel="noopener">Source<span class="ds-sr">: GoBankingRates/iSeeCars: Corolla 31.3% 5-yr depreciation (opens in a new tab)</span></a></div>
+<div class="ds-input"><input id="c-2-1-2" type="text" inputmode="numeric" autocomplete="off" value="31" aria-describedby="c-2-1-2-hint c-2-1-2-error" data-num="c-2-1-2" data-min="10" data-max="85" data-step="1" data-example="31.3" data-last="31.3" data-unit="%"><span class="ds-unit">%</span></div>
+<p class="ds-hint" id="c-2-1-2-hint">Allowed: 10 to 85 %.</p>
+<p class="ds-error" id="c-2-1-2-error" aria-live="polite"></p></div><h3 class="ds-group-h">Manufacturing emissions</h3><div class="ds-field"><div class="ds-label-row"><label for="c-2-2-0" class="ds-label">Chevy Bolt</label><span class="ds-status ds-status-ph">Placeholder</span></div>
+<div class="ds-input"><input id="c-2-2-0" type="text" inputmode="decimal" autocomplete="off" value="7.5" aria-describedby="c-2-2-0-hint c-2-2-0-error" data-num="c-2-2-0" data-min="2" data-max="30" data-step="0.5" data-example="7.5" data-last="7.5" data-unit="t"><span class="ds-unit">t</span></div>
+<p class="ds-hint" id="c-2-2-0-hint">Allowed: 2.0 to 30.0 t.</p>
+<p class="ds-error" id="c-2-2-0-error" aria-live="polite"></p></div><div class="ds-field"><div class="ds-label-row"><label for="c-2-2-1" class="ds-label">Toyota Camry Hybrid</label><a class="ds-status ds-status-src" href="https://www.zemo.org.uk/assets/workingdocuments/MC-P-11-15a%20Lifecycle%20emissions%20report.pdf" target="_blank" rel="noopener">Source<span class="ds-sr">: LowCVP/Ricardo: EV production emissions ~8.8 t CO2e, 46% before the first mile (opens in a new tab)</span></a></div>
+<div class="ds-input"><input id="c-2-2-1" type="text" inputmode="decimal" autocomplete="off" value="6.5" aria-describedby="c-2-2-1-hint c-2-2-1-error" data-num="c-2-2-1" data-min="2" data-max="30" data-step="0.5" data-example="6.5" data-last="6.5" data-unit="t"><span class="ds-unit">t</span></div>
+<p class="ds-hint" id="c-2-2-1-hint">Allowed: 2.0 to 30.0 t.</p>
+<p class="ds-error" id="c-2-2-1-error" aria-live="polite"></p></div><div class="ds-field"><div class="ds-label-row"><label for="c-2-2-2" class="ds-label">Toyota Corolla</label><a class="ds-status ds-status-src" href="https://autocar.co.uk/node/112177" target="_blank" rel="noopener">Source<span class="ds-sr">: Autocar: ~9 t to build an EV vs ~6 t for a petrol car (opens in a new tab)</span></a></div>
+<div class="ds-input"><input id="c-2-2-2" type="text" inputmode="decimal" autocomplete="off" value="6.0" aria-describedby="c-2-2-2-hint c-2-2-2-error" data-num="c-2-2-2" data-min="2" data-max="30" data-step="0.5" data-example="6" data-last="6" data-unit="t"><span class="ds-unit">t</span></div>
+<p class="ds-hint" id="c-2-2-2-hint">Allowed: 2.0 to 30.0 t.</p>
+<p class="ds-error" id="c-2-2-2-error" aria-live="polite"></p></div></div></details><details class="ds-disc" id="c-3"><summary class="ds-disc-sum"><span class="ds-disc-title">Incentives</span><span class="ds-disc-meta">2 inputs × 4 cars</span></summary><div class="ds-disc-body"><h3 class="ds-group-h">Final assembly in the U.S.</h3><fieldset class="ds-radios"><legend class="ds-label-row"><span class="ds-label">Chevy Bolt</span><a class="ds-status ds-status-src" href="https://gmauthority.com/blog/gm/chevrolet/bolt/" target="_blank" rel="noopener">Source<span class="ds-sr">: GM Authority: 2027 Bolt assembled at GM Fairfax, Kansas City, KS (opens in a new tab)</span></a></legend><label class="ds-radio"><input type="radio" name="c-3-0-0" checked><span>Yes</span></label><label class="ds-radio"><input type="radio" name="c-3-0-0" ><span>No</span></label></fieldset><fieldset class="ds-radios"><legend class="ds-label-row"><span class="ds-label">Toyota Camry Hybrid</span><span class="ds-status ds-status-ph">Placeholder</span></legend><label class="ds-radio"><input type="radio" name="c-3-0-1" ><span>Yes</span></label><label class="ds-radio"><input type="radio" name="c-3-0-1" checked><span>No</span></label></fieldset><fieldset class="ds-radios"><legend class="ds-label-row"><span class="ds-label">Toyota Corolla</span><span class="ds-status ds-status-ph">Placeholder</span></legend><label class="ds-radio"><input type="radio" name="c-3-0-2" ><span>Yes</span></label><label class="ds-radio"><input type="radio" name="c-3-0-2" checked><span>No</span></label></fieldset><h3 class="ds-group-h">CA MyFirstEV rebate available</h3><div class="ds-field"><div class="ds-label-row"><label for="c-3-1-0" class="ds-label">Chevy Bolt</label><a class="ds-status ds-status-src" href="https://ww2.arb.ca.gov/sites/default/files/2026-08/Slides_Aug27_MyFirstEV_Workgroup.pdf" target="_blank" rel="noopener">Source<span class="ds-sr">: CARB workgroup slides (Aug 27, 2026): no income limit, stacking allowed, Tesla funding closed, Rivian/Lucid exempt from price cap (opens in a new tab)</span></a></div>
+<div class="ds-input"><span class="ds-prefix" aria-hidden="true">$</span><input id="c-3-1-0" type="text" inputmode="numeric" autocomplete="off" value="3,500" aria-describedby="c-3-1-0-hint c-3-1-0-error" data-num="c-3-1-0" data-min="0" data-max="3500" data-step="250" data-example="3500" data-last="3500" data-money="1"></div>
+<p class="ds-hint" id="c-3-1-0-hint">Allowed: $0 to $3,500.</p>
+<p class="ds-error" id="c-3-1-0-error" aria-live="polite"></p></div></div></details><details class="ds-disc" id="c-4"><summary class="ds-disc-sum"><span class="ds-disc-title">Loan</span><span class="ds-disc-meta">3 inputs × 4 cars</span></summary><div class="ds-disc-body"><h3 class="ds-group-h">Loan APR</h3><div class="ds-field"><div class="ds-label-row"><label for="c-4-0-0" class="ds-label">Chevy Bolt</label><a class="ds-status ds-status-src" href="https://www.click2houston.com/news/local/2026/10/19/new-car-payments-hit-record-787-a-month-as-buyers-take-on-longer-loans-report-finds/" target="_blank" rel="noopener">Source<span class="ds-sr">: Edmunds Q3 2026: average new-car APR 7.0% (opens in a new tab)</span></a></div>
+<div class="ds-input"><input id="c-4-0-0" type="text" inputmode="decimal" autocomplete="off" value="7.00" aria-describedby="c-4-0-0-hint c-4-0-0-error" data-num="c-4-0-0" data-min="0" data-max="20" data-step="0.25" data-example="7.000000000000001" data-last="7.000000000000001" data-unit="%"><span class="ds-unit">%</span></div>
+<p class="ds-hint" id="c-4-0-0-hint">Allowed: 0.00 to 20.00 %.</p>
+<p class="ds-error" id="c-4-0-0-error" aria-live="polite"></p></div><div class="ds-field"><div class="ds-label-row"><label for="c-4-0-1" class="ds-label">Toyota Camry Hybrid</label><a class="ds-status ds-status-src" href="https://www.click2houston.com/news/local/2026/10/19/new-car-payments-hit-record-787-a-month-as-buyers-take-on-longer-loans-report-finds/" target="_blank" rel="noopener">Source<span class="ds-sr">: Edmunds Q3 2026: average new-car APR 7.0% (opens in a new tab)</span></a></div>
+<div class="ds-input"><input id="c-4-0-1" type="text" inputmode="decimal" autocomplete="off" value="7.00" aria-describedby="c-4-0-1-hint c-4-0-1-error" data-num="c-4-0-1" data-min="0" data-max="20" data-step="0.25" data-example="7.000000000000001" data-last="7.000000000000001" data-unit="%"><span class="ds-unit">%</span></div>
+<p class="ds-hint" id="c-4-0-1-hint">Allowed: 0.00 to 20.00 %.</p>
+<p class="ds-error" id="c-4-0-1-error" aria-live="polite"></p></div><div class="ds-field"><div class="ds-label-row"><label for="c-4-0-2" class="ds-label">Toyota Corolla</label><a class="ds-status ds-status-src" href="https://www.click2houston.com/news/local/2026/10/19/new-car-payments-hit-record-787-a-month-as-buyers-take-on-longer-loans-report-finds/" target="_blank" rel="noopener">Source<span class="ds-sr">: Edmunds Q3 2026: average new-car APR 7.0% (opens in a new tab)</span></a></div>
+<div class="ds-input"><input id="c-4-0-2" type="text" inputmode="decimal" autocomplete="off" value="7.00" aria-describedby="c-4-0-2-hint c-4-0-2-error" data-num="c-4-0-2" data-min="0" data-max="20" data-step="0.25" data-example="7.000000000000001" data-last="7.000000000000001" data-unit="%"><span class="ds-unit">%</span></div>
+<p class="ds-hint" id="c-4-0-2-hint">Allowed: 0.00 to 20.00 %.</p>
+<p class="ds-error" id="c-4-0-2-error" aria-live="polite"></p></div><h3 class="ds-group-h">Loan term</h3><div class="ds-field"><div class="ds-label-row"><label for="c-4-1-0" class="ds-label">Chevy Bolt</label><span class="ds-status ds-status-ph">Placeholder</span></div>
+<div class="ds-input"><input id="c-4-1-0" type="text" inputmode="numeric" autocomplete="off" value="60" aria-describedby="c-4-1-0-hint c-4-1-0-error" data-num="c-4-1-0" data-min="24" data-max="84" data-step="12" data-example="60" data-last="60" data-unit="mo"><span class="ds-unit">mo</span></div>
+<p class="ds-hint" id="c-4-1-0-hint">Allowed: 24 to 84 mo.</p>
+<p class="ds-error" id="c-4-1-0-error" aria-live="polite"></p></div><div class="ds-field"><div class="ds-label-row"><label for="c-4-1-1" class="ds-label">Toyota Camry Hybrid</label><span class="ds-status ds-status-ph">Placeholder</span></div>
+<div class="ds-input"><input id="c-4-1-1" type="text" inputmode="numeric" autocomplete="off" value="60" aria-describedby="c-4-1-1-hint c-4-1-1-error" data-num="c-4-1-1" data-min="24" data-max="84" data-step="12" data-example="60" data-last="60" data-unit="mo"><span class="ds-unit">mo</span></div>
+<p class="ds-hint" id="c-4-1-1-hint">Allowed: 24 to 84 mo.</p>
+<p class="ds-error" id="c-4-1-1-error" aria-live="polite"></p></div><div class="ds-field"><div class="ds-label-row"><label for="c-4-1-2" class="ds-label">Toyota Corolla</label><span class="ds-status ds-status-ph">Placeholder</span></div>
+<div class="ds-input"><input id="c-4-1-2" type="text" inputmode="numeric" autocomplete="off" value="60" aria-describedby="c-4-1-2-hint c-4-1-2-error" data-num="c-4-1-2" data-min="24" data-max="84" data-step="12" data-example="60" data-last="60" data-unit="mo"><span class="ds-unit">mo</span></div>
+<p class="ds-hint" id="c-4-1-2-hint">Allowed: 24 to 84 mo.</p>
+<p class="ds-error" id="c-4-1-2-error" aria-live="polite"></p></div><h3 class="ds-group-h">Down payment</h3><div class="ds-field"><div class="ds-label-row"><label for="c-4-2-0" class="ds-label">Chevy Bolt</label><span class="ds-status ds-status-ph">Placeholder</span></div>
+<div class="ds-input"><span class="ds-prefix" aria-hidden="true">$</span><input id="c-4-2-0" type="text" inputmode="numeric" autocomplete="off" value="3,000" aria-describedby="c-4-2-0-hint c-4-2-0-error" data-num="c-4-2-0" data-min="0" data-max="60000" data-step="500" data-example="3000" data-last="3000" data-money="1"></div>
+<p class="ds-hint" id="c-4-2-0-hint">Allowed: $0 to $60,000.</p>
+<p class="ds-error" id="c-4-2-0-error" aria-live="polite"></p></div><div class="ds-field"><div class="ds-label-row"><label for="c-4-2-1" class="ds-label">Toyota Camry Hybrid</label><span class="ds-status ds-status-ph">Placeholder</span></div>
+<div class="ds-input"><span class="ds-prefix" aria-hidden="true">$</span><input id="c-4-2-1" type="text" inputmode="numeric" autocomplete="off" value="3,000" aria-describedby="c-4-2-1-hint c-4-2-1-error" data-num="c-4-2-1" data-min="0" data-max="60000" data-step="500" data-example="3000" data-last="3000" data-money="1"></div>
+<p class="ds-hint" id="c-4-2-1-hint">Allowed: $0 to $60,000.</p>
+<p class="ds-error" id="c-4-2-1-error" aria-live="polite"></p></div><div class="ds-field"><div class="ds-label-row"><label for="c-4-2-2" class="ds-label">Toyota Corolla</label><span class="ds-status ds-status-ph">Placeholder</span></div>
+<div class="ds-input"><span class="ds-prefix" aria-hidden="true">$</span><input id="c-4-2-2" type="text" inputmode="numeric" autocomplete="off" value="2,500" aria-describedby="c-4-2-2-hint c-4-2-2-error" data-num="c-4-2-2" data-min="0" data-max="60000" data-step="500" data-example="2500" data-last="2500" data-money="1"></div>
+<p class="ds-hint" id="c-4-2-2-hint">Allowed: $0 to $60,000.</p>
+<p class="ds-error" id="c-4-2-2-error" aria-live="polite"></p></div></div></details><details class="ds-disc" id="c-5"><summary class="ds-disc-sum"><span class="ds-disc-title">Lease</span><span class="ds-disc-meta">3 inputs × 4 cars</span></summary><div class="ds-disc-body"><h3 class="ds-group-h">Lease payment</h3><div class="ds-field"><div class="ds-label-row"><label for="c-5-0-0" class="ds-label">Chevy Bolt</label><a class="ds-status ds-status-src" href="https://autofinder.com/deals/lease/chevrolet/bolt/2027" target="_blank" rel="noopener">Source<span class="ds-sr">: AutoFinder (Oct 2026): Bolt LT $28,995 MSRP, $477/mo, $2,977 due, 36 mo, 12k mi/yr (opens in a new tab)</span></a></div>
+<div class="ds-input"><span class="ds-prefix" aria-hidden="true">$</span><input id="c-5-0-0" type="text" inputmode="numeric" autocomplete="off" value="477" aria-describedby="c-5-0-0-hint c-5-0-0-error" data-num="c-5-0-0" data-min="100" data-max="1800" data-step="5" data-example="477" data-last="477" data-money="1"></div>
+<p class="ds-hint" id="c-5-0-0-hint">Allowed: $100 to $1,800.</p>
+<p class="ds-error" id="c-5-0-0-error" aria-live="polite"></p></div><div class="ds-field"><div class="ds-label-row"><label for="c-5-0-1" class="ds-label">Toyota Camry Hybrid</label><a class="ds-status ds-status-src" href="https://truecar.com/deals/fuel-hybrid/" target="_blank" rel="noopener">Source<span class="ds-sr">: TrueCar (May 2026): Camry hybrid $345/mo, CR-V $372/mo, 36 mo, $2,000 due (opens in a new tab)</span></a></div>
+<div class="ds-input"><span class="ds-prefix" aria-hidden="true">$</span><input id="c-5-0-1" type="text" inputmode="numeric" autocomplete="off" value="345" aria-describedby="c-5-0-1-hint c-5-0-1-error" data-num="c-5-0-1" data-min="100" data-max="1800" data-step="5" data-example="345" data-last="345" data-money="1"></div>
+<p class="ds-hint" id="c-5-0-1-hint">Allowed: $100 to $1,800.</p>
+<p class="ds-error" id="c-5-0-1-error" aria-live="polite"></p></div><h3 class="ds-group-h">Lease due at signing</h3><div class="ds-field"><div class="ds-label-row"><label for="c-5-1-0" class="ds-label">Chevy Bolt</label><a class="ds-status ds-status-src" href="https://autofinder.com/deals/lease/chevrolet/bolt/2027" target="_blank" rel="noopener">Source<span class="ds-sr">: AutoFinder (Oct 2026): Bolt LT $28,995 MSRP, $477/mo, $2,977 due, 36 mo, 12k mi/yr (opens in a new tab)</span></a></div>
+<div class="ds-input"><span class="ds-prefix" aria-hidden="true">$</span><input id="c-5-1-0" type="text" inputmode="numeric" autocomplete="off" value="2,977" aria-describedby="c-5-1-0-hint c-5-1-0-error" data-num="c-5-1-0" data-min="0" data-max="15000" data-step="50" data-example="2977" data-last="2977" data-money="1"></div>
+<p class="ds-hint" id="c-5-1-0-hint">Allowed: $0 to $15,000.</p>
+<p class="ds-error" id="c-5-1-0-error" aria-live="polite"></p></div><div class="ds-field"><div class="ds-label-row"><label for="c-5-1-1" class="ds-label">Toyota Camry Hybrid</label><a class="ds-status ds-status-src" href="https://truecar.com/deals/fuel-hybrid/" target="_blank" rel="noopener">Source<span class="ds-sr">: TrueCar (May 2026): Camry hybrid $345/mo, CR-V $372/mo, 36 mo, $2,000 due (opens in a new tab)</span></a></div>
+<div class="ds-input"><span class="ds-prefix" aria-hidden="true">$</span><input id="c-5-1-1" type="text" inputmode="numeric" autocomplete="off" value="2,000" aria-describedby="c-5-1-1-hint c-5-1-1-error" data-num="c-5-1-1" data-min="0" data-max="15000" data-step="50" data-example="2000" data-last="2000" data-money="1"></div>
+<p class="ds-hint" id="c-5-1-1-hint">Allowed: $0 to $15,000.</p>
+<p class="ds-error" id="c-5-1-1-error" aria-live="polite"></p></div><h3 class="ds-group-h">Lease term</h3><div class="ds-field"><div class="ds-label-row"><label for="c-5-2-0" class="ds-label">Chevy Bolt</label><a class="ds-status ds-status-src" href="https://autofinder.com/deals/lease/chevrolet/bolt/2027" target="_blank" rel="noopener">Source<span class="ds-sr">: AutoFinder (Oct 2026): Bolt LT $28,995 MSRP, $477/mo, $2,977 due, 36 mo, 12k mi/yr (opens in a new tab)</span></a></div>
+<div class="ds-input"><input id="c-5-2-0" type="text" inputmode="numeric" autocomplete="off" value="36" aria-describedby="c-5-2-0-hint c-5-2-0-error" data-num="c-5-2-0" data-min="24" data-max="48" data-step="12" data-example="36" data-last="36" data-unit="mo"><span class="ds-unit">mo</span></div>
+<p class="ds-hint" id="c-5-2-0-hint">Allowed: 24 to 48 mo.</p>
+<p class="ds-error" id="c-5-2-0-error" aria-live="polite"></p></div><div class="ds-field"><div class="ds-label-row"><label for="c-5-2-1" class="ds-label">Toyota Camry Hybrid</label><a class="ds-status ds-status-src" href="https://truecar.com/deals/fuel-hybrid/" target="_blank" rel="noopener">Source<span class="ds-sr">: TrueCar (May 2026): Camry hybrid $345/mo, CR-V $372/mo, 36 mo, $2,000 due (opens in a new tab)</span></a></div>
+<div class="ds-input"><input id="c-5-2-1" type="text" inputmode="numeric" autocomplete="off" value="36" aria-describedby="c-5-2-1-hint c-5-2-1-error" data-num="c-5-2-1" data-min="24" data-max="48" data-step="12" data-example="36" data-last="36" data-unit="mo"><span class="ds-unit">mo</span></div>
+<p class="ds-hint" id="c-5-2-1-hint">Allowed: 24 to 48 mo.</p>
+<p class="ds-error" id="c-5-2-1-error" aria-live="polite"></p></div></div></details></div></section></div></div></div><div class="mock-note"><b>Pros:</b><ul><li>Compare cars per input while editing; full-size fields.</li><li>No sideways scrolling.</li></ul><b>Cons:</b><ul><li>Longest list: about 50 fields with 4 cars, grouped in 6 sections.</li><li>Car names repeat on every input; easy to lose your place.</li></ul></div></section>
+<section class="mock-wide-item"><p class="mock-cap"><b>D</b> Desktop 1280 px: a panel opens beside the answer instead of covering it (same content as the phone sheet; Option A shown)</p><div class="wide"><div class="mock-desk"><div class="mock-desk-main"><h1 class="ds-answer-title">It is close. Keeping your gas sedan and the Chevy Bolt (loan) are within 2 points.</h1><div class="ds-cards"><article class="ds-card ds-card-top" aria-labelledby="d-c0-name">
+<div class="ds-card-head"><div class="ds-card-names"><h3 id="d-c0-name" class="ds-card-name">Keep My gas sedan</h3></div><p class="ds-card-score"><b>62</b><span>/100</span></p></div>
+<dl class="ds-card-stats"><div><dt>Cost over 8 years</dt><dd>$20,984</dd></div><div><dt>Carbon</dt><dd>25.2 t</dd></div><div><dt>People</dt><dd>50</dd></div></dl>
+</article><article class="ds-card" aria-labelledby="d-c1-name">
+<div class="ds-card-head"><div class="ds-card-names"><h3 id="d-c1-name" class="ds-card-name">Chevy Bolt (loan)</h3></div><p class="ds-card-score"><b>60</b><span>/100</span></p></div>
+<dl class="ds-card-stats"><div><dt>Cost over 8 years</dt><dd>$39,480</dd></div><div><dt>Carbon</dt><dd>21.3 t</dd></div><div><dt>People</dt><dd>55</dd></div></dl>
+</article><article class="ds-card" aria-labelledby="d-c2-name">
+<div class="ds-card-head"><div class="ds-card-names"><h3 id="d-c2-name" class="ds-card-name">Toyota Camry Hybrid (loan)</h3></div><p class="ds-card-score"><b>58</b><span>/100</span></p></div>
+<dl class="ds-card-stats"><div><dt>Cost over 8 years</dt><dd>$37,736</dd></div><div><dt>Carbon</dt><dd>29.9 t</dd></div><div><dt>People</dt><dd>56</dd></div></dl>
+</article></div></div><aside class="mock-desk-panel" aria-label="Fine-tune"><div class="ds-backdrop" data-sheet="dk"><section class="ds-sheet" id="dk" role="dialog" aria-modal="true" aria-labelledby="dk-title" tabindex="-1">
+<div class="ds-sheet-head"><h2 id="dk-title" class="ds-sheet-title">Fine-tune</h2><button type="button" class="ds-btn ds-btn-link ds-sheet-close" data-sheet-close>Close</button></div>
+<div class="ds-sheet-body"><p class="mock-crumb">Fine-tune › All assumptions › <b>Your cars’ numbers</b></p><p class="ds-guide-note">Pick a car, then change any of its numbers. The answer updates as you type.</p><fieldset class="ds-radios"><legend class="ds-label">Car</legend><label class="ds-radio"><input type="radio" name="d-car" ><span>Your gas sedan</span></label><label class="ds-radio"><input type="radio" name="d-car" checked><span>Chevy Bolt</span></label><label class="ds-radio"><input type="radio" name="d-car" ><span>Toyota Camry Hybrid</span></label><label class="ds-radio"><input type="radio" name="d-car" ><span>Toyota Corolla</span></label></fieldset><h3 class="ds-group-h">Price and efficiency</h3><div class="ds-field"><div class="ds-label-row"><label for="a-0-0" class="ds-label">Price</label><a class="ds-status ds-status-src" href="https://autofinder.com/deals/lease/chevrolet/bolt/2027" target="_blank" rel="noopener">Source<span class="ds-sr">: AutoFinder (Oct 2026): Bolt LT $28,995 MSRP, $477/mo, $2,977 due, 36 mo, 12k mi/yr (opens in a new tab)</span></a></div>
+<div class="ds-input"><span class="ds-prefix" aria-hidden="true">$</span><input id="a-0-0" type="text" inputmode="numeric" autocomplete="off" value="28,995" aria-describedby="a-0-0-hint a-0-0-error" data-num="a-0-0" data-min="1000" data-max="150000" data-step="250" data-example="28995" data-last="28995" data-money="1"></div>
+<p class="ds-hint" id="a-0-0-hint">Allowed: $1,000 to $150,000.</p>
+<p class="ds-error" id="a-0-0-error" aria-live="polite"></p></div><div class="ds-field"><div class="ds-label-row"><label for="a-0-1" class="ds-label">Energy use (EPA-style)</label><a class="ds-status ds-status-src" href="https://www.fueleconomy.gov/feg/PowerSearch.do?action=noform&amp;path=1&amp;year1=2027&amp;year2=2027&amp;make=Chevrolet&amp;baseModel=Bolt&amp;srchtyp=ymm&amp;pageno=1&amp;rowLimit=50" target="_blank" rel="noopener">Source<span class="ds-sr">: fueleconomy.gov: 2027 Bolt 120 MPGe, 28 kWh/100 mi, 262 mi EPA range (opens in a new tab)</span></a></div>
+<div class="ds-input"><input id="a-0-1" type="text" inputmode="decimal" autocomplete="off" value="28.0" aria-describedby="a-0-1-hint a-0-1-error" data-num="a-0-1" data-min="15" data-max="60" data-step="0.5" data-example="28" data-last="28" data-unit="kWh/100mi"><span class="ds-unit">kWh/100mi</span></div>
+<p class="ds-hint" id="a-0-1-hint">Allowed: 15.0 to 60.0 kWh/100mi.</p>
+<p class="ds-error" id="a-0-1-error" aria-live="polite"></p></div><div class="ds-field"><div class="ds-label-row"><label for="a-0-2" class="ds-label">Real-world adjustment vs label</label><span class="ds-status ds-status-ph">Placeholder</span></div>
+<div class="ds-input"><input id="a-0-2" type="text" inputmode="decimal" autocomplete="off" value="1.00" aria-describedby="a-0-2-hint a-0-2-error" data-num="a-0-2" data-min="0.8" data-max="1.5" data-step="0.01" data-example="1" data-last="1" data-unit="x"><span class="ds-unit">x</span></div>
+<p class="ds-hint" id="a-0-2-hint">Allowed: 0.80 to 1.50 x.</p>
+<p class="ds-error" id="a-0-2-error" aria-live="polite"></p></div><h3 class="ds-group-h">Running costs</h3><div class="ds-field"><div class="ds-label-row"><label for="a-1-0" class="ds-label">Maintenance &amp; repair</label><a class="ds-status ds-status-src" href="https://newsroom.aaa.com/wp-content/uploads/2025/09/AAA-Brochure-Your-Driving-Cost-9.2025.pdf" target="_blank" rel="noopener">Source<span class="ds-sr">: AAA Your Driving Costs 2025: maintenance, repair, tires by category (opens in a new tab)</span></a></div>
+<div class="ds-input"><span class="ds-prefix" aria-hidden="true">$</span><input id="a-1-0" type="text" inputmode="decimal" autocomplete="off" value="0.101" aria-describedby="a-1-0-hint a-1-0-error" data-num="a-1-0" data-min="0.03" data-max="0.5" data-step="0.005" data-example="0.1007" data-last="0.1007" data-money="1"></div>
+<p class="ds-hint" id="a-1-0-hint">Allowed: $0.030 to $0.500.</p>
+<p class="ds-error" id="a-1-0-error" aria-live="polite"></p></div><div class="ds-field"><div class="ds-label-row"><label for="a-1-1" class="ds-label">Insurance</label><span class="ds-status ds-status-ph">Placeholder</span></div>
+<div class="ds-input"><span class="ds-prefix" aria-hidden="true">$</span><input id="a-1-1" type="text" inputmode="numeric" autocomplete="off" value="1,900" aria-describedby="a-1-1-hint a-1-1-error" data-num="a-1-1" data-min="300" data-max="8000" data-step="50" data-example="1900" data-last="1900" data-money="1"></div>
+<p class="ds-hint" id="a-1-1-hint">Allowed: $300 to $8,000.</p>
+<p class="ds-error" id="a-1-1-error" aria-live="polite"></p></div><h3 class="ds-group-h">Value and footprint</h3><div class="ds-field"><div class="ds-label-row"><label for="a-2-0" class="ds-label">5-year value loss</label><span class="ds-status ds-status-ph">Placeholder</span></div>
+<div class="ds-input"><input id="a-2-0" type="text" inputmode="numeric" autocomplete="off" value="60" aria-describedby="a-2-0-hint a-2-0-error" data-num="a-2-0" data-min="10" data-max="85" data-step="1" data-example="60" data-last="60" data-unit="%"><span class="ds-unit">%</span></div>
+<p class="ds-hint" id="a-2-0-hint">Allowed: 10 to 85 %.</p>
+<p class="ds-error" id="a-2-0-error" aria-live="polite"></p></div><div class="ds-field"><div class="ds-label-row"><label for="a-2-1" class="ds-label">Manufacturing emissions</label><span class="ds-status ds-status-ph">Placeholder</span></div>
+<div class="ds-input"><input id="a-2-1" type="text" inputmode="decimal" autocomplete="off" value="7.5" aria-describedby="a-2-1-hint a-2-1-error" data-num="a-2-1" data-min="2" data-max="30" data-step="0.5" data-example="7.5" data-last="7.5" data-unit="t"><span class="ds-unit">t</span></div>
+<p class="ds-hint" id="a-2-1-hint">Allowed: 2.0 to 30.0 t.</p>
+<p class="ds-error" id="a-2-1-error" aria-live="polite"></p></div><p class="mock-more">… then Incentives, Loan, Lease (or “+ Add a lease”), and Rename for your own cars</p></div></section></div></aside></div></div><div class="mock-note"><b>Why:</b> on a wide screen you see the answer change while you edit. Escape and Close still work; focus moves into the panel and back. <b>Cost:</b> about half a day; the sheet controller gains a “side” layout at 1024 px and up. The page behind stays readable but not clickable while the panel is open (same rule as the phone sheet).</div></section>
+</div></div></body></html>

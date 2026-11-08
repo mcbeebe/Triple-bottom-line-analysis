@@ -66,7 +66,7 @@ const statusText = (page, slot) => page.evaluate((id) => document.getElementById
     let s = await info(page);
     check('fresh load shows Step 1', s.steps && !s.answer && s.heading === 'What are you deciding?' && s.title.startsWith('Step 1 of 3: What are you deciding?'), JSON.stringify(s));
     check('fresh load: nothing pressed and focus not moved', (await page.locator('#steps [aria-pressed="true"]').count()) === 0 && s.active === 'BODY');
-    check('Step 1: the analyst option is hidden until Phase 4 (P8)', (await page.locator('#steps .ds-option').count()) === 3 && !(await page.locator('#steps').innerText()).includes('Not sure'));
+    check('Step 1: without the AI there is no analyst option', (await page.locator('#steps .ds-option').count()) === 3 && !(await page.locator('#steps').innerText()).includes('Not sure'));
     await page.click('[data-act="st-path"][data-val="sell"]');
     s = await info(page);
     check('tap 1 (Sell) opens Step 2 and focuses its heading', s.hash === '#step-2' && s.heading === 'Your car and your driving' && s.active === 'st-title', JSON.stringify(s));
@@ -78,7 +78,7 @@ const statusText = (page, slot) => page.evaluate((id) => document.getElementById
     const snap = await page.evaluate(() => window.__tbl.snapshot());
     const keep = await page.evaluate(() => [...document.querySelectorAll('#answer-screen .ds-card-name')].map((h) => h.textContent));
     check('tap 3 (Show my answer) shows the answer and focuses its heading', s.answer && !s.steps && s.active === 'ans-title' && s.title.startsWith('Your answer'), JSON.stringify(s));
-    check('the default answer: Keep My gas sedan plus Bolt, Camry Hybrid and Corolla', keep.includes('Keep My gas sedan') && ['bolt-loan', 'bolt-lease', 'camryh-loan', 'camryh-lease', 'corolla-loan', 'keep'].every((id) => snap.ranks.some((r) => r.id === id)) && snap.ranks.length === 6, keep.join(','));
+    check('the default answer: Keep your gas sedan plus Bolt, Camry Hybrid and Corolla', keep.includes('Keep your gas sedan') && ['bolt-loan', 'bolt-lease', 'camryh-loan', 'camryh-lease', 'corolla-loan', 'keep'].every((id) => snap.ranks.some((r) => r.id === id)) && snap.ranks.length === 6, keep.join(','));
     check('the answer heading is scrolled into view', await page.evaluate(() => { const r = document.getElementById('ans-title').getBoundingClientRect(); return r.top >= 0 && r.top < window.innerHeight; }));
     check('the basis line offers Edit, and no assumption line once a path is chosen', (await page.locator('#ans-edit').isVisible()) && (await page.locator('#answer-screen .ds-answer-note').count()) === 0);
     await page.goBack();
@@ -125,7 +125,7 @@ const statusText = (page, slot) => page.evaluate((id) => document.getElementById
     const { ctx, page, errors } = await open(browser);
     await page.click('[data-act="st-path"][data-val="trade"]');
     check('trade path: the field is "Trade-in offer" at 15% below the private value', (await page.locator('label[for="st-value"]').innerText()) === 'Trade-in offer' && (await page.inputValue('#st-value')) === '7,650');
-    check('trade path: the discount is called a placeholder', /^Allowed: .* Placeholder: dealers usually offer about 15% less than a private buyer\.$/.test(await page.locator('#st-value-hint').innerText()));
+    check('trade path: the discount is called a placeholder', /^Allowed: .* Placeholder: dealers usually offer about 15% less than a private buyer\. California taxes the full price, so a trade-in saves no sales tax\.$/.test(await page.locator('#st-value-hint').innerText()));
     check('sedan value is marked Placeholder', (await statusText(page, 'st-value-status')) === 'Placeholder');
     await page.fill('#st-value', '8500');
     await page.locator('#st-value').blur();
@@ -149,9 +149,8 @@ const statusText = (page, slot) => page.evaluate((id) => document.getElementById
     await page.click('[data-act="st-next"]');
     await page.click('[data-act="st-answer"]');
     const ans = await page.evaluate(() => ({ keep: [...document.querySelectorAll('#answer-screen .ds-card-name')].map((h) => h.textContent).find((t) => t.startsWith('Keep')), basis: document.querySelector('#answer-screen .ds-basis').textContent }));
-    await page.click('#ans-why');
-    const mpg = await page.inputValue('input[data-field="lx..mpg"]');
-    check('step answers reach the answer screen (name, mpg, miles)', ans.keep === 'Keep Old Civic' && ans.basis.includes('8,000 miles a year') && mpg === '31', JSON.stringify({ ...ans, mpg }));
+    const mpg = String((await page.evaluate(() => window.__tbl.snapshot())).cars.find((c) => c.owned).mpg);
+    check('step answers reach the answer screen (name, mpg, miles)', ans.keep === 'Keep your Old Civic' && ans.basis.includes('8,000 miles a year') && mpg === '31', JSON.stringify({ ...ans, mpg }));
     check('step 2: no console errors', errors.length === 0, errors.join(' | '));
     await ctx.close();
   }
@@ -206,6 +205,33 @@ const statusText = (page, slot) => page.evaluate((id) => document.getElementById
     await page.click('[data-act="st-cancel"]');
     check('Cancel closes the form and returns focus', (await page.locator('#st-addcar').count()) === 0 && (await page.evaluate(() => document.activeElement.id)) === 'st-addopen');
     check('step 3: no console errors', errors.length === 0, errors.join(' | '));
+    await ctx.close();
+  }
+
+  // ---------- picker and presets (ported from the old page's qa.cjs and qa-path.cjs) ----------
+  {
+    const { ctx, page, errors } = await open(browser);
+    const snap = () => page.evaluate(() => window.__tbl.snapshot());
+    await page.click('[data-act="st-path"][data-val="sell"]');
+    const own = async () => (await snap()).cars.find((c) => c.owned);
+    await page.click('[data-act="st-preset"][data-val="suv"]');
+    const suv = await own();
+    check('choosing a preset sets its value and mpg', suv.price === 11000 && suv.mpg === 21 && (await page.inputValue('#st-value')) === '11,000', JSON.stringify(suv));
+    await page.click('[data-act="st-next"]');
+    const legends = await page.evaluate(() => [...document.querySelectorAll('#steps .ds-checks > legend')].map((l) => l.textContent));
+    check('Step 3 lists electric, hybrid and gas cars in groups', legends.slice(0, 3).join('|') === 'Electric|Hybrid|Gas', legends.join('|'));
+    await page.focus('#st-pick-corolla');
+    await page.keyboard.press('Space');
+    const ids = (await snap()).ranks.map((r) => r.id);
+    check('unticking a car takes its options out of the answer', !ids.some((id) => id.startsWith('corolla')) && ids.includes('bolt-loan'), ids.join(','));
+    await page.click('[data-act="st-answer"]');
+    const keepName = await page.evaluate(() => [...document.querySelectorAll('#answer-screen .ds-card-name')].map((h) => h.textContent).find((t) => t.startsWith('Keep')));
+    check('the keep card takes its name from the preset', keepName === 'Keep your gas SUV', keepName);
+    await page.evaluate(() => { location.hash = '#step-2'; });
+    await page.waitForSelector('[data-act="st-preset"]');
+    await page.click('[data-act="st-preset"][data-val="hybrid"]');
+    check('the hybrid preset still has a keep option', (await snap()).ranks.some((r) => r.id === 'keep') && (await own()).mpg > 30);
+    check('picker and presets: no console errors', errors.length === 0, errors.join(' | '));
     await ctx.close();
   }
 

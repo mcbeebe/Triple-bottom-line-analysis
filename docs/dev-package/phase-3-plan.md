@@ -161,3 +161,6 @@ About 7 to 8 days in two PRs (3a about 3 to 4, 3b about 4). `04-phases.md` says 
 - Nothing changes without a tap; AI text is still rendered as text through `sanitizeAnswer` and `esc`.
 
 **Not changed:** the analyst prompt, `sanitizeAnswer` and the engine. On claude.ai the page must declare the `sample` capability for the AI to be available; without it the option stays hidden.
+
+## Phase 3b: done (Nov 8, 2026)
+See `phase-3b-plan.md` (results at the end). The old page is deleted; no feature lost (ledger: 155 of 155 old checks ported or retired with a reason).

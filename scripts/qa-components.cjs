@@ -49,7 +49,7 @@ const active = (page) => page.evaluate(() => {
       const st = await page.evaluate(() => ({
         theme: document.body.dataset.theme,
         guide: !document.getElementById('style-guide').hidden,
-        main: !document.querySelector('main:not(#steps):not(#answer-screen)').hidden || !document.getElementById('steps').hidden,
+        main: !document.getElementById('answer-screen').hidden || !document.getElementById('steps').hidden,
         overflow: document.documentElement.scrollWidth - window.innerWidth,
         counts: Object.fromEntries(Object.entries({
           primary: '.ds-btn-primary', secondary: '.ds-btn-secondary', link: '.ds-btn-link', chip: '.ds-chip', option: '.ds-option',
@@ -84,7 +84,7 @@ const active = (page) => page.evaluate(() => {
       visible: !document.querySelector('[data-sheet="sg-sheet"]').hidden,
       lock: document.documentElement.classList.contains('ds-scroll-lock'),
       guideInert: document.getElementById('style-guide').inert,
-      mainInert: document.querySelector('main:not(#steps):not(#answer-screen)').inert && document.getElementById('steps').inert
+      mainInert: document.getElementById('answer-screen').inert && document.getElementById('steps').inert
     }));
     check('sheet: opens', opened.visible);
     check('sheet: page behind is inert and scroll-locked', opened.lock && opened.guideInert && opened.mainInert, JSON.stringify(opened));
@@ -106,7 +106,7 @@ const active = (page) => page.evaluate(() => {
     const closed = await page.evaluate(() => ({
       hidden: document.querySelector('[data-sheet="sg-sheet"]').hidden,
       lock: document.documentElement.classList.contains('ds-scroll-lock'),
-      inert: document.getElementById('style-guide').inert || document.querySelector('main:not(#steps):not(#answer-screen)').inert || document.getElementById('steps').inert
+      inert: document.getElementById('style-guide').inert || document.getElementById('answer-screen').inert || document.getElementById('steps').inert
     }));
     check('sheet: Escape closes and restores the page', closed.hidden && !closed.lock && !closed.inert, JSON.stringify(closed));
     check('sheet: focus returns to the opener after Escape', (await active(page)).id === 'sg-open-sheet');
@@ -196,20 +196,21 @@ const active = (page) => page.evaluate(() => {
     await ctx.close();
   }
 
-  // Routing: a fresh load shows Step 1; #details shows the old page with the public defaults; leaving the guide restores the theme.
+  // Routing: a fresh load shows Step 1; an old #details link opens the answer (public defaults); leaving the guide restores the theme.
   {
     const ctx = await browser.newContext({ viewport: { width: 390, height: 844 } });
     const page = await ctx.newPage();
     await page.goto(url, { waitUntil: 'load' });
-    const vis = () => page.evaluate(() => ({ guide: !document.getElementById('style-guide').hidden, steps: !document.getElementById('steps').hidden, answer: !document.querySelector('main:not(#steps):not(#answer-screen)').hidden }));
-    check('route: a fresh load shows Step 1, not the guide or the old page', JSON.stringify(await vis()) === JSON.stringify({ guide: false, steps: true, answer: false }), JSON.stringify(await vis()));
+    const vis = () => page.evaluate(() => ({ guide: !document.getElementById('style-guide').hidden, steps: !document.getElementById('steps').hidden, answer: !document.getElementById('answer-screen').hidden }));
+    check('route: a fresh load shows Step 1, not the guide or the answer', JSON.stringify(await vis()) === JSON.stringify({ guide: false, steps: true, answer: false }), JSON.stringify(await vis()));
     await page.evaluate(() => { location.hash = 'details'; });
-    await page.waitForFunction(() => !document.querySelector('main:not(#steps):not(#answer-screen)').hidden);
-    const defaults = await page.evaluate(() => ({ selected: window.__tbl.snapshot().selected, keep: [...document.querySelectorAll('#res-main .card h3')].map((h) => h.textContent).find((t) => t.startsWith('Keep')) }));
-    check('without the QA hook, the public defaults apply (sedan; Bolt, Camry Hybrid, Corolla)', defaults.selected.join(',') === 'bolt,camryh,corolla' && defaults.keep === 'Keep My gas sedan', JSON.stringify(defaults));
+    await page.waitForFunction(() => !document.getElementById('answer-screen').hidden);
+    check('route: an old #details link opens the answer and corrects the address', await page.evaluate(() => location.hash === '#answer'));
+    const defaults = await page.evaluate(() => ({ selected: window.__tbl.snapshot().selected, keep: [...document.querySelectorAll('#answer-screen .ds-card-name')].map((h) => h.textContent).find((t) => t.startsWith('Keep')) }));
+    check('without the QA hook, the public defaults apply (sedan; Bolt, Camry Hybrid, Corolla)', defaults.selected.join(',') === 'bolt,camryh,corolla' && defaults.keep === 'Keep your gas sedan', JSON.stringify(defaults));
     await page.evaluate(() => { location.hash = 'style-guide'; });
     await page.waitForFunction(() => !document.getElementById('style-guide').hidden);
-    check('route: the guide hides the steps and the old page', JSON.stringify(await vis()) === JSON.stringify({ guide: true, steps: false, answer: false }));
+    check('route: the guide hides the steps and the answer', JSON.stringify(await vis()) === JSON.stringify({ guide: true, steps: false, answer: false }));
     await page.click('[data-act="sg-theme"][data-val="night"]');
     await page.click('#style-guide a[href="#"]');
     await page.waitForFunction(() => !document.getElementById('steps').hidden);

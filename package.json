@@ -8,7 +8,7 @@
     "typecheck": "tsc --noEmit",
     "build": "node scripts/build.mjs",
     "check": "npm run typecheck && npm test && npm run build",
-    "qa": "node scripts/qa.cjs && node scripts/qa-analyst.cjs && node scripts/qa-path.cjs && node scripts/qa-components.cjs && node scripts/qa-steps.cjs && node scripts/qa-answer.cjs && node scripts/qa-ai.cjs && node scripts/qa-size.cjs && node scripts/qa-visual.cjs",
+    "qa": "node scripts/qa-components.cjs && node scripts/qa-steps.cjs && node scripts/qa-answer.cjs && node scripts/qa-ai.cjs && node scripts/qa-ledger.cjs && node scripts/qa-size.cjs",
     "verify": "npm run check && npm run qa"
   },
   "keywords": [],

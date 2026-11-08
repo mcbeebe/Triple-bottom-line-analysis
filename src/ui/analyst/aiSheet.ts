@@ -2,7 +2,7 @@ import { analyst } from '../../app/analystSession';
 import { dsButton } from '../components/button';
 import { dsSheet, hideSheet, openSheetId, showSheet } from '../components/sheet';
 import { currentRoute, navigate } from '../steps/router';
-import { setAnalystHost } from './sheet';
+import { renderAnalyst } from './sheet';
 
 /** Id of the "Ask the analyst" sheet. */
 export const AI_SHEET = 'ai';
@@ -18,7 +18,7 @@ export function openAiSheet(opener: HTMLElement | null): void {
   const host = document.getElementById('ds-sheets');
   if (!host) return;
   host.innerHTML = dsSheet({ id: AI_SHEET, title: 'Ask the analyst', bodyHtml: aiSheetBody(currentRoute() === 'answer') });
-  setAnalystHost('ai-host');
+  renderAnalyst();
   showSheet(AI_SHEET, opener);
   document.getElementById('an-text')?.focus();
 }

@@ -25,3 +25,9 @@ Details and trade-offs: `phase-2-plan.md`.
 - It opens today's analyst in a bottom sheet ("Ask the analyst"). Suggestions still apply only on a tap; the screen behind updates; "See my answer" goes to the answer.
 - **Q5 pulled forward:** the answer screen has an "Ask the analyst" button that opens the same sheet ("Back to my answer" closes it).
 - Phase 4 still rebuilds the analyst (filling the steps from one sentence, the new design for its answer).
+
+## Phase 3b decisions (owner, Nov 6, 2026; plan approved the same day)
+Details: `phase-3b-plan.md` and `phase-3b-mockups.html`.
+- **D1 = A:** each car's numbers in Fine-tune are edited one car at a time (pick a car, then full-size fields with Source/Placeholder labels). Comparing cars side by side stays in Table.
+- **D2:** at 1024 px and up, panels open beside the answer (min(440 px, 40% of the screen)), so the answer stays readable while you edit.
+- **Changes recorded while building:** Reset all keeps the path chosen on Step 1 (the old page reset it to Sell); the third theme ("Field guide") is gone (Phase 1 decision A); the California trade-in tax fact moved from the old page's blurb into the trade-in notes on Step 2 and in Fine-tune.

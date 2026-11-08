@@ -2,17 +2,18 @@ import type { Disposal } from '../engine';
 import type { State } from './state';
 
 /** Every screen the hash can name. Plain #names, which the artifact host passes through. */
-/** 'details' is the old full page, reachable from the answer until Phase 3b rebuilds its panels. */
-export type Route = 'step-1' | 'step-2' | 'step-3' | 'answer' | 'details' | 'style-guide';
+export type Route = 'step-1' | 'step-2' | 'step-3' | 'answer' | 'style-guide';
 
-const ROUTES: Route[] = ['step-1', 'step-2', 'step-3', 'answer', 'details', 'style-guide'];
+const ROUTES: Route[] = ['step-1', 'step-2', 'step-3', 'answer', 'style-guide'];
+/** Names that used to exist: the old full page ("All the details", Phase 3a) is now the answer's panels. */
+const RENAMED: Record<string, Route> = { details: 'answer' };
 const FLOW: Route[] = ['step-1', 'step-2', 'step-3', 'answer'];
 const APP = 'TBL Decision Scorecard';
 
-/** Route for a location hash; an empty or unknown hash means Step 1. */
+/** Route for a location hash; an empty or unknown hash means Step 1, and an old name maps to its new screen. */
 export function parseRoute(hash: string): Route {
   const name = hash.replace(/^#/, '');
-  return (ROUTES as string[]).includes(name) ? (name as Route) : 'step-1';
+  return (ROUTES as string[]).includes(name) ? (name as Route) : RENAMED[name] ?? 'step-1';
 }
 
 /** Hash for a route. */
@@ -65,12 +66,12 @@ export function stepCopy(r: Route, path: Disposal): { heading: string; sub: stri
       ? { heading: 'Your driving', sub: 'Miles change fuel and charging costs.' }
       : { heading: 'Your car and your driving', sub: 'Start from a preset. Values marked as placeholders are not sourced.' };
   if (r === 'step-3') return { heading: 'Which cars should we compare?', sub: '' };
-  return { heading: r === 'answer' ? 'Your answer' : r === 'details' ? 'All the details' : 'Style guide', sub: '' };
+  return { heading: r === 'answer' ? 'Your answer' : 'Style guide', sub: '' };
 }
 
 /** Page title for a screen. Never includes car names or anything typed (privacy rule). */
 export function titleFor(r: Route, path: Disposal): string {
   const n = FLOW.indexOf(r);
-  if (r === 'answer' || r === 'details' || r === 'style-guide') return `${stepCopy(r, path).heading} · ${APP}`;
+  if (r === 'answer' || r === 'style-guide') return `${stepCopy(r, path).heading} · ${APP}`;
   return `Step ${n + 1} of 3: ${stepCopy(r, path).heading} · ${APP}`;
 }
