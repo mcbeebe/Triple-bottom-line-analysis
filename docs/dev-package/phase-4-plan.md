@@ -1,6 +1,6 @@
 # Phase 4 plan: fill the steps from one sentence
 
-Status: **draft for owner approval** (Nov 8, 2026). Mockups: `phase-4-mockups.html` (real renderers and engine; the analyst's reply is the fake one the tests use).
+Status: **E1 decided by the owner Nov 9, 2026: A (review, then one tap); waiting for approval of the plan as a whole.** Mockups: `phase-4-mockups.html` (real renderers and engine; the analyst's reply is the fake one the tests use).
 
 ## Goal (from `04-phases.md`)
 "A typed sentence can fill steps 1 to 3 and land on the confirm-first answer; nothing applies without a tap." With the AI unavailable, every entry point stays hidden and the steps work as they do now.
@@ -31,7 +31,7 @@ Status: **draft for owner approval** (Nov 8, 2026). Mockups: `phase-4-mockups.ht
    The verdict below updates as usual and the change is announced.
 4. **Today's detail cards stay below the list** for what does not map to a step: questions with Set, other suggested values such as gas price, what the results mean, and caveats.
 
-## Decision for the owner
+## Decision (owner, Nov 9, 2026: E1 = A)
 | # | Question | Options | Recommendation |
 | --- | --- | --- | --- |
 | E1 | How the sentence fills the steps | **A** review a short list mapped to the steps, untick anything wrong, one tap to the answer (mockups A1, A2); **B** go through Steps 1 to 3 pre-filled, marked "From you", then the answer (mockup B); **C** keep today's cards and add "Apply all and see my answer" (mockup C) | **A**: one screen shows what will change, step by step; one tap; still opt-in. A also has a "Go through the steps instead" link (applies the ticked items, then opens Step 1), which covers B's strength without its extra screens. |
